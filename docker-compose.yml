@@ -1,0 +1,23 @@
+services:
+  web:
+    image: node:22-alpine
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      # Keeps the container's install off the host tree, and warm between restarts.
+      - web-node-modules:/app/node_modules
+    # ponytail: inotify works on a WSL/ext4 bind mount, which is where this repo
+    # lives. If hot reload goes quiet on a Windows-filesystem checkout, add
+    # CHOKIDAR_USEPOLLING=1 to an environment: block here.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5173/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  web-node-modules:
