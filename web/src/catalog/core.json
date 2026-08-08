@@ -1,0 +1,70 @@
+{
+  "nodes": [
+    {
+      "kind": "actor",
+      "base": "actor",
+      "label": "Actor",
+      "icon": "lucide:user",
+      "shape": "person",
+      "props": {
+        "description": { "type": "string" },
+        "external": { "type": "boolean", "default": true }
+      }
+    },
+    {
+      "kind": "system",
+      "base": "system",
+      "label": "System",
+      "icon": "lucide:box",
+      "shape": "boundary",
+      "props": {
+        "description": { "type": "string" },
+        "status": { "enum": ["live", "future", "deprecated", "removed"], "default": "live" },
+        "external": { "type": "boolean", "default": false }
+      }
+    },
+    {
+      "kind": "app",
+      "base": "app",
+      "label": "App",
+      "icon": "lucide:app-window",
+      "shape": "rect",
+      "props": {
+        "description": { "type": "string" },
+        "status": { "enum": ["live", "future", "deprecated", "removed"], "default": "live" }
+      }
+    },
+    {
+      "kind": "store",
+      "base": "store",
+      "label": "Store",
+      "icon": "lucide:database",
+      "shape": "cylinder",
+      "props": {
+        "description": { "type": "string" },
+        "status": { "enum": ["live", "future", "deprecated", "removed"], "default": "live" }
+      }
+    },
+    {
+      "kind": "component",
+      "base": "component",
+      "label": "Component",
+      "icon": "lucide:puzzle",
+      "shape": "rect",
+      "props": {
+        "description": { "type": "string" }
+      }
+    },
+    {
+      "kind": "group",
+      "base": "group",
+      "label": "Group",
+      "icon": "lucide:group",
+      "shape": "boundary",
+      "props": {
+        "description": { "type": "string" }
+      }
+    }
+  ],
+  "edges": [{ "kind": "uses", "label": "uses" }]
+}

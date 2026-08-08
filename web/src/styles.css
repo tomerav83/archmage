@@ -1,0 +1,251 @@
+:root {
+  --bg: #f7f7f8;
+  --panel: #fff;
+  --line: #dcdce0;
+  --ink: #1c1c1f;
+  --dim: #6b6b74;
+  --accent: #4c5fd7;
+  --error: #c2371f;
+  --warn: #b0790a;
+  --info: #4c5fd7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 190px 1fr 260px;
+  grid-template-rows: auto 1fr 170px;
+  height: 100vh;
+}
+
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+header .board-name {
+  flex: 0 1 280px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+header button {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: pointer;
+}
+
+header button:hover {
+  border-color: var(--accent);
+}
+
+header .error {
+  color: var(--error);
+}
+
+.palette,
+.inspector {
+  overflow: auto;
+  padding: 10px;
+  background: var(--panel);
+}
+
+.palette {
+  border-right: 1px solid var(--line);
+}
+
+.inspector {
+  border-left: 1px solid var(--line);
+}
+
+.palette h3,
+.inspector h3,
+.findings h3 {
+  margin: 12px 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.palette section:first-child h3 {
+  margin-top: 0;
+}
+
+.chip {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: grab;
+}
+
+.chip:hover {
+  border-color: var(--accent);
+}
+
+.inspector label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--dim);
+}
+
+.inspector label.check {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inspector input:not([type='checkbox']),
+.inspector select {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 4px 6px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+main {
+  position: relative;
+}
+
+.hint {
+  color: var(--dim);
+}
+
+/* --- blocks --- */
+
+.block {
+  min-width: 132px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  text-align: center;
+}
+
+.block.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(76 95 215 / 0.2);
+}
+
+.block-kind {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.block-name {
+  font-weight: 600;
+}
+
+.block.cylinder {
+  border-radius: 40% 40% 10px 10px / 18px 18px 10px 10px;
+  padding-top: 12px;
+}
+
+.block.person {
+  border-radius: 20px 20px 8px 8px;
+}
+
+.block.boundary {
+  min-width: 180px;
+  min-height: 76px;
+  border-style: dashed;
+  background: rgb(255 255 255 / 0.55);
+}
+
+/* --- findings --- */
+
+.findings {
+  grid-column: 1 / -1;
+  overflow: auto;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+}
+
+.findings h3 {
+  margin-top: 0;
+}
+
+.findings .count {
+  padding: 0 6px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.findings ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.finding {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0 4px 10px;
+  border: 0;
+  border-left: 3px solid var(--line);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.finding:hover {
+  background: var(--bg);
+}
+
+.finding span {
+  color: var(--dim);
+}
+
+.finding.error {
+  border-left-color: var(--error);
+}
+
+.finding.warn {
+  border-left-color: var(--warn);
+}
+
+.finding.info {
+  border-left-color: var(--info);
+}
