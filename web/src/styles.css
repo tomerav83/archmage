@@ -1,13 +1,75 @@
+/* Rack unit: dark charcoal, one hue per C4 base, tiles instead of boxes.
+   Structure comes from negative space — there are no panel borders.
+   Modelled on the Neural DSP Quad Cortex signal-chain screen. */
+
 :root {
-  --bg: #f7f7f8;
-  --panel: #fff;
-  --line: #dcdce0;
-  --ink: #1c1c1f;
-  --dim: #6b6b74;
-  --accent: #4c5fd7;
-  --error: #c2371f;
-  --warn: #b0790a;
-  --info: #4c5fd7;
+  color-scheme: dark; /* native select popups and scrollbars follow the screen */
+
+  /* elevation ramp, deepest first. Not pure black — the Quad Cortex screen is
+     a dark charcoal, and #000 gives the hues nothing to sit against. */
+  --void: #2a2a33;
+  --void-hi: #3a3a45;
+  --shell: #33333d;
+  --slot: #43434f;
+  --slot-hi: #4e4e5c;
+  --hair: #4c4c59;
+  --ink: #f2f2f3;
+  --dim: #a8a8b3; /* 5.3:1 on --shell, 6.0:1 on --void — it is quiet, not unreadable */
+  --rail: #c9c9cc;
+  --shadow: rgb(0 0 0 / 0.55);
+
+  /* one hue per IcePanel base — all six, or a base renders as untyped grey.
+     Containers stay achromatic: colour marks a thing, lightness marks a frame. */
+  --actor: #ff7a6b;
+  --app: #4c6ef5;
+  --component: #12b5a5;
+  --store: #3fbf5f;
+  --system: #b6bece;
+  --group: #7e8494;
+  /* the fallback hue for a block whose kind has no catalog entry — light enough
+     to carry --on-hue at 5.5:1, since that is exactly when the raw kind is shown */
+  --bound: #82828a;
+
+  /* severity hues are held off the object palette so a red finding can never
+     be mistaken for a red object. --error is a fill: it carries --on-hue at 5.4:1
+     but only 3.6:1 as text and 3.5:1 under --ink, so text and danger buttons
+     get their own step of the same hue. */
+  --error: #e5484d;
+  --error-text: #ffadb4; /* 4.8:1 on --hair, 8.1:1 on --void */
+  --error-fill: #a3262a; /* 6.5:1 under --ink */
+  --warn: #e8a33d;
+  --live: #57d26f;
+
+  --on-hue: #000; /* text and tags on a saturated fill */
+
+  --h: var(--bound);
+
+  --gap: 10px;
+  --pad: 12px;
+  --r-1: 6px;
+  --r-2: 10px;
+  --r-3: 14px;
+}
+
+/* the hue mapping is on the attribute, not on .block — every surface that
+   states a type (canvas tile, palette chip) picks it up from one place. */
+[data-base='actor'] {
+  --h: var(--actor);
+}
+[data-base='app'] {
+  --h: var(--app);
+}
+[data-base='component'] {
+  --h: var(--component);
+}
+[data-base='store'] {
+  --h: var(--store);
+}
+[data-base='system'] {
+  --h: var(--system);
+}
+[data-base='group'] {
+  --h: var(--group);
 }
 
 * {
@@ -16,9 +78,16 @@
 
 body {
   margin: 0;
-  font: 13px/1.45 ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font:
+    500 0.8125rem/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  letter-spacing: -0.01em;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--void);
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -28,191 +97,563 @@ select {
   color: inherit;
 }
 
+:focus-visible {
+  outline: 2px solid var(--live);
+  outline-offset: 2px;
+}
+
+/* announced, never drawn */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* glyphs carry a box whether or not one has rendered, so nothing shifts around them */
+.icon {
+  display: block;
+  flex: 0 0 auto;
+  color: var(--h);
+}
+
 .app {
   display: grid;
   grid-template-columns: 190px 1fr 260px;
   grid-template-rows: auto 1fr 170px;
+  gap: var(--gap);
   height: 100vh;
+  padding: var(--gap);
 }
+
+/* --- header --- */
 
 header {
   grid-column: 1 / -1;
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: var(--gap);
   align-items: center;
-  padding: 8px 12px;
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+}
+
+header h1 {
+  margin: 0;
+  font:
+    800 1.375rem/1 system-ui,
+    sans-serif;
+  letter-spacing: -0.04em;
+  color: var(--live);
 }
 
 header .board-name {
-  flex: 0 1 280px;
-  padding: 4px 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  flex: 0 1 300px;
+  min-width: 0;
+  padding: 8px 11px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--shell);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+header .board-name::placeholder {
+  color: var(--dim);
 }
 
 header button {
-  padding: 4px 10px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
+  padding: 8px 13px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--slot);
+  font-weight: 700;
+  font-size: 0.6875rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
 header button:hover {
-  border-color: var(--accent);
+  background: var(--slot-hi);
 }
 
-header .error {
-  color: var(--error);
+header button:active {
+  background: var(--hair);
+  transform: translateY(1px);
 }
+
+header .primary {
+  background: var(--live);
+  color: var(--on-hue);
+}
+
+/* a message can be long and is the one thing here allowed to wrap */
+header .error {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1 1 240px;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--error-text);
+  font-weight: 600;
+}
+
+.dismiss {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border: 0;
+  border-radius: var(--r-1);
+  background: transparent;
+  color: inherit;
+  font-size: 1rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.dismiss:hover {
+  background: var(--slot);
+}
+
+.dismiss:active {
+  background: var(--hair);
+}
+
+/* --- side wells --- */
 
 .palette,
-.inspector {
+.inspector,
+.findings {
   overflow: auto;
-  padding: 10px;
-  background: var(--panel);
+  padding: var(--pad);
+  border-radius: var(--r-3);
+  background: var(--shell);
 }
 
 .palette {
-  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.inspector {
-  border-left: 1px solid var(--line);
-}
-
-.palette h3,
-.inspector h3,
-.findings h3 {
-  margin: 12px 0 6px;
-  font-size: 11px;
-  letter-spacing: 0.06em;
+.palette h2,
+.inspector h2,
+.findings h2 {
+  margin: 6px 0 1px;
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--dim);
 }
 
-.palette section:first-child h3 {
+.palette section:first-child h2 {
   margin-top: 0;
 }
 
+.palette section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.palette section + section {
+  margin-top: var(--gap);
+}
+
+/* a chip is a button: drag it to place it exactly, press it to drop it in the middle */
 .chip {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
-  padding: 5px 8px;
-  margin-bottom: 4px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
+  width: 100%;
+  padding: 7px var(--gap);
+  border: 1.5px solid var(--h);
+  border-radius: var(--r-2);
+  background: color-mix(in srgb, var(--h) 13%, var(--void));
+  font-weight: 700;
+  text-align: left;
   cursor: grab;
 }
 
 .chip:hover {
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--h) 24%, var(--void));
 }
+
+.chip:active {
+  background: color-mix(in srgb, var(--h) 34%, var(--void));
+}
+
+/* --- inspector --- */
 
 .inspector label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: var(--gap);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--dim);
 }
 
 .inspector label.check {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.75rem;
 }
 
 .inspector input:not([type='checkbox']),
 .inspector select {
   display: block;
   width: 100%;
-  margin-top: 2px;
-  padding: 4px 6px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
+  margin-top: 4px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--slot);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
   color: var(--ink);
+}
+
+.inspector input[type='checkbox'] {
+  accent-color: var(--live);
+  width: 15px;
+  height: 15px;
+}
+
+.inspector .wide {
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--slot);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.inspector .wide:hover {
+  background: var(--error-fill);
+  color: var(--ink);
+}
+
+.inspector .wide:active {
+  background: color-mix(in srgb, var(--error-fill) 80%, #000);
 }
 
 main {
   position: relative;
+  overflow: hidden;
+  border-radius: var(--r-3);
+  background: var(--void);
 }
 
 .hint {
   color: var(--dim);
+  font-weight: 500;
 }
 
 /* --- blocks --- */
 
+/* a square tile: the glyph stacks over the name, so the shape holds at any
+   name length instead of the name deciding the shape */
 .block {
-  min-width: 132px;
-  padding: 7px 10px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  width: 128px;
+  height: 128px;
+  padding: var(--gap);
+  border: 1.5px solid var(--h);
+  border-radius: var(--r-3);
+  background: color-mix(in srgb, var(--h) 14%, var(--void));
   text-align: center;
 }
 
-.block.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgb(76 95 215 / 0.2);
+.block .icon {
+  width: 26px;
+  height: 26px;
 }
 
+.chip .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* the kind tag clips to the top edge instead of sitting inside the tile */
 .block-kind {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  letter-spacing: 0.05em;
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 2px 7px;
+  border-radius: var(--r-1);
+  background: var(--h);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--dim);
+  color: var(--on-hue);
 }
 
+/* the tile is a fixed size, so the name yields — three lines, then ellipsis.
+   The full value is on the tile's title and in the inspector. */
 .block-name {
-  font-weight: 600;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: -0.015em;
 }
 
-.block.cylinder {
-  border-radius: 40% 40% 10px 10px / 18px 18px 10px 10px;
-  padding-top: 12px;
+/* selected fills solid, the way an engaged rack module lights up */
+.block.selected {
+  background: var(--h);
 }
 
-.block.person {
-  border-radius: 20px 20px 8px 8px;
+.block.selected .icon,
+.block.selected .block-name {
+  color: var(--on-hue);
 }
 
-.block.boundary {
-  min-width: 180px;
-  min-height: 76px;
-  border-style: dashed;
-  background: rgb(255 255 255 / 0.55);
+.block.selected .block-kind {
+  background: var(--on-hue);
+  color: var(--h);
+}
+
+/* what the review flagged, and the block being wired from, on the canvas without
+   opening a panel. The void gap matters: flush against the border the halo reads
+   as the border, and status overwrites the type hue it is meant to sit beside. */
+.block[data-flag='error'] {
+  --flag: var(--error);
+}
+.block[data-flag='warn'] {
+  --flag: var(--warn);
+}
+.block[data-flag] {
+  --halo: color-mix(in srgb, var(--flag) 65%, transparent);
+}
+/* last, so wiring a flagged block still reads as wiring */
+.block[data-wiring] {
+  --halo: var(--live);
+}
+
+.block[data-flag],
+.block[data-wiring] {
+  box-shadow:
+    0 0 0 3px var(--void),
+    0 0 0 5px var(--halo);
+}
+
+/* red and amber are the same shape to anyone who cannot separate them, so the
+   severity is also spelled out */
+.block-flag {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 7px;
+  border-radius: var(--r-1);
+  background: var(--flag);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-hue);
+}
+
+/* --- block menu --- */
+
+/* right-click a block: wiring and deleting never need a handle or a key */
+.block-menu {
+  position: fixed;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 132px;
+  margin: 0;
+  padding: 4px;
+  border: 1px solid var(--hair);
+  border-radius: var(--r-2);
+  background: var(--shell);
+  box-shadow: 0 10px 26px var(--shadow);
+  list-style: none;
+}
+
+.block-menu button {
+  width: 100%;
+  padding: 7px var(--gap);
+  border: 0;
+  border-radius: var(--r-2);
+  background: transparent;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.block-menu button:hover {
+  background: var(--live);
+  color: var(--on-hue);
+}
+
+.block-menu button:active {
+  background: color-mix(in srgb, var(--live) 80%, #000);
+  color: var(--on-hue);
+}
+
+.block-menu button.danger:hover,
+.block-menu button.danger:active {
+  background: var(--error-fill);
+  color: var(--ink);
+}
+
+/* the loose wire, following the pointer until it lands on a block */
+main.wiring,
+main.wiring .react-flow__pane,
+main.wiring .react-flow__node {
+  cursor: crosshair;
+}
+
+.wire-ghost {
+  pointer-events: none; /* never swallow the click that lands the wire */
+}
+
+.wire-ghost line {
+  stroke: var(--live);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+}
+
+.wire-ghost circle {
+  fill: var(--live);
+}
+
+/* handles still work for drag-connecting, they just stop advertising themselves.
+   :focus-within brings them back for a keyboard, and the inspector's "connect to"
+   is the route that never depends on a hover at all. */
+.react-flow__handle {
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.react-flow__node:hover .react-flow__handle,
+.react-flow__node:focus-within .react-flow__handle {
+  opacity: 1;
+}
+
+/* Containers get no separate treatment: one tile, one size, one solid frame.
+   System and Group read as containers from their achromatic hue, tag and glyph,
+   which is three channels — a dashed outline was a fourth nobody asked for. */
+
+/* --- react flow --- */
+
+.react-flow {
+  --xy-background-color: var(--void);
+  --xy-edge-stroke: var(--rail);
+  --xy-edge-stroke-selected: var(--live);
+  --xy-edge-stroke-width: 1.6;
+  /* a handle is the thing you grab, so it has to clear 3:1 on the tile it sits on —
+     --slot did not. --rail is what the wires are drawn in, which is what it becomes. */
+  --xy-handle-background-color: var(--rail);
+  --xy-handle-border-color: var(--void);
+  --xy-controls-button-background-color: var(--slot);
+  --xy-controls-button-background-color-hover: var(--hair);
+  --xy-controls-button-color: var(--ink);
+  --xy-controls-button-color-hover: var(--live);
+  --xy-controls-button-border-color: var(--void);
+  --xy-minimap-background-color: var(--void);
+  --xy-minimap-mask-background-color: var(--shadow);
+  --xy-minimap-node-background-color: var(--dim);
+  --xy-background-pattern-color: var(--hair);
+  --xy-attribution-background-color: transparent;
+  --xy-edge-label-background-color: var(--void);
+  --xy-edge-label-color: var(--dim);
+  --xy-selection-background-color: color-mix(in srgb, var(--live) 6%, transparent);
+  --xy-selection-border: 1px dashed var(--live);
+}
+
+.react-flow__controls,
+.react-flow__minimap {
+  border-radius: var(--r-2);
+  overflow: hidden;
+  box-shadow: none;
+}
+
+/* a compass, not a second canvas */
+.react-flow__minimap {
+  width: 150px;
+  height: 100px;
+  border: 1px solid var(--hair);
+}
+
+.react-flow__edge-text {
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.react-flow__attribution a {
+  color: var(--dim);
 }
 
 /* --- findings --- */
 
 .findings {
   grid-column: 1 / -1;
-  overflow: auto;
-  padding: 8px 12px;
-  background: var(--panel);
-  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.findings h3 {
-  margin-top: 0;
+.findings h2 {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin: 0;
 }
 
 .findings .count {
-  padding: 0 6px;
-  border-radius: 8px;
-  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: var(--r-1);
+  background: var(--slot);
+  font-size: 0.625rem;
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .findings ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -220,32 +661,73 @@ main {
 
 .finding {
   display: flex;
-  gap: 8px;
+  gap: var(--gap);
+  align-items: center;
   width: 100%;
-  padding: 4px 0 4px 10px;
+  padding: 8px 11px;
   border: 0;
-  border-left: 3px solid var(--line);
-  background: none;
+  border-left: 3px solid var(--h);
+  border-radius: var(--r-2);
+  background: var(--void);
   text-align: left;
   cursor: pointer;
 }
 
+.finding::before {
+  content: attr(data-sev);
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: var(--r-1);
+  background: var(--h);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-hue);
+}
+
+.finding b {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
 .finding:hover {
-  background: var(--bg);
+  background: var(--void-hi);
+}
+
+.finding:active {
+  background: var(--slot);
 }
 
 .finding span {
   color: var(--dim);
+  font-weight: 500;
 }
 
 .finding.error {
-  border-left-color: var(--error);
+  --h: var(--error);
 }
-
 .finding.warn {
-  border-left-color: var(--warn);
+  --h: var(--warn);
 }
 
-.finding.info {
-  border-left-color: var(--info);
+/* --- narrow --- */
+
+/* three fixed wells need ~490px before the canvas gets a pixel. Below that they
+   stack and the page scrolls instead of the layout breaking. */
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto minmax(320px, 1fr) auto auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .palette {
+    max-height: 190px;
+  }
+
+  .findings {
+    max-height: 260px;
+  }
 }

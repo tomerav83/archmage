@@ -3,10 +3,20 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- the Content-Security-Policy is injected at build time (vite.config.ts): dev
+         needs the inline React Refresh preamble that the policy rightly forbids -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#2a2a33" />
+    <meta
+      name="description"
+      content="A board editor for architecture diagrams: drag blocks onto a canvas, wire them together, and see what the model review flags."
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Archmage board</title>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>Archmage is a drag-and-drop board editor and needs JavaScript switched on.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

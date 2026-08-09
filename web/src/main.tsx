@@ -1,10 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App'
+import { Editor } from '@/app'
 import './styles.css'
 
-createRoot(document.getElementById('root')!).render(
+const root = document.getElementById('root')
+if (!root) throw new Error('index.html is missing <div id="root">')
+
+createRoot(root).render(
   <StrictMode>
-    <App />
+    <Editor />
   </StrictMode>,
 )

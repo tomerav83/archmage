@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "skills": {
+    "typescript-best-practices": {
+      "source": "smithery.ai",
+      "sourceUrl": "https://smithery.ai/skills/0xBigBoss/typescript-best-practices",
+      "sourceType": "well-known",
+      "computedHash": "9866bb48d92a951feafb77f6f48ea39b42c6c1e901788c916d4aad40f60db008",
+      "wellKnownDigest": "sha256:d8127a2dd04976be7489e9e62aaa9211b908189b0df3d6d74121062f40fd2002"
+    }
+  }
+}

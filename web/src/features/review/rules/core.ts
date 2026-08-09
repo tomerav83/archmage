@@ -1,4 +1,5 @@
-import { EDGE_KINDS, KINDS, type Finding, type Rule } from '../model'
+import { EDGE_KINDS, KINDS } from '@/lib/catalog'
+import type { Finding, Rule } from '../review'
 
 /** A board can reference a kind this build has no catalog entry for. Say so instead of guessing. */
 const unknownKinds: Rule = (b) => [
