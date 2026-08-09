@@ -1,0 +1,47 @@
+.palette {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.palette section:first-child h2 {
+  margin-top: 0;
+}
+
+.palette section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.palette section + section {
+  margin-top: var(--gap);
+}
+
+/* a chip is a button: drag it to place it exactly, press it to drop it in the middle */
+.chip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  padding: 7px var(--gap);
+  border: 1.5px solid var(--h);
+  border-radius: var(--r-2);
+  background: color-mix(in srgb, var(--h) 13%, var(--void));
+  font-weight: 700;
+  text-align: left;
+  cursor: grab;
+}
+
+.chip:hover {
+  background: color-mix(in srgb, var(--h) 24%, var(--void));
+}
+
+.chip:active {
+  background: color-mix(in srgb, var(--h) 34%, var(--void));
+}
+
+.chip .icon {
+  width: 15px;
+  height: 15px;
+}

@@ -1,0 +1,62 @@
+.inspector label {
+  display: block;
+  margin-bottom: var(--gap);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+
+.inspector label.check {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.75rem;
+}
+
+.inspector input:not([type='checkbox']),
+.inspector select {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--slot);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--ink);
+}
+
+.inspector input[type='checkbox'] {
+  accent-color: var(--live);
+  width: 15px;
+  height: 15px;
+}
+
+.inspector .wide {
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: var(--r-2);
+  background: var(--slot);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.inspector .wide:hover {
+  background: var(--error-fill);
+  color: var(--ink);
+}
+
+.inspector .wide:active {
+  background: color-mix(in srgb, var(--error-fill) 80%, #000);
+}

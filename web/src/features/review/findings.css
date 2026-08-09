@@ -1,0 +1,83 @@
+.findings {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.findings h2 {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin: 0;
+}
+
+.findings .count {
+  padding: 2px 8px;
+  border-radius: var(--r-1);
+  background: var(--slot);
+  font-size: 0.625rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.findings ul {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.finding {
+  display: flex;
+  gap: var(--gap);
+  align-items: center;
+  width: 100%;
+  padding: 8px 11px;
+  border: 0;
+  border-left: 3px solid var(--h);
+  border-radius: var(--r-2);
+  background: var(--void);
+  text-align: left;
+  cursor: pointer;
+}
+
+.finding::before {
+  content: attr(data-sev);
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: var(--r-1);
+  background: var(--h);
+  font-size: 0.5625rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--on-hue);
+}
+
+.finding b {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+
+.finding:hover {
+  background: var(--void-hi);
+}
+
+.finding:active {
+  background: var(--slot);
+}
+
+.finding span {
+  color: var(--dim);
+  font-weight: 500;
+}
+
+.finding.error {
+  --h: var(--error);
+}
+.finding.warn {
+  --h: var(--warn);
+}

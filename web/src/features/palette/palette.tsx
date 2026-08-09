@@ -1,4 +1,5 @@
 import { ICONS, KINDS, type Base } from '@/lib/catalog'
+import './palette.css'
 
 const PALETTE_ORDER: Base[] = ['actor', 'system', 'group', 'app', 'store', 'component']
 

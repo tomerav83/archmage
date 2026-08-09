@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
 import { ICONS, KINDS } from '@/lib/catalog'
 import type { BlockNode, Severity } from '@/lib/board-types'
+import './canvas.css'
 
 /** What the review flagged, keyed by node — canvas state a block reads but does not
  *  own. Kept out of node data so a changed flag does not churn the document. */

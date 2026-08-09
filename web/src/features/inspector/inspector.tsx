@@ -1,5 +1,6 @@
 import { EDGE_KINDS, KINDS, type Base, type PropSpec } from '@/lib/catalog'
 import type { BlockEdge, BlockNode } from '@/lib/board-types'
+import './inspector.css'
 
 const CONTAINERS = new Set<Base>(['system', 'group', 'app'])
 const MAX_PICKER_OPTIONS = 200

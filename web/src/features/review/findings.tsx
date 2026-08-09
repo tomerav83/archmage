@@ -1,5 +1,6 @@
 import { memo } from 'react'
 import { findingKey, type Finding } from './review'
+import './findings.css'
 
 // A board this noisy is telling you something the 101st row will not.
 const MAX_FINDING_ROWS = 100

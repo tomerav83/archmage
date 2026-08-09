@@ -33,15 +33,15 @@ the design was wrong.
 ```
 
 ```jsonc
-// src/catalog/<family>.json — one entry per block type. This is what each stacked PR adds.
+// web/src/lib/catalog/data/<family>.json — one entry per block type. Each stacked PR adds one.
 { "kind": "postgres", "base": "store",        // base = IcePanel object type
-  "label": "PostgreSQL", "icon": "devicon:postgresql", "shape": "cylinder",
+  "label": "PostgreSQL", "icon": "lucide:database",
   "props": { "ha":  { "enum": ["single", "primary-replica", "multi-primary"] },
              "pii": { "type": "boolean" } } }
 ```
 
 ```ts
-// src/rules/<family>.ts — a rule is a function, not a DSL.
+// web/src/features/review/rules/<family>.ts — a rule is a function, not a DSL.
 type Rule = (b: Board) => Finding[]   // Finding = { nodeId?, edgeId?, severity, title, why }
 export const rules: Rule[]
 ```
@@ -61,19 +61,20 @@ and PR4 each ship node kinds *and* edge kinds.
 
 | # | Branch | Ships |
 |---|---|---|
-| 1 | `feature/frontend` | Vite + React + TS in `web/`, React Flow canvas, palette drag-to-place, connect, inspector, catalog + rule engines, board import/export + autosave, findings panel. Core six kinds only. |
+| 1 | `feature/frontend` | Vite + React + TS in `web/`, React Flow canvas, palette drag-to-place, connect, inspector, catalog + rule engines, board import/export (nothing persists — Open/Export carry the board), findings panel. Core six kinds only. |
 | 2 | `feature/blocks-datastores` | relational, document, kv/cache, wide-column, search, object, analytics. Rules: store with no owner, store shared across systems, cache with no TTL, PII store with no backup. |
 | 3 | `feature/blocks-messaging` | kafka, rabbitmq, sqs/sns, pubsub, nats + `publish`/`subscribe`/`stream` edges. Rules: topic with no consumer, no DLQ, at-least-once consumer not marked idempotent. |
 | 4 | `feature/blocks-apis` | api-gateway, load-balancer, cdn, bff + `rest`/`grpc`/`graphql`/`websocket`/`webhook` edges. Rules: public edge without auth, sync chain depth > 3, cross-system sync with no timeout or retry. |
 | 5 | `feature/blocks-compute` | service, worker, cron, serverless, spa, mobile. Rules: stateful service behind a load balancer with no session store, cron with no lock, serverless to relational DB with no pooler. |
 | 6 | `feature/blocks-external` | third-party SaaS, IdP, payments, email/SMS. Rules: external dependency with no fallback, single point of failure. |
 
-Each layer: `gh stack add feature/blocks-<family>`. PR2–6 touch only `src/catalog/`,
-`src/rules/` and a test — zero canvas code. If a family needs a new renderer, the
+Each layer: `gh stack add feature/blocks-<family>`. PR2–6 touch only `lib/catalog/data/`,
+`features/review/rules/` and a test — zero canvas code. If a family needs a new renderer, the
 catalog engine was wrong and that is the bug to fix.
 
-Icons come from `@iconify/react` with the offline `@iconify-json/devicon` collection
-(MIT). No AWS/Azure/GCP icon art — those sets are brand-restricted.
+Icons are `lucide-react` components, mapped from catalog names in
+`lib/catalog/icons.ts` (offline, MIT). No AWS/Azure/GCP icon art — those sets are
+brand-restricted.
 
 ## Deliberately skipped
 

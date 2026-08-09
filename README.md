@@ -9,6 +9,20 @@ Archmage is an AI-powered system architecture assistant that understands, manage
 
     cd web && npm run check   # format, lint, typecheck, tests — what CI runs
 
+### Layout
+
+    web/src/
+      lib/       shared types and the block catalog — imports nothing of ours
+      features/  board (document state + codec), canvas, inspector, palette, review
+      app/       editor.tsx composes the features; no logic of its own
+
+Dependencies flow one way — lib → features → app — and oxlint fails the build on a
+violation (`web/.oxlintrc.json`). Features never import each other at runtime; the
+app layer wires them together. File names say what a module does (`codec.ts`,
+`use-board.ts`); a file that wants a generic name (model, utils, helpers) is
+usually two files. Each feature's styles live in a `.css` beside its component;
+`styles.css` is only tokens and the app frame.
+
 ### Deploying `web/dist/`
 
 The built HTML carries the Content-Security-Policy in a `<meta>` tag, which is enough
