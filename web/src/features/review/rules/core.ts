@@ -1,3 +1,5 @@
+// The core block family's rules. "core" is a family name, not filler: each later
+// family (datastores, messaging, …) adds a sibling file here and an import in review.ts.
 import { EDGE_KINDS, KINDS } from '@/lib/catalog'
 import type { Finding, Rule } from '../review'
 

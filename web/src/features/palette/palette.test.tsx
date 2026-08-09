@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { Palette } from '@/app/palette'
+import { Palette } from './palette'
 
 describe('palette', () => {
   it('places a block from the keyboard, not only from a drag', async () => {

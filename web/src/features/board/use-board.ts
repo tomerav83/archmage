@@ -1,15 +1,15 @@
 import { useCallback, useMemo, useState } from 'react'
 import { addEdge, useEdgesState, useNodesState, useReactFlow, type Connection } from '@xyflow/react'
 import { defaults, EDGE_KINDS, KINDS } from '@/lib/catalog'
-import { msg, newId, parseBoard, toBoard, toRF } from '@/features/board'
-import type { Board, BlockEdge, BlockNode, Severity } from '@/lib/board'
-import { review, type Finding } from '@/features/review'
+import { msg, newId, parseBoard, toBoard, toRF } from './codec'
+import type { Board, BlockEdge, BlockNode } from '@/lib/board-types'
+import type { Finding } from '@/features/review' // type-only: erased, so the feature boundary holds
 
 const MAX_IMPORT_BYTES = 4_000_000
 
-/** The document: what is on the board, every way it changes, what the review makes of
- *  it, and the ways it gets in and out. Kept out of the editor component so that stays
- *  layout and composition only — nothing here reads the DOM or decides a layout.
+/** The document: what is on the board, every way it changes, and the ways it gets in
+ *  and out. Kept out of the editor component so that stays layout and composition only
+ *  — nothing here reads the DOM, decides a layout, or knows what the review thinks.
  *
  *  Nothing is persisted — every load starts blank, and Open/Export carry a board. */
 export function useBoard() {
@@ -21,19 +21,9 @@ export function useBoard() {
   const [undoable, setUndoable] = useState<Board | null>(null)
   const { screenToFlowPosition, deleteElements } = useReactFlow()
 
-  /** The one document, rebuilt when anything on the board changes. The review, the
-   *  undo snapshot and Export all read this same copy. */
+  /** The one document, rebuilt when anything on the board changes. The undo snapshot
+   *  and Export read it here; the app layer hands it to the review. */
   const doc = useMemo(() => toBoard(boardId, name, nodes, edges), [boardId, name, nodes, edges])
-  const findings = useMemo(() => review(doc), [doc])
-
-  // findings arrive worst-first, so the first hit per node is its worst severity.
-  // Null prototype: node ids come from an imported board, and one named "__proto__"
-  // or "toString" has to miss rather than hand a block something off Object.prototype.
-  const flags = useMemo(() => {
-    const worst: Record<string, Severity> = Object.create(null)
-    for (const f of findings) if (f.nodeId && !worst[f.nodeId]) worst[f.nodeId] = f.severity
-    return worst
-  }, [findings])
 
   const replace = useCallback(
     (b: Board) => {
@@ -169,12 +159,11 @@ export function useBoard() {
   return {
     name,
     setName,
+    doc,
     nodes,
     onNodesChange,
     edges,
     onEdgesChange,
-    findings,
-    flags,
     error,
     dismissError: useCallback(() => setError(''), []),
     undoable,

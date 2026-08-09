@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseBoard } from '@/features/board'
-import type { Board } from '@/lib/board'
+import { parseBoard } from '@/features/board/codec'
+import type { Board } from '@/lib/board-types'
 import { review } from './review'
 
 const board = (b: Partial<Board> = {}): Board => ({ id: 'b_1', name: 'test', nodes: [], edges: [], ...b })

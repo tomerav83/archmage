@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { parseBoard, toBoard, toRF } from './model'
-import type { Board } from '@/lib/board'
+import { parseBoard, toBoard, toRF } from './codec'
+import type { Board } from '@/lib/board-types'
 
 const board = (b: Partial<Board> = {}): Board => ({ id: 'b_1', name: 'test', nodes: [], edges: [], ...b })
 const node = (id: string, over: Partial<Board['nodes'][number]> = {}) => ({

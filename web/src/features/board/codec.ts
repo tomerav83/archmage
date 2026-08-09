@@ -1,10 +1,8 @@
 import { EDGE_KINDS } from '@/lib/catalog'
-import type { Board, BoardEdge, BoardNode, BlockEdge, BlockNode } from '@/lib/board'
+import type { Board, BoardEdge, BoardNode, BlockEdge, BlockNode } from '@/lib/board-types'
 
-// The document: how it is validated, how it is carried in and out, and how it maps onto
-// React Flow's live editing state. The shapes themselves live in @/lib/board.
-//
-// Nothing is stored: every load starts on a blank board, and Export is how one is kept.
+// The board codec: file JSON in and out (parse and validate, serialize), and the
+// bridge to and from React Flow's live editing state. The shapes live in @/lib/board-types.
 
 // ---------------------------------------------------------------- io
 

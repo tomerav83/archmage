@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Inspector } from './inspector'
-import type { BlockNode } from '@/lib/board'
+import type { BlockNode } from '@/lib/board-types'
 
 const node = (id: string, name = id): BlockNode => ({
   id,

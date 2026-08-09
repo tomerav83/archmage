@@ -1,3 +1,3 @@
-// The document's shapes are shared code (@/lib/board) — this barrel carries behaviour.
-export { msg, newId, parseBoard, toBoard, toRF } from './model'
-export { Inspector } from './inspector'
+// The whole public surface is one hook. The codec became internals the moment the
+// state hook moved in beside it — nothing outside builds or parses a board by hand.
+export { useBoard } from './use-board'

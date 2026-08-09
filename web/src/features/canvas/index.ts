@@ -1,1 +1,1 @@
-export { Canvas, nodeTypes } from './canvas'
+export { FlagsContext, nodeTypes } from './canvas'

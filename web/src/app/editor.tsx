@@ -1,4 +1,4 @@
-import { useCallback, useRef, type DragEvent } from 'react'
+import { useCallback, useMemo, useRef, type DragEvent } from 'react'
 import {
   Background,
   ConnectionLineType,
@@ -8,11 +8,11 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { Canvas, nodeTypes } from '@/features/canvas'
-import { Inspector } from '@/features/board'
-import { Findings } from '@/features/review'
-import { DRAG_KEY, Palette } from './palette'
-import { useBoard } from './useBoard'
+import { useBoard } from '@/features/board'
+import { FlagsContext, nodeTypes } from '@/features/canvas'
+import { Inspector } from '@/features/inspector'
+import { DRAG_KEY, Palette } from '@/features/palette'
+import { Findings, review, worstPerNode } from '@/features/review'
 
 // Orthogonal wires with rounded elbows; colour stays reserved for the objects.
 const EDGE_STYLE = { type: 'smoothstep', pathOptions: { borderRadius: 12 } } as const
@@ -23,6 +23,9 @@ const DELETE_KEYS = ['Backspace', 'Delete']
 function Shell() {
   const board = useBoard()
   const { addBlock, connect, focus, nodes, edges, removeNode, snapshot } = board
+  // where the document meets the rules: one feature's output wired into the other's input
+  const findings = useMemo(() => review(board.doc), [board.doc])
+  const flags = useMemo(() => worstPerNode(findings), [findings])
   const fileInput = useRef<HTMLInputElement>(null)
   const pane = useRef<HTMLElement>(null)
 
@@ -51,7 +54,7 @@ function Shell() {
   )
 
   return (
-    <Canvas.Provider value={board.flags}>
+    <FlagsContext.Provider value={flags}>
       <div className="app">
         <header>
           <h1>Archmage</h1>
@@ -141,9 +144,9 @@ function Shell() {
           onDelete={removeNode}
         />
 
-        <Findings findings={board.findings} onFocus={focus} />
+        <Findings findings={findings} onFocus={focus} />
       </div>
-    </Canvas.Provider>
+    </FlagsContext.Provider>
   )
 }
 
