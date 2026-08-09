@@ -74,9 +74,7 @@ export function Inspector({
   edge,
   nodes,
   onPatchNode,
-  onNodeProp,
-  onEdgeKind,
-  onEdgeProp,
+  onPatchEdge,
   onConnect,
   onDelete,
 }: {
@@ -84,9 +82,7 @@ export function Inspector({
   edge: BlockEdge | undefined
   nodes: BlockNode[]
   onPatchNode: (id: string, patch: Partial<BlockNode['data']>) => void
-  onNodeProp: (id: string, key: string, v: unknown) => void
-  onEdgeKind: (id: string, kind: string) => void
-  onEdgeProp: (id: string, key: string, v: unknown) => void
+  onPatchEdge: (id: string, patch: { kind?: string; props?: Record<string, unknown> }) => void
   onConnect: (from: string, to: string) => void
   onDelete: (id: string) => void
 }) {
@@ -133,7 +129,7 @@ export function Inspector({
             label={key}
             spec={propSpec}
             value={node.data.props[key]}
-            onChange={(v) => onNodeProp(node.id, key, v)}
+            onChange={(v) => onPatchNode(node.id, { props: { [key]: v } })}
           />
         ))}
         <button type="button" className="wide" onClick={() => onDelete(node.id)}>
@@ -150,7 +146,7 @@ export function Inspector({
         <h2>Connection</h2>
         <label>
           type
-          <select value={kind} onChange={(e) => onEdgeKind(edge.id, e.target.value)}>
+          <select value={kind} onChange={(e) => onPatchEdge(edge.id, { kind: e.target.value })}>
             {Object.values(EDGE_KINDS).map((k) => (
               <option key={k.kind} value={k.kind}>
                 {k.label}
@@ -164,7 +160,7 @@ export function Inspector({
             label={key}
             spec={propSpec}
             value={edge.data?.props[key]}
-            onChange={(v) => onEdgeProp(edge.id, key, v)}
+            onChange={(v) => onPatchEdge(edge.id, { props: { [key]: v } })}
           />
         ))}
       </aside>

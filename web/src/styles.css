@@ -445,9 +445,9 @@ main {
   color: var(--h);
 }
 
-/* what the review flagged, and the block being wired from, on the canvas without
-   opening a panel. The void gap matters: flush against the border the halo reads
-   as the border, and status overwrites the type hue it is meant to sit beside. */
+/* what the review flagged, on the canvas without opening a panel. The void gap
+   matters: flush against the border the halo reads as the border, and status
+   overwrites the type hue it is meant to sit beside. */
 .block[data-flag='error'] {
   --flag: var(--error);
 }
@@ -455,18 +455,9 @@ main {
   --flag: var(--warn);
 }
 .block[data-flag] {
-  --halo: color-mix(in srgb, var(--flag) 65%, transparent);
-}
-/* last, so wiring a flagged block still reads as wiring */
-.block[data-wiring] {
-  --halo: var(--live);
-}
-
-.block[data-flag],
-.block[data-wiring] {
   box-shadow:
     0 0 0 3px var(--void),
-    0 0 0 5px var(--halo);
+    0 0 0 5px color-mix(in srgb, var(--flag) 65%, transparent);
 }
 
 /* red and amber are the same shape to anyone who cannot separate them, so the
@@ -486,87 +477,27 @@ main {
   color: var(--on-hue);
 }
 
-/* --- block menu --- */
-
-/* right-click a block: wiring and deleting never need a handle or a key */
-.block-menu {
-  position: fixed;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 132px;
-  margin: 0;
-  padding: 4px;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-2);
-  background: var(--shell);
-  box-shadow: 0 10px 26px var(--shadow);
-  list-style: none;
-}
-
-.block-menu button {
-  width: 100%;
-  padding: 7px var(--gap);
-  border: 0;
-  border-radius: var(--r-2);
-  background: transparent;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  text-align: left;
-  cursor: pointer;
-}
-
-.block-menu button:hover {
-  background: var(--live);
-  color: var(--on-hue);
-}
-
-.block-menu button:active {
-  background: color-mix(in srgb, var(--live) 80%, #000);
-  color: var(--on-hue);
-}
-
-.block-menu button.danger:hover,
-.block-menu button.danger:active {
-  background: var(--error-fill);
-  color: var(--ink);
-}
-
-/* the loose wire, following the pointer until it lands on a block */
-main.wiring,
-main.wiring .react-flow__pane,
-main.wiring .react-flow__node {
-  cursor: crosshair;
-}
-
-.wire-ghost {
-  pointer-events: none; /* never swallow the click that lands the wire */
-}
-
-.wire-ghost line {
-  stroke: var(--live);
-  stroke-width: 1.6;
-  stroke-dasharray: 5 4;
-}
-
-.wire-ghost circle {
-  fill: var(--live);
-}
-
-/* handles still work for drag-connecting, they just stop advertising themselves.
-   :focus-within brings them back for a keyboard, and the inspector's "connect to"
-   is the route that never depends on a hover at all. */
+/* the connection points: drag one onto another block, or click one then the other.
+   Always faintly there, full strength when the block is in play — and the
+   inspector's "connect to" is the route that never needs a pointer at all. */
 .react-flow__handle {
-  opacity: 0;
+  width: 9px;
+  height: 9px;
+  opacity: 0.55;
   transition: opacity 0.1s;
 }
 
 .react-flow__node:hover .react-flow__handle,
-.react-flow__node:focus-within .react-flow__handle {
+.react-flow__node:focus-within .react-flow__handle,
+.react-flow__handle:hover {
   opacity: 1;
+}
+
+/* the half-made wire React Flow draws while a connection is in progress */
+.react-flow__connection-path {
+  stroke: var(--live);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
 }
 
 /* Containers get no separate treatment: one tile, one size, one solid frame.

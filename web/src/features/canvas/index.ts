@@ -1,1 +1,1 @@
-export { BlockMenu, Canvas, nodeTypes, WireGhost } from './canvas'
+export { Canvas, nodeTypes } from './canvas'

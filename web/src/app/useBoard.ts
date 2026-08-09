@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { addEdge, useEdgesState, useNodesState, useReactFlow, type Connection } from '@xyflow/react'
 import { defaults, EDGE_KINDS, KINDS } from '@/lib/catalog'
 import { msg, newId, parseBoard, toBoard, toRF } from '@/features/board'
@@ -21,18 +21,10 @@ export function useBoard() {
   const [undoable, setUndoable] = useState<Board | null>(null)
   const { screenToFlowPosition, deleteElements } = useReactFlow()
 
-  // toBoard walks every node and every edge, so it must not run on the urgent render:
-  // a keystroke and a drag frame would each pay for the whole document before the next
-  // paint. What gets deferred is the inputs — gathering those is one object literal —
-  // and the document is built from the settled copy, along with the review and the save.
-  const live = useMemo(() => ({ boardId, name, nodes, edges }), [boardId, name, nodes, edges])
-  const settled = useDeferredValue(live)
-  const board = useMemo(() => toBoard(settled.boardId, settled.name, settled.nodes, settled.edges), [settled])
-  const findings = useMemo(() => review(board), [board])
-
-  /** The document as it stands right now, built on demand. Undo and export are the two
-   *  callers that cannot use a copy a frame behind, and neither is on a hot path. */
-  const boardNow = useCallback(() => toBoard(boardId, name, nodes, edges), [boardId, name, nodes, edges])
+  /** The one document, rebuilt when anything on the board changes. The review, the
+   *  undo snapshot and Export all read this same copy. */
+  const doc = useMemo(() => toBoard(boardId, name, nodes, edges), [boardId, name, nodes, edges])
+  const findings = useMemo(() => review(doc), [doc])
 
   // findings arrive worst-first, so the first hit per node is its worst severity.
   // Null prototype: node ids come from an imported board, and one named "__proto__"
@@ -55,7 +47,7 @@ export function useBoard() {
   )
 
   /** Take a copy before anything destructive, so there is always one step back. */
-  const snapshot = useCallback(() => setUndoable(boardNow()), [boardNow])
+  const snapshot = useCallback(() => setUndoable(doc), [doc])
 
   const undo = useCallback(() => {
     if (!undoable) return
@@ -100,51 +92,36 @@ export function useBoard() {
     [screenToFlowPosition, setNodes],
   )
 
-  // deleteElements takes the attached edges with it; the snapshot is the way back
-  const removeNode = useCallback(
-    (id: string) => {
-      snapshot()
-      void deleteElements({ nodes: [{ id }] })
-    },
-    [deleteElements, snapshot],
-  )
+  // deleteElements takes the attached edges with it, and runs the editor's
+  // onBeforeDelete on the way — that hook is where the undo snapshot is taken.
+  const removeNode = useCallback((id: string) => void deleteElements({ nodes: [{ id }] }), [deleteElements])
 
+  /** Merge a patch into the node: top-level fields replace, `props` merge key by key. */
   const patchNode = useCallback(
     (id: string, patch: Partial<BlockNode['data']>) =>
-      setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...patch } } : n))),
-    [setNodes],
-  )
-
-  const setNodeProp = useCallback(
-    (id: string, key: string, v: unknown) =>
       setNodes((ns) =>
         ns.map((n) =>
-          n.id === id ? { ...n, data: { ...n.data, props: { ...n.data.props, [key]: v } } } : n,
+          n.id === id
+            ? { ...n, data: { ...n.data, ...patch, props: { ...n.data.props, ...patch.props } } }
+            : n,
         ),
       ),
     [setNodes],
   )
 
-  const setEdgeKind = useCallback(
-    (id: string, kind: string) =>
+  /** Same shape for edges; a changed kind also re-labels the wire. */
+  const patchEdge = useCallback(
+    (id: string, patch: { kind?: string; props?: Record<string, unknown> }) =>
       setEdges((es) =>
-        es.map((e) =>
-          e.id === id
-            ? { ...e, label: EDGE_KINDS[kind]?.label ?? kind, data: { kind, props: e.data?.props ?? {} } }
-            : e,
-        ),
-      ),
-    [setEdges],
-  )
-
-  const setEdgeProp = useCallback(
-    (id: string, key: string, v: unknown) =>
-      setEdges((es) =>
-        es.map((e) =>
-          e.id === id
-            ? { ...e, data: { kind: e.data?.kind ?? 'uses', props: { ...e.data?.props, [key]: v } } }
-            : e,
-        ),
+        es.map((e) => {
+          if (e.id !== id) return e
+          const kind = patch.kind ?? e.data?.kind ?? 'uses'
+          return {
+            ...e,
+            label: EDGE_KINDS[kind]?.label ?? kind,
+            data: { kind, props: { ...e.data?.props, ...patch.props } },
+          }
+        }),
       ),
     [setEdges],
   )
@@ -161,38 +138,28 @@ export function useBoard() {
   // ------------------------------------------------------------------ io
 
   const exportBoard = useCallback(() => {
-    const json = JSON.stringify(boardNow(), null, 2)
+    const json = JSON.stringify(doc, null, 2)
     const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
     const a = document.createElement('a')
     a.href = url
     a.download = `${name.trim() || 'board'}.json`
     a.click()
     URL.revokeObjectURL(url)
-  }, [boardNow, name])
-
-  // Two picks in quick succession are two reads in flight; only the newest may land.
-  const importSeq = useRef(0)
+  }, [doc, name])
 
   const openBoard = useCallback(
     async (file: File | undefined) => {
       if (!file) return
-      const seq = ++importSeq.current
       if (file.size > MAX_IMPORT_BYTES) {
         setError(`${file.name} is ${Math.round(file.size / 1e6)} MB — a board is JSON, well under 4 MB.`)
         return
       }
-      if (file.type !== '' && file.type !== 'application/json') {
-        setError(`${file.name} is ${file.type}, not JSON.`)
-        return
-      }
       try {
         const parsed = parseBoard(await file.text())
-        if (seq !== importSeq.current) return
         snapshot()
         replace(parsed)
         setError('')
       } catch (e) {
-        if (seq !== importSeq.current) return
         setError(`Could not open ${file.name}: ${msg(e)}.`)
       }
     },
@@ -217,9 +184,7 @@ export function useBoard() {
     addBlock,
     removeNode,
     patchNode,
-    setNodeProp,
-    setEdgeKind,
-    setEdgeProp,
+    patchEdge,
     focus,
     exportBoard,
     openBoard,

@@ -1,5 +1,4 @@
-import { Icon } from '@iconify/react'
-import { KINDS, type Base } from '@/lib/catalog'
+import { ICONS, KINDS, type Base } from '@/lib/catalog'
 
 const PALETTE_ORDER: Base[] = ['actor', 'system', 'group', 'app', 'store', 'component']
 
@@ -17,23 +16,26 @@ export function Palette({ onAdd }: { onAdd: (kind: string) => void }) {
         return kinds.length === 0 ? null : (
           <section key={base}>
             <h2>{base}</h2>
-            {kinds.map((k) => (
-              <button
-                key={k.kind}
-                type="button"
-                className="chip"
-                data-base={k.base}
-                draggable
-                onDragStart={(e) => {
-                  e.dataTransfer.setData(DRAG_KEY, k.kind)
-                  e.dataTransfer.effectAllowed = 'move'
-                }}
-                onClick={() => onAdd(k.kind)}
-              >
-                {k.icon ? <Icon className="icon" icon={k.icon} aria-hidden /> : null}
-                {k.label}
-              </button>
-            ))}
+            {kinds.map((k) => {
+              const Glyph = k.icon ? ICONS[k.icon] : undefined
+              return (
+                <button
+                  key={k.kind}
+                  type="button"
+                  className="chip"
+                  data-base={k.base}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(DRAG_KEY, k.kind)
+                    e.dataTransfer.effectAllowed = 'move'
+                  }}
+                  onClick={() => onAdd(k.kind)}
+                >
+                  {Glyph ? <Glyph className="icon" aria-hidden /> : null}
+                  {k.label}
+                </button>
+              )
+            })}
           </section>
         )
       })}

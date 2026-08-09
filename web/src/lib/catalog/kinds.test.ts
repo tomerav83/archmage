@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { KINDS } from './kinds'
 
 describe('catalog', () => {
-  it('loads the core kinds from the glob', () => {
+  it('loads the core kinds', () => {
     expect(Object.keys(KINDS).sort()).toEqual(['actor', 'app', 'component', 'group', 'store', 'system'])
   })
 

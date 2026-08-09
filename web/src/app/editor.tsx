@@ -1,9 +1,15 @@
-import { useCallback, useMemo, useRef, useState, type DragEvent } from 'react'
-import { Background, Controls, MiniMap, ReactFlow, ReactFlowProvider } from '@xyflow/react'
+import { useCallback, useRef, type DragEvent } from 'react'
+import {
+  Background,
+  ConnectionLineType,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+} from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { BlockMenu, Canvas, nodeTypes, WireGhost } from '@/features/canvas'
+import { Canvas, nodeTypes } from '@/features/canvas'
 import { Inspector } from '@/features/board'
-import type { BlockNode } from '@/lib/board'
 import { Findings } from '@/features/review'
 import { DRAG_KEY, Palette } from './palette'
 import { useBoard } from './useBoard'
@@ -12,16 +18,13 @@ import { useBoard } from './useBoard'
 const EDGE_STYLE = { type: 'smoothstep', pathOptions: { borderRadius: 12 } } as const
 const DELETE_KEYS = ['Backspace', 'Delete']
 
-/** Layout and composition only — the document lives in useBoard, the rules in review. */
+/** Layout and composition only — the document lives in useBoard, the rules in review.
+ *  Connecting is React Flow's own: drag handle to handle, or click one then the other. */
 function Shell() {
   const board = useBoard()
   const { addBlock, connect, focus, nodes, edges, removeNode, snapshot } = board
-  // the block we are wiring from, and the right-click menu: which block, and where
-  const [wireFrom, setWireFrom] = useState<string | null>(null)
-  const [menu, setMenu] = useState<{ id: string; x: number; y: number } | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
   const pane = useRef<HTMLElement>(null)
-  const closeMenu = useCallback(() => setMenu(null), [])
 
   const selectedNode = nodes.find((n) => n.selected)
   const selectedEdge = edges.find((e) => e.selected)
@@ -39,14 +42,6 @@ function Shell() {
     [addBlock],
   )
 
-  const deleteBlock = useCallback(
-    (id: string) => {
-      removeNode(id)
-      setWireFrom((f) => (f === id ? null : f))
-    },
-    [removeNode],
-  )
-
   const onDrop = useCallback(
     (ev: DragEvent) => {
       ev.preventDefault()
@@ -55,21 +50,8 @@ function Shell() {
     [place],
   )
 
-  /** Second click of a connect: land the wire on whatever block was clicked. */
-  const onNodeClick = useCallback(
-    (_: unknown, n: BlockNode) => {
-      setMenu(null)
-      if (!wireFrom || n.id === wireFrom) return
-      connect({ source: wireFrom, target: n.id })
-      setWireFrom(null)
-    },
-    [wireFrom, connect],
-  )
-
-  const canvas = useMemo(() => ({ flags: board.flags, wiring: wireFrom }), [board.flags, wireFrom])
-
   return (
-    <Canvas.Provider value={canvas}>
+    <Canvas.Provider value={board.flags}>
       <div className="app">
         <header>
           <h1>Archmage</h1>
@@ -118,7 +100,7 @@ function Shell() {
 
         <Palette onAdd={place} />
 
-        <main ref={pane} className={wireFrom ? 'wiring' : undefined}>
+        <main ref={pane}>
           {/* the drop handlers ride on ReactFlow, not on <main>: a landmark is not a
               control, and this is React Flow's own drag-and-drop shape */}
           <ReactFlow
@@ -133,50 +115,20 @@ function Shell() {
             onNodesChange={board.onNodesChange}
             onEdgesChange={board.onEdgesChange}
             onConnect={connect}
-            onNodeClick={onNodeClick}
             onBeforeDelete={() => {
               snapshot()
               return Promise.resolve(true)
             }}
-            onNodeContextMenu={(e, n) => {
-              e.preventDefault()
-              setMenu({ id: n.id, x: e.clientX, y: e.clientY })
-            }}
-            onPaneClick={() => {
-              setWireFrom(null)
-              setMenu(null)
-            }}
-            onPaneContextMenu={() => setMenu(null)}
-            onMoveStart={() => setMenu(null)}
             defaultEdgeOptions={EDGE_STYLE}
+            connectionLineType={ConnectionLineType.SmoothStep}
             colorMode="dark"
             deleteKeyCode={DELETE_KEYS}
-            // a board is only bounded by the 4 MB import cap, so cull off-screen tiles
-            onlyRenderVisibleElements
             fitView
           >
             <Background />
             <Controls />
             <MiniMap pannable zoomable />
-            {/* keyed: re-Connect from another block has to re-anchor the ghost */}
-            {wireFrom ? <WireGhost key={wireFrom} from={wireFrom} /> : null}
           </ReactFlow>
-
-          {menu ? (
-            <BlockMenu
-              x={menu.x}
-              y={menu.y}
-              onConnect={() => {
-                setWireFrom(menu.id)
-                setMenu(null)
-              }}
-              onDelete={() => {
-                deleteBlock(menu.id)
-                setMenu(null)
-              }}
-              onClose={closeMenu}
-            />
-          ) : null}
         </main>
 
         <Inspector
@@ -184,11 +136,9 @@ function Shell() {
           edge={selectedEdge}
           nodes={nodes}
           onPatchNode={board.patchNode}
-          onNodeProp={board.setNodeProp}
-          onEdgeKind={board.setEdgeKind}
-          onEdgeProp={board.setEdgeProp}
+          onPatchEdge={board.patchEdge}
           onConnect={(from, to) => connect({ source: from, target: to })}
-          onDelete={deleteBlock}
+          onDelete={removeNode}
         />
 
         <Findings findings={board.findings} onFocus={focus} />

@@ -10,15 +10,15 @@ type KindSpec = { kind: string; base: Base; label: string; icon?: string; props?
 type EdgeKindSpec = { kind: string; label: string; props?: Record<string, PropSpec> }
 type CatalogFile = { nodes?: KindSpec[]; edges?: EdgeKindSpec[] }
 
+import core from './data/core.json'
+
 // Null prototype: an imported board names its own kinds, and "constructor" or
 // "toString" has to miss rather than hand back something off Object.prototype.
 export const KINDS: Record<string, KindSpec> = Object.create(null)
 export const EDGE_KINDS: Record<string, EdgeKindSpec> = Object.create(null)
 
-// One file per block family, merged here. Adding a family is adding a file.
-for (const file of Object.values(
-  import.meta.glob<CatalogFile>('./data/*.json', { eager: true, import: 'default' }),
-)) {
+// One file per block family; a new family is a new import on this list.
+for (const file of [core as CatalogFile]) {
   for (const k of file.nodes ?? []) KINDS[k.kind] = k
   for (const e of file.edges ?? []) EDGE_KINDS[e.kind] = e
 }

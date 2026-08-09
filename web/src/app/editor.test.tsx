@@ -1,5 +1,5 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Editor } from './editor'
 
@@ -81,23 +81,13 @@ describe('editor', () => {
     }
   }
 
-  it('wires two blocks through the right-click menu', async () => {
-    const { store, app } = await twoBlocks()
-    fireEvent.contextMenu(store)
-    await userEvent.click(screen.getByRole('button', { name: 'Connect' }))
-    fireEvent.click(app)
+  it('wires two blocks through the inspector, no pointer needed', async () => {
+    const { store } = await twoBlocks()
+    fireEvent.click(store) // select it, so the inspector shows the block
+    // "App" is also an option under "inside", so the query stays within one select
+    const connectTo = screen.getByLabelText('connect to')
+    await userEvent.selectOptions(connectTo, within(connectTo).getByRole('option', { name: 'App' }))
     // wired both ways round, so neither is an orphan any more
-    await waitFor(() => expect(screen.getByText('Nothing to flag.')).toBeTruthy())
-  })
-
-  it('re-anchors the wire when Connect is used again from another block', async () => {
-    const { store, app } = await twoBlocks()
-    fireEvent.contextMenu(store)
-    await userEvent.click(screen.getByRole('button', { name: 'Connect' }))
-    // change your mind mid-wire: the second Connect is the one that counts
-    fireEvent.contextMenu(app)
-    await userEvent.click(screen.getByRole('button', { name: 'Connect' }))
-    fireEvent.click(store)
     await waitFor(() => expect(screen.getByText('Nothing to flag.')).toBeTruthy())
   })
 
