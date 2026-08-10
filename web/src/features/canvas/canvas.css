@@ -14,6 +14,10 @@
   border-radius: var(--r-3);
   background: color-mix(in srgb, var(--h) 14%, var(--void));
   text-align: center;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s,
+    transform 0.12s;
 }
 
 .block .icon {
@@ -103,27 +107,62 @@
   color: var(--on-hue);
 }
 
-/* the connection points: drag one onto another block, or click one then the other.
-   Always faintly there, full strength when the block is in play — and the
-   inspector's "connect to" is the route that never needs a pointer at all. */
+/* purely the visual anchor a wire routes to now — connecting is press-and-hold on
+   the tile (use-hold-connect), not a drag from this dot, so it does not react to
+   hover and does not claim a crosshair cursor it no longer earns. */
 .react-flow__handle {
   width: 9px;
   height: 9px;
-  opacity: 0.55;
-  transition: opacity 0.1s;
+  opacity: 0.5;
+  cursor: default;
 }
 
-.react-flow__node:hover .react-flow__handle,
-.react-flow__node:focus-within .react-flow__handle,
-.react-flow__handle:hover {
-  opacity: 1;
+/* charging up: press-and-hold on a block grows this halo from --hold, a custom
+   property use-hold-connect writes straight onto the block's own style every frame
+   — transition: none, so the growth tracks --hold exactly instead of a CSS
+   transition trying to smooth a value that is already being animated by JS */
+.block.holding {
+  transition: none;
+  border-color: color-mix(in srgb, var(--live) calc(var(--hold, 0) * 100%), var(--h));
+  box-shadow:
+    0 0 0 3px var(--void),
+    0 0 0 calc(5px + var(--hold, 0) * 11px)
+      color-mix(in srgb, var(--live) calc(30% + var(--hold, 0) * 35%), transparent);
 }
 
-/* the half-made wire React Flow draws while a connection is in progress */
-.react-flow__connection-path {
+/* the block a ghost wire is currently over — release here to connect */
+.react-flow__node.target-hover .block {
+  border-color: var(--live);
+  box-shadow:
+    0 0 0 3px var(--void),
+    0 0 0 6px color-mix(in srgb, var(--live) 55%, transparent);
+  transform: scale(1.035);
+}
+
+/* the half-made wire React Flow draws while a connection is in progress, and the
+   one use-hold-connect draws by hand while a press-and-hold gesture is spawning one */
+.react-flow__connection-path,
+.wire-ghost {
   stroke: var(--live);
   stroke-width: 1.6;
   stroke-dasharray: 5 4;
+  fill: none;
+}
+
+.hold-connect-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .block {
+    transition: none;
+  }
 }
 
 /* Containers get no separate treatment: one tile, one size, one solid frame.

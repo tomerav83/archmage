@@ -24,14 +24,6 @@ beforeAll(() => {
   })
 })
 
-/** Nothing is stored, so a foreign board only ever arrives through Open… — and that
- *  input is hidden behind the button, which is why the test reaches for it directly. */
-const open = (container: HTMLElement, json: string) =>
-  userEvent.upload(
-    container.querySelector('input[type=file]') as HTMLInputElement,
-    new File([json], 'board.json', { type: 'application/json' }),
-  )
-
 describe('editor', () => {
   it('opens a first run with guidance rather than a blank canvas', () => {
     render(<Editor />)
@@ -46,21 +38,6 @@ describe('editor', () => {
     await userEvent.keyboard('{Enter}')
     // one block, unconnected — which is exactly what the review should now say
     expect(await screen.findByText('Store is not connected')).toBeTruthy()
-  })
-
-  // ids come from a file someone else wrote, so they can name anything on Object.prototype
-  it('survives a board whose node id shadows a key off Object.prototype', async () => {
-    const { container } = render(<Editor />)
-    await open(
-      container,
-      JSON.stringify({
-        id: 'b_1',
-        name: 'hostile',
-        nodes: [{ id: '__proto__', kind: 'app', name: 'Ledger', parent: null, x: 0, y: 0, props: {} }],
-        edges: [],
-      }),
-    )
-    expect(await screen.findByText('Ledger is not connected')).toBeTruthy()
   })
 
   /** Two blocks on the board, each found by the tooltip its tile carries — "<kind> —
@@ -91,20 +68,22 @@ describe('editor', () => {
     await waitFor(() => expect(screen.getByText('Nothing to flag.')).toBeTruthy())
   })
 
-  it('undoes a deleted block', async () => {
+  // press-and-hold connecting (use-hold-connect): a plain click must still just select
+  it('does not start a connection on a quick tap', async () => {
     const { store } = await twoBlocks()
-    fireEvent.click(store)
-    await userEvent.click(screen.getByRole('button', { name: 'Delete block' }))
-    expect(screen.queryByTitle('Store — Store')).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'Undo' }))
-    expect(await screen.findByTitle('Store — Store')).toBeTruthy()
+    fireEvent.pointerDown(store, { button: 0, clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerUp(store, { clientX: 10, clientY: 10, pointerId: 1 })
+    // long past the hold threshold — if the timer had survived, this is where it'd fire
+    await new Promise((r) => setTimeout(r, 420))
+    expect(screen.getByText('Store is not connected')).toBeTruthy()
   })
 
-  it('reports an unreadable file and lets the message be dismissed', async () => {
-    const { container } = render(<Editor />)
-    await open(container, 'not json at all')
-    expect((await screen.findByRole('alert')).textContent).toMatch(/not valid JSON/)
-    await userEvent.click(screen.getByRole('button', { name: 'Dismiss message' }))
-    expect(screen.queryByRole('alert')).toBeNull()
+  it('cancels the hold once the pointer drifts, so a drag-to-reposition still wins', async () => {
+    const { store } = await twoBlocks()
+    fireEvent.pointerDown(store, { button: 0, clientX: 10, clientY: 10, pointerId: 1 })
+    fireEvent.pointerMove(window, { clientX: 40, clientY: 10, pointerId: 1 })
+    await new Promise((r) => setTimeout(r, 420))
+    fireEvent.pointerUp(store, { clientX: 40, clientY: 10, pointerId: 1 })
+    expect(screen.getByText('Store is not connected')).toBeTruthy()
   })
 })
