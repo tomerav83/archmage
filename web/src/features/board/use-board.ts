@@ -1,14 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useEdgesState, useNodesState, useReactFlow, type Connection } from '@xyflow/react'
 import { newId, toBoard } from './codec'
-import {
-  insertEdge,
-  insertNode,
-  selectOnlyEdge,
-  selectOnlyNode,
-  updateEdgeData,
-  updateNodeData,
-} from './actions'
+import { insertNode, selectOnlyNode, updateNodeData } from './node-actions'
+import { insertEdge, selectOnlyEdge, updateEdgeData } from './edge-actions'
 import type { BlockEdge, BlockNode } from '@/lib/board-types'
 import type { Finding } from '@/features/review' // type-only: erased, so the feature boundary holds
 
