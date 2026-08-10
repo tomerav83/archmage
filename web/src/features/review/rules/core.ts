@@ -1,6 +1,6 @@
 // The core block family's rules. "core" is a family name, not filler: each later
 // family (datastores, messaging, …) adds a sibling file here and an import in review.ts.
-import { EDGE_KINDS, KINDS } from '@/lib/catalog'
+import { CONTAINER_BASES, EDGE_KINDS, KINDS, propsSchema, validator } from '@/lib/catalog'
 import type { Finding, Rule } from '../review'
 
 /** A board can reference a kind this build has no catalog entry for. Say so instead of guessing. */
@@ -49,6 +49,53 @@ const danglingRefs: Rule = (b) => {
   return out
 }
 
+/** IcePanel: only a system, group or app can hold children. The inspector already
+ *  restricts the "inside" picker to those, but an imported board can still say anything. */
+const invalidParent: Rule = (b) => {
+  const byId = new Map(b.nodes.map((n) => [n.id, n]))
+  const out: Finding[] = []
+  for (const n of b.nodes) {
+    if (!n.parent) continue
+    const parent = byId.get(n.parent)
+    const base = parent && KINDS[parent.kind]?.base
+    if (base && !CONTAINER_BASES.has(base))
+      out.push({
+        nodeId: n.id,
+        severity: 'error',
+        title: `${n.name || n.kind} sits inside a block that can't hold children`,
+        why: `Its parent "${parent.name || parent.kind}" is a ${KINDS[parent.kind]?.label ?? parent.kind}, and IcePanel doesn't let that hold anything.`,
+      })
+  }
+  return out
+}
+
+/** A prop's value must match what its kind's catalog entry declares — the same JSON
+ *  Schema the inspector's form renders from. The inspector's own fields can't produce
+ *  a bad value; an imported board can. Empty fields ride as null, so they're stripped
+ *  rather than checked against a type that doesn't include it. */
+const invalidProps: Rule = (b) => {
+  const out: Finding[] = []
+  const check = (
+    props: Record<string, unknown>,
+    spec: Parameters<typeof propsSchema>[0],
+    target: { nodeId?: string; edgeId?: string },
+    label: string,
+  ) => {
+    const data = Object.fromEntries(Object.entries(props).filter(([, v]) => v != null))
+    const { errors } = validator.validateFormData(data, propsSchema(spec))
+    for (const err of errors)
+      out.push({
+        ...target,
+        severity: 'error',
+        title: `Invalid "${err.property?.replace(/^[./]/, '') || label}" on ${label}`,
+        why: `${err.message ?? 'does not match the catalog schema'}.`,
+      })
+  }
+  for (const n of b.nodes) check(n.props, KINDS[n.kind], { nodeId: n.id }, n.name || n.kind)
+  for (const e of b.edges) check(e.props, EDGE_KINDS[e.kind], { edgeId: e.id }, e.kind)
+  return out
+}
+
 /** IcePanel: each model object must have a unique name within its scope. */
 const duplicateNames: Rule = (b) => {
   const seen = new Set<string>()
@@ -82,4 +129,11 @@ const orphans: Rule = (b) => {
     }))
 }
 
-export const rules: Rule[] = [unknownKinds, danglingRefs, duplicateNames, orphans]
+export const rules: Rule[] = [
+  unknownKinds,
+  danglingRefs,
+  invalidParent,
+  invalidProps,
+  duplicateNames,
+  orphans,
+]

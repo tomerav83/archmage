@@ -39,6 +39,35 @@
   height: 15px;
 }
 
+/* rjsf renders the props form: a bare fieldset (browser chrome stripped, spacing
+   matched to the hand-styled fields above it) and a checkbox row shaped like the
+   hand-rolled one it replaced. */
+.inspector fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.inspector .rjsf-field + .rjsf-field {
+  margin-top: var(--gap);
+}
+
+.inspector form.rjsf {
+  margin-bottom: var(--gap);
+}
+
+.inspector .checkbox label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 0;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
 .inspector .wide {
   width: 100%;
   padding: 8px;

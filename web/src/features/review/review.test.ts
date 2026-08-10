@@ -69,4 +69,28 @@ describe('review', () => {
     ).filter((f) => f.title.includes('not connected'))
     expect(found.map((f) => f.nodeId)).toEqual(['n1'])
   })
+
+  it('flags a block parented to a kind that cannot hold children', () => {
+    const found = review(
+      board({ nodes: [node('db', { kind: 'store' }), node('n1', { parent: 'db' })] }),
+    ).filter((f) => f.title.includes("can't hold children"))
+    expect(found.map((f) => f.nodeId)).toEqual(['n1'])
+  })
+
+  it('flags a prop value the catalog does not allow', () => {
+    const badEnum = review(
+      board({ nodes: [node('sys', { kind: 'system', props: { status: 'on-fire' } })] }),
+    ).filter((f) => f.title.startsWith('Invalid'))
+    expect(badEnum).toHaveLength(1)
+
+    const badType = review(
+      board({ nodes: [node('a1', { kind: 'actor', props: { external: 'yes' } })] }),
+    ).filter((f) => f.title.startsWith('Invalid'))
+    expect(badType).toHaveLength(1)
+
+    const ok = review(board({ nodes: [node('sys', { kind: 'system', props: { status: 'live' } })] })).filter(
+      (f) => f.title.startsWith('Invalid'),
+    )
+    expect(ok).toEqual([])
+  })
 })

@@ -5,7 +5,15 @@
 /** IcePanel's six model object types. Every block kind specializes one of them. */
 export type Base = 'actor' | 'group' | 'system' | 'app' | 'store' | 'component'
 
-export type PropSpec = { type?: 'string' | 'boolean' | 'number'; enum?: string[]; default?: unknown }
+/** The bases IcePanel lets hold children. Shared by the inspector (what a block can be
+ *  dropped into) and the review (whether a board someone imported respects it). */
+export const CONTAINER_BASES: ReadonlySet<Base> = new Set(['system', 'group', 'app'])
+
+import type { RJSFSchema } from '@rjsf/utils'
+
+/** A kind's props are plain JSON Schema properties — the catalog IS the schema, for
+ *  both the inspector's generated form and the review's validation. */
+export type PropSpec = RJSFSchema
 type KindSpec = { kind: string; base: Base; label: string; icon?: string; props?: Record<string, PropSpec> }
 type EdgeKindSpec = { kind: string; label: string; props?: Record<string, PropSpec> }
 type CatalogFile = { nodes?: KindSpec[]; edges?: EdgeKindSpec[] }
@@ -29,6 +37,13 @@ export const defaults = (spec?: KindSpec): Record<string, unknown> =>
       .filter(([, p]) => p.default !== undefined)
       .map(([k, p]) => [k, p.default]),
   )
+
+/** The object schema a kind's props must satisfy — what the inspector's form renders
+ *  from and what the review validates against. */
+export const propsSchema = (spec?: { props?: Record<string, PropSpec> }): RJSFSchema => ({
+  type: 'object',
+  properties: spec?.props ?? {},
+})
 
 /** The wire's on-canvas text for a kind: the catalog's label, or the raw kind for one
  *  the catalog doesn't have (an imported board can name any string). */

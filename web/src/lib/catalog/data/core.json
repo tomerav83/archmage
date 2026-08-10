@@ -17,7 +17,11 @@
       "icon": "lucide:box",
       "props": {
         "description": { "type": "string" },
-        "status": { "enum": ["live", "future", "deprecated", "removed"], "default": "live" },
+        "status": {
+          "type": "string",
+          "enum": ["live", "future", "deprecated", "removed"],
+          "default": "live"
+        },
         "external": { "type": "boolean", "default": false }
       }
     },

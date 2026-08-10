@@ -1,56 +1,13 @@
-import { EDGE_KINDS, KINDS, type Base, type PropSpec } from '@/lib/catalog'
+import Form from '@rjsf/core'
+import { CONTAINER_BASES, EDGE_KINDS, KINDS, propsSchema, validator } from '@/lib/catalog'
 import type { BlockEdge, BlockNode } from '@/lib/board-types'
 import './inspector.css'
 
-const CONTAINERS = new Set<Base>(['system', 'group', 'app'])
 const MAX_PICKER_OPTIONS = 200
 
-function Field({
-  label,
-  spec,
-  value,
-  onChange,
-}: {
-  label: string
-  spec: PropSpec
-  value: unknown
-  onChange: (v: unknown) => void
-}) {
-  if (spec.enum)
-    return (
-      <label>
-        {label}
-        <select value={String(value ?? '')} onChange={(e) => onChange(e.target.value || null)}>
-          <option value="">—</option>
-          {spec.enum.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </select>
-      </label>
-    )
-  if (spec.type === 'boolean')
-    return (
-      <label className="check">
-        <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />
-        {label}
-      </label>
-    )
-  const num = spec.type === 'number'
-  return (
-    <label>
-      {label}
-      <input
-        type={num ? 'number' : 'text'}
-        value={value == null ? '' : String(value)}
-        onChange={(e) =>
-          onChange(num ? (e.target.value === '' ? null : Number(e.target.value)) : e.target.value)
-        }
-      />
-    </label>
-  )
-}
+// No submit button (every field commits live) and no error list — a bad value shows
+// up as a review finding, the same place every other rule violation shows up.
+const PROPS_UI_SCHEMA = { 'ui:submitButtonOptions': { norender: true } }
 
 /** One option per block, capped: past a couple of hundred a native select is no way
  *  to find anything, and an uncapped list re-renders every option on every drag frame. */
@@ -106,7 +63,7 @@ export function Inspector({
             <NodeOptions
               nodes={nodes.filter((n) => {
                 const base = KINDS[n.data.kind]?.base
-                return n.id !== node.id && base !== undefined && CONTAINERS.has(base)
+                return n.id !== node.id && base !== undefined && CONTAINER_BASES.has(base)
               })}
             />
           </select>
@@ -124,15 +81,15 @@ export function Inspector({
             <NodeOptions nodes={nodes.filter((n) => n.id !== node.id)} />
           </select>
         </label>
-        {Object.entries(spec?.props ?? {}).map(([key, propSpec]) => (
-          <Field
-            key={key}
-            label={key}
-            spec={propSpec}
-            value={node.data.props[key]}
-            onChange={(v) => onPatchNode(node.id, { props: { [key]: v } })}
-          />
-        ))}
+        <Form
+          key={node.id}
+          schema={propsSchema(spec)}
+          uiSchema={PROPS_UI_SCHEMA}
+          validator={validator}
+          showErrorList={false}
+          formData={node.data.props}
+          onChange={(e) => onPatchNode(node.id, { props: e.formData ?? {} })}
+        />
         <button type="button" className="wide" onClick={() => onDelete(node.id)}>
           Delete block
         </button>
@@ -155,15 +112,15 @@ export function Inspector({
             ))}
           </select>
         </label>
-        {Object.entries(EDGE_KINDS[kind]?.props ?? {}).map(([key, propSpec]) => (
-          <Field
-            key={key}
-            label={key}
-            spec={propSpec}
-            value={edge.data?.props[key]}
-            onChange={(v) => onPatchEdge(edge.id, { props: { [key]: v } })}
-          />
-        ))}
+        <Form
+          key={edge.id}
+          schema={propsSchema(EDGE_KINDS[kind])}
+          uiSchema={PROPS_UI_SCHEMA}
+          validator={validator}
+          showErrorList={false}
+          formData={edge.data?.props ?? {}}
+          onChange={(e) => onPatchEdge(edge.id, { props: e.formData ?? {} })}
+        />
       </aside>
     )
   }

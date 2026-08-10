@@ -13,7 +13,11 @@
     "check": "npm run format:check && npm run lint && tsc --noEmit && vitest run"
   },
   "dependencies": {
+    "@rjsf/core": "^6.7.1",
+    "@rjsf/utils": "^6.7.1",
+    "@rjsf/validator-ajv8": "^6.7.1",
     "@xyflow/react": "^12.11.2",
+    "ajv": "^8.20.0",
     "lucide-react": "^1.31.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
