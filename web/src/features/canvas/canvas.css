@@ -117,17 +117,14 @@
   cursor: default;
 }
 
-/* charging up: press-and-hold on a block grows this halo from --hold, a custom
-   property use-hold-connect writes straight onto the block's own style every frame
-   — transition: none, so the growth tracks --hold exactly instead of a CSS
-   transition trying to smooth a value that is already being animated by JS */
+/* the long press survived: this block is the source of a wire in progress. On for
+   the rest of the gesture, however long that takes — release or connect turns it
+   back off, nothing here is timed. */
 .block.holding {
-  transition: none;
-  border-color: color-mix(in srgb, var(--live) calc(var(--hold, 0) * 100%), var(--h));
+  border-color: var(--live);
   box-shadow:
     0 0 0 3px var(--void),
-    0 0 0 calc(5px + var(--hold, 0) * 11px)
-      color-mix(in srgb, var(--live) calc(30% + var(--hold, 0) * 35%), transparent);
+    0 0 0 6px color-mix(in srgb, var(--live) 55%, transparent);
 }
 
 /* the block a ghost wire is currently over — release here to connect */

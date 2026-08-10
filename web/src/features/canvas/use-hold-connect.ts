@@ -8,22 +8,21 @@ export type PointerStart = { clientX: number; clientY: number; pointerId: number
 
 type Gesture = {
   originId: string
-  originEl: HTMLElement
   startX: number
   startY: number
   holdTimer: ReturnType<typeof setTimeout> | null
-  rafId: number | null
   ghostLine: SVGLineElement | null
   hoverEl: HTMLElement | null
   draggableSuppressed: boolean
 }
 
 // The interaction layer for connecting: press and hold anywhere on a block, then
-// drag to another block to wire them up. Everything below the hold/no-hold decision
-// is imperative DOM work — the progress pulse, the ghost wire, the target highlight
-// — on purpose: a 60fps drag shouldn't push a React re-render through the whole
-// graph. The only thing that goes through React state is which block is mid-hold,
-// for the one class HoldConnectContext hands to Block.
+// drag to another block to wire them up. Nothing shows during the wait — the border
+// switches on the instant the hold survives into a wire drag, and stays on for the
+// rest of the gesture, through release or connect. The ghost wire and the target
+// highlight are imperative DOM work on purpose: a 60fps drag shouldn't push a React
+// re-render through the whole graph. The only thing that goes through React state is
+// which block is mid-gesture, for the one class HoldConnectContext hands to Block.
 
 export function useHoldConnect(
   onConnect: (from: string, to: string) => void,
@@ -38,8 +37,6 @@ export function useHoldConnect(
     const g = gestureRef.current
     if (!g) return
     if (g.holdTimer) clearTimeout(g.holdTimer)
-    if (g.rafId) cancelAnimationFrame(g.rafId)
-    g.originEl.style.removeProperty('--hold')
     g.ghostLine?.remove()
     g.hoverEl?.classList.remove('target-hover')
     // only the hold fired past re-enables this — a cancelled-before-fire gesture
@@ -125,36 +122,25 @@ export function useHoldConnect(
       cleanup()
       const g: Gesture = {
         originId: id,
-        originEl: el,
         startX: start.clientX,
         startY: start.clientY,
         holdTimer: null,
-        rafId: null,
         ghostLine: null,
         hoverEl: null,
         draggableSuppressed: false,
       }
       gestureRef.current = g
-      setHoldingId(id)
-
-      const holdStart = performance.now()
-      const tick = () => {
-        el.style.setProperty('--hold', String(Math.min(1, (performance.now() - holdStart) / HOLD_MS)))
-        g.rafId = requestAnimationFrame(tick)
-      }
-      g.rafId = requestAnimationFrame(tick)
 
       g.holdTimer = setTimeout(() => {
-        if (g.rafId) cancelAnimationFrame(g.rafId)
-        g.rafId = null
         g.holdTimer = null
-        el.style.removeProperty('--hold')
-        setHoldingId(null)
+        // the long press survived — turn the border on now, and leave it on; cleanup()
+        // is the only place that turns it back off, whether that's a release or a connect
+        setHoldingId(id)
 
         if (!svgRef.current) return
-        // the hold survived — this is a wire drag now, not a reposition drag, and
-        // the very next pointermove is otherwise indistinguishable from one to
-        // React Flow's own drag detector (nodeDragThreshold defaults to 1px)
+        // this is a wire drag now, not a reposition drag, and the very next pointermove
+        // is otherwise indistinguishable from one to React Flow's own drag detector
+        // (nodeDragThreshold defaults to 1px)
         updateNode(id, { draggable: false })
         g.draggableSuppressed = true
         const anchor = anchorFor(el, start.clientX)
