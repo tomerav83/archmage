@@ -111,7 +111,7 @@ export function Inspector({
             />
           </select>
         </label>
-        {/* the keyboard route to a connection: right-click then click needs a mouse */}
+        {/* the keyboard route to a connection: dragging a handle needs a mouse */}
         <label>
           connect to
           <select
@@ -172,7 +172,7 @@ export function Inspector({
     <aside className="inspector" aria-label="Inspector">
       <p className="hint">
         Drag a block onto the canvas, or click one in the palette to drop it in the middle. Click a block to
-        edit it; right-click it for Connect and Delete.
+        edit, connect or delete it.
       </p>
     </aside>
   )
