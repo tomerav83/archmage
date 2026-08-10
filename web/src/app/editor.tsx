@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, type DragEvent } from 'react'
+import { useMemo } from 'react'
 import {
   Background,
   ConnectionLineType,
@@ -8,7 +8,7 @@ import {
   ReactFlowProvider,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { useBoard } from '@/features/board'
+import { useBlockDrop, useBoard } from '@/features/board'
 import { FlagsContext, nodeTypes } from '@/features/canvas'
 import { Inspector } from '@/features/inspector'
 import { DRAG_KEY, Palette } from '@/features/palette'
@@ -22,36 +22,14 @@ const DELETE_KEYS = ['Backspace', 'Delete']
  *  Connecting is React Flow's own: drag handle to handle, or click one then the other. */
 function Shell() {
   const board = useBoard()
-  const { addBlock, connect, focus, nodes, edges, removeNode, snapshot } = board
+  const { addBlock, connect, focus, nodes, edges, removeNode } = board
   // where the document meets the rules: one feature's output wired into the other's input
   const findings = useMemo(() => review(board.doc), [board.doc])
   const flags = useMemo(() => worstPerNode(findings), [findings])
-  const fileInput = useRef<HTMLInputElement>(null)
-  const pane = useRef<HTMLElement>(null)
+  const { pane, place, onDrop, onDragOver } = useBlockDrop(addBlock, DRAG_KEY)
 
   const selectedNode = nodes.find((n) => n.selected)
   const selectedEdge = edges.find((e) => e.selected)
-
-  /** Where a block lands is a layout question, so it is answered here: a drop lands
-   *  where the pointer is, a click or an Enter on a chip in the middle of the view. */
-  const place = useCallback(
-    (kind: string, at?: { x: number; y: number }) => {
-      const box = pane.current?.getBoundingClientRect()
-      addBlock(
-        kind,
-        at ?? { x: (box?.left ?? 0) + (box?.width ?? 0) / 2, y: (box?.top ?? 0) + (box?.height ?? 0) / 2 },
-      )
-    },
-    [addBlock],
-  )
-
-  const onDrop = useCallback(
-    (ev: DragEvent) => {
-      ev.preventDefault()
-      place(ev.dataTransfer.getData(DRAG_KEY), { x: ev.clientX, y: ev.clientY })
-    },
-    [place],
-  )
 
   return (
     <FlagsContext.Provider value={flags}>
@@ -65,40 +43,6 @@ function Shell() {
             value={board.name}
             onChange={(e) => board.setName(e.target.value)}
           />
-          <button type="button" onClick={() => fileInput.current?.click()}>
-            Open…
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept="application/json,.json"
-            hidden
-            onChange={(e) => {
-              void board.openBoard(e.target.files?.[0])
-              e.target.value = ''
-            }}
-          />
-          <button type="button" className="primary" onClick={board.exportBoard}>
-            Export
-          </button>
-          {board.undoable ? (
-            <button type="button" onClick={board.undo}>
-              Undo
-            </button>
-          ) : null}
-          {board.error ? (
-            <p className="error" role="alert">
-              {board.error}
-              <button
-                type="button"
-                className="dismiss"
-                aria-label="Dismiss message"
-                onClick={board.dismissError}
-              >
-                ×
-              </button>
-            </p>
-          ) : null}
         </header>
 
         <Palette onAdd={place} />
@@ -108,20 +52,13 @@ function Shell() {
               control, and this is React Flow's own drag-and-drop shape */}
           <ReactFlow
             onDrop={onDrop}
-            onDragOver={(e) => {
-              e.preventDefault()
-              e.dataTransfer.dropEffect = 'move'
-            }}
+            onDragOver={onDragOver}
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={board.onNodesChange}
             onEdgesChange={board.onEdgesChange}
             onConnect={connect}
-            onBeforeDelete={() => {
-              snapshot()
-              return Promise.resolve(true)
-            }}
             defaultEdgeOptions={EDGE_STYLE}
             connectionLineType={ConnectionLineType.SmoothStep}
             colorMode="dark"

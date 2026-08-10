@@ -1,3 +1,5 @@
-// The whole public surface is one hook. The codec became internals the moment the
-// state hook moved in beside it — nothing outside builds or parses a board by hand.
+// The public surface: the state hook, and the interaction hook that turns DOM events
+// into calls on it. codec.ts and actions.ts are internals — nothing outside builds,
+// parses or mutates a board by hand.
 export { useBoard } from './use-board'
+export { useBlockDrop } from './use-block-drop'
