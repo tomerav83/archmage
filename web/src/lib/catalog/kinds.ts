@@ -29,3 +29,7 @@ export const defaults = (spec?: KindSpec): Record<string, unknown> =>
       .filter(([, p]) => p.default !== undefined)
       .map(([k, p]) => [k, p.default]),
   )
+
+/** The wire's on-canvas text for a kind: the catalog's label, or the raw kind for one
+ *  the catalog doesn't have (an imported board can name any string). */
+export const edgeLabel = (kind: string): string => EDGE_KINDS[kind]?.label ?? kind

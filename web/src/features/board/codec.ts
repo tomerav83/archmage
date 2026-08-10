@@ -1,4 +1,4 @@
-import { EDGE_KINDS } from '@/lib/catalog'
+import { edgeLabel } from '@/lib/catalog'
 import type { Board, BlockEdge, BlockNode } from '@/lib/board-types'
 
 // The bridge between the Board document and React Flow's live editing state.
@@ -17,7 +17,7 @@ export const toRF = (b: Board): { nodes: BlockNode[]; edges: BlockEdge[] } => ({
     id: e.id,
     source: e.from,
     target: e.to,
-    label: EDGE_KINDS[e.kind]?.label ?? e.kind,
+    label: edgeLabel(e.kind),
     data: { kind: e.kind, props: e.props },
   })),
 })

@@ -1,5 +1,5 @@
 import { addEdge, type Connection } from '@xyflow/react'
-import { EDGE_KINDS } from '@/lib/catalog'
+import { edgeLabel } from '@/lib/catalog'
 import type { BlockEdge } from '@/lib/board-types'
 
 // An edge's whole lifecycle: how one is created, how a patch lands on it (a changed
@@ -11,10 +11,7 @@ export function insertEdge(
   id: string,
   c: Connection | { source: string; target: string },
 ): BlockEdge[] {
-  return addEdge<BlockEdge>(
-    { ...c, id, label: EDGE_KINDS.uses?.label ?? 'uses', data: { kind: 'uses', props: {} } },
-    edges,
-  )
+  return addEdge<BlockEdge>({ ...c, id, label: edgeLabel('uses'), data: { kind: 'uses', props: {} } }, edges)
 }
 
 export function updateEdgeData(
@@ -25,11 +22,7 @@ export function updateEdgeData(
   return edges.map((e) => {
     if (e.id !== id) return e
     const kind = patch.kind ?? e.data?.kind ?? 'uses'
-    return {
-      ...e,
-      label: EDGE_KINDS[kind]?.label ?? kind,
-      data: { kind, props: { ...e.data?.props, ...patch.props } },
-    }
+    return { ...e, label: edgeLabel(kind), data: { kind, props: { ...e.data?.props, ...patch.props } } }
   })
 }
 
