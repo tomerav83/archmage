@@ -15,6 +15,7 @@ type Gesture = {
   rafId: number | null
   ghostLine: SVGLineElement | null
   hoverEl: HTMLElement | null
+  draggableSuppressed: boolean
 }
 
 // The interaction layer for connecting: press and hold anywhere on a block, then
@@ -28,7 +29,7 @@ export function useHoldConnect(
   onConnect: (from: string, to: string) => void,
   paneRef: RefObject<HTMLElement | null>,
 ) {
-  const { screenToFlowPosition, getIntersectingNodes } = useReactFlow()
+  const { screenToFlowPosition, getIntersectingNodes, updateNode } = useReactFlow()
   const [holdingId, setHoldingId] = useState<string | null>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const gestureRef = useRef<Gesture | null>(null)
@@ -41,9 +42,12 @@ export function useHoldConnect(
     g.originEl.style.removeProperty('--hold')
     g.ghostLine?.remove()
     g.hoverEl?.classList.remove('target-hover')
+    // only the hold fired past re-enables this — a cancelled-before-fire gesture
+    // never touched it, and re-setting it on every plain click is wasted work
+    if (g.draggableSuppressed) updateNode(g.originId, { draggable: true })
     gestureRef.current = null
     setHoldingId(null)
-  }, [])
+  }, [updateNode])
 
   // which edge of the origin block to draw the ghost wire from — whichever side
   // faces the point the user is dragging towards
@@ -128,6 +132,7 @@ export function useHoldConnect(
         rafId: null,
         ghostLine: null,
         hoverEl: null,
+        draggableSuppressed: false,
       }
       gestureRef.current = g
       setHoldingId(id)
@@ -147,6 +152,11 @@ export function useHoldConnect(
         setHoldingId(null)
 
         if (!svgRef.current) return
+        // the hold survived — this is a wire drag now, not a reposition drag, and
+        // the very next pointermove is otherwise indistinguishable from one to
+        // React Flow's own drag detector (nodeDragThreshold defaults to 1px)
+        updateNode(id, { draggable: false })
+        g.draggableSuppressed = true
         const anchor = anchorFor(el, start.clientX)
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
         line.setAttribute('class', 'wire-ghost')
@@ -158,7 +168,7 @@ export function useHoldConnect(
         g.ghostLine = line
       }, HOLD_MS)
     },
-    [cleanup, anchorFor],
+    [cleanup, anchorFor, updateNode],
   )
 
   // a real React Flow drag beat the hold — the movement already told the story
