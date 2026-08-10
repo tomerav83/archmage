@@ -61,7 +61,7 @@ and PR4 each ship node kinds *and* edge kinds.
 
 | # | Branch | Ships |
 |---|---|---|
-| 1 | `feature/frontend` | Vite + React + TS in `web/`, React Flow canvas, palette drag-to-place, connect, inspector, catalog + rule engines, board import/export (nothing persists — Open/Export carry the board), findings panel. Core six kinds only. |
+| 1 | `feature/frontend` | Vite + React + TS in `web/`, React Flow canvas, palette drag-to-place, connect, inspector, catalog + rule engines, findings panel. Nothing persists — every load starts blank. Core six kinds only. |
 | 2 | `feature/blocks-datastores` | relational, document, kv/cache, wide-column, search, object, analytics. Rules: store with no owner, store shared across systems, cache with no TTL, PII store with no backup. |
 | 3 | `feature/blocks-messaging` | kafka, rabbitmq, sqs/sns, pubsub, nats + `publish`/`subscribe`/`stream` edges. Rules: topic with no consumer, no DLQ, at-least-once consumer not marked idempotent. |
 | 4 | `feature/blocks-apis` | api-gateway, load-balancer, cdn, bff + `rest`/`grpc`/`graphql`/`websocket`/`webhook` edges. Rules: public edge without auth, sync chain depth > 3, cross-system sync with no timeout or retry. |

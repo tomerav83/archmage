@@ -38,7 +38,6 @@
      but only 3.6:1 as text and 3.5:1 under --ink, so text and danger buttons
      get their own step of the same hue. */
   --error: #e5484d;
-  --error-text: #ffadb4; /* 4.8:1 on --hair, 8.1:1 on --void */
   --error-fill: #a3262a; /* 6.5:1 under --ink */
   --warn: #e8a33d;
   --live: #57d26f;
@@ -186,44 +185,6 @@ header button:hover {
 header button:active {
   background: var(--hair);
   transform: translateY(1px);
-}
-
-header .primary {
-  background: var(--live);
-  color: var(--on-hue);
-}
-
-/* a message can be long and is the one thing here allowed to wrap */
-header .error {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex: 1 1 240px;
-  min-width: 0;
-  margin: 0;
-  overflow-wrap: anywhere;
-  color: var(--error-text);
-  font-weight: 600;
-}
-
-.dismiss {
-  flex: 0 0 auto;
-  padding: 2px 9px;
-  border: 0;
-  border-radius: var(--r-1);
-  background: transparent;
-  color: inherit;
-  font-size: 1rem;
-  line-height: 1.4;
-  cursor: pointer;
-}
-
-.dismiss:hover {
-  background: var(--slot);
-}
-
-.dismiss:active {
-  background: var(--hair);
 }
 
 /* --- panel chrome, shared by the three wells --- */

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { parseBoard } from '@/features/board/codec'
 import type { Board } from '@/lib/board-types'
 import { review } from './review'
 
@@ -69,13 +68,5 @@ describe('review', () => {
       board({ nodes: [node('sys', { kind: 'system' }), node('n1', { parent: 'sys' })] }),
     ).filter((f) => f.title.includes('not connected'))
     expect(found.map((f) => f.nodeId)).toEqual(['n1'])
-  })
-
-  // the rules call .trim() on a name — parseBoard is what keeps a number out of here
-  it('survives a board whose fields arrived the wrong type', () => {
-    const b = parseBoard(
-      '{"name":7,"nodes":[{"id":"n1","kind":"app","x":0,"y":0,"name":123,"parent":{},"props":"nope"}],"edges":[]}',
-    )
-    expect(() => review(b)).not.toThrow()
   })
 })
