@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useRef, type PointerEvent as ReactPointerEvent } from 'react'
 import { Handle, Position, type NodeProps } from '@xyflow/react'
-import { ICONS, KINDS } from '@/lib/catalog'
+import { KINDS } from '@/lib/catalog'
 import type { BlockNode, Severity } from '@/lib/board-types'
 import type { PointerStart } from './use-hold-connect'
 import './canvas.css'
@@ -30,7 +30,7 @@ function Block({ id, data, selected }: NodeProps<BlockNode>) {
     },
     [id, beginHold],
   )
-  const Glyph = spec?.icon ? ICONS[spec.icon] : undefined
+  const Glyph = spec?.icon
   // Both lines on the tile are cut to fit — the name is clamped, and the kind can be
   // any length at all, since an imported board names its own. One tooltip carries both.
   const label = spec?.label ?? data.kind

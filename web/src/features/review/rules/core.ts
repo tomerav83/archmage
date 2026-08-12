@@ -1,6 +1,7 @@
 // The core block family's rules. "core" is a family name, not filler: each later
 // family (datastores, messaging, …) adds a sibling file here and an import in review.ts.
-import { CONTAINER_BASES, EDGE_KINDS, KINDS, propsSchema, validator } from '@/lib/catalog'
+import validator from '@rjsf/validator-ajv8'
+import { EDGE_KINDS, KINDS, propsSchema } from '@/lib/catalog'
 import type { Finding, Rule } from '../review'
 
 /** A board can reference a kind this build has no catalog entry for. Say so instead of guessing. */
@@ -57,8 +58,8 @@ const invalidParent: Rule = (b) => {
   for (const n of b.nodes) {
     if (!n.parent) continue
     const parent = byId.get(n.parent)
-    const base = parent && KINDS[parent.kind]?.base
-    if (base && !CONTAINER_BASES.has(base))
+    const spec = parent && KINDS[parent.kind]
+    if (spec && !spec.holdsChildren)
       out.push({
         nodeId: n.id,
         severity: 'error',

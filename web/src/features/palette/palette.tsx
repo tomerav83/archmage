@@ -1,24 +1,19 @@
-import { ICONS, KINDS, type Base } from '@/lib/catalog'
+import { DRAG_KEY } from '@/lib/board-types'
+import { BASES, KINDS } from '@/lib/catalog'
 import './palette.css'
-
-const PALETTE_ORDER: Base[] = ['actor', 'system', 'group', 'app', 'store', 'component']
-
-/** The drag payload a chip writes and the canvas reads. One name, because a typo on
- *  either side would just look like a drop that silently did nothing. */
-export const DRAG_KEY = 'application/archmage-kind'
 
 /** Chips are buttons, not draggable divs: dragging one is the quick way to place it,
  *  clicking or pressing Enter drops it in the middle of the view. */
 export function Palette({ onAdd }: { onAdd: (kind: string) => void }) {
   return (
     <aside className="palette" aria-label="Block palette">
-      {PALETTE_ORDER.map((base) => {
+      {BASES.map((base) => {
         const kinds = Object.values(KINDS).filter((k) => k.base === base)
         return kinds.length === 0 ? null : (
           <section key={base}>
             <h2>{base}</h2>
             {kinds.map((k) => {
-              const Glyph = k.icon ? ICONS[k.icon] : undefined
+              const Glyph = k.icon
               return (
                 <button
                   key={k.kind}

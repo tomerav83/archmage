@@ -11,7 +11,7 @@ import '@xyflow/react/dist/style.css'
 import { useBlockDrop, useBoard } from '@/features/board'
 import { FlagsContext, HoldConnectContext, nodeTypes, useHoldConnect } from '@/features/canvas'
 import { Inspector } from '@/features/inspector'
-import { DRAG_KEY, Palette } from '@/features/palette'
+import { Palette } from '@/features/palette'
 import { Findings, review, worstPerNode } from '@/features/review'
 
 // Orthogonal wires with rounded elbows; colour stays reserved for the objects.
@@ -26,7 +26,7 @@ function Shell() {
   // where the document meets the rules: one feature's output wired into the other's input
   const findings = useMemo(() => review(board.doc), [board.doc])
   const flags = useMemo(() => worstPerNode(findings), [findings])
-  const { pane, place, onDrop, onDragOver } = useBlockDrop(addBlock, DRAG_KEY)
+  const { pane, place, onDrop, onDragOver } = useBlockDrop(addBlock)
   const holdConnect = useHoldConnect(
     useCallback((from, to) => connect({ source: from, target: to }), [connect]),
     pane,

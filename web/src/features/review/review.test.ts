@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Board } from '@/lib/board-types'
 import { review } from './review'
 
-const board = (b: Partial<Board> = {}): Board => ({ id: 'b_1', name: 'test', nodes: [], edges: [], ...b })
+const board = (b: Partial<Board> = {}): Board => ({ name: 'test', nodes: [], edges: [], ...b })
 const node = (id: string, over: Partial<Board['nodes'][number]> = {}) => ({
   id,
   kind: 'app',

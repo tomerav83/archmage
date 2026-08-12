@@ -1,46 +1,39 @@
 // What kinds of block exist and what properties each one carries. Shared code:
 // nothing here reaches into a feature or the app layer, which is what lets the
 // board, the review and the canvas all read it without importing each other.
-
-/** IcePanel's six model object types. Every block kind specializes one of them. */
-export type Base = 'actor' | 'group' | 'system' | 'app' | 'store' | 'component'
-
-/** The bases IcePanel lets hold children. Shared by the inspector (what a block can be
- *  dropped into) and the review (whether a board someone imported respects it). */
-export const CONTAINER_BASES: ReadonlySet<Base> = new Set(['system', 'group', 'app'])
-
 import type { RJSFSchema } from '@rjsf/utils'
+import { CORE_EDGES, CORE_NODES, type CoreEdge, type CoreNode } from './data/core'
+import type { Props, PropValues } from './schema'
 
-/** A kind's props are plain JSON Schema properties — the catalog IS the schema, for
- *  both the inspector's generated form and the review's validation. */
-export type PropSpec = RJSFSchema
-type KindSpec = { kind: string; base: Base; label: string; icon?: string; props?: Record<string, PropSpec> }
-type EdgeKindSpec = { kind: string; label: string; props?: Record<string, PropSpec> }
-type CatalogFile = { nodes?: KindSpec[]; edges?: EdgeKindSpec[] }
-
-import core from './data/core.json'
+/** Any catalog entry, block or wire — what the two lookups below hold and what the
+ *  functions at the bottom read. A new family is a new data file and a new member
+ *  here and on those lookups. */
+export type Spec = CoreNode | CoreEdge
 
 // Null prototype: an imported board names its own kinds, and "constructor" or
-// "toString" has to miss rather than hand back something off Object.prototype.
-export const KINDS: Record<string, KindSpec> = Object.create(null)
-export const EDGE_KINDS: Record<string, EdgeKindSpec> = Object.create(null)
+// "toString" has to miss rather than hand back something off Object.prototype. The
+// lookup key stays a raw string for that same reason — the union types the entries,
+// not what an untrusted document asks for.
+export const KINDS: Record<string, CoreNode> = Object.create(null)
+export const EDGE_KINDS: Record<string, CoreEdge> = Object.create(null)
 
-// One file per block family; a new family is a new import on this list.
-for (const file of [core as CatalogFile]) {
-  for (const k of file.nodes ?? []) KINDS[k.kind] = k
-  for (const e of file.edges ?? []) EDGE_KINDS[e.kind] = e
+// One file per block family; a new family is a new import concatenated onto these two.
+for (const spec of CORE_NODES) KINDS[spec.kind] = spec
+for (const spec of CORE_EDGES) EDGE_KINDS[spec.kind] = spec
+
+/** The values a new block of this kind starts with. `fromEntries` can't keep the
+ *  key-to-value binding the blueprint has, so the cast puts it back — the blueprint
+ *  is what makes it honest. */
+export const defaults = (spec?: Spec): PropValues => {
+  const props: Props = spec?.props ?? {}
+  return Object.fromEntries(
+    Object.entries(props).flatMap(([name, p]) => (p?.default === undefined ? [] : [[name, p.default]])),
+  ) as PropValues
 }
-
-export const defaults = (spec?: KindSpec): Record<string, unknown> =>
-  Object.fromEntries(
-    Object.entries(spec?.props ?? {})
-      .filter(([, p]) => p.default !== undefined)
-      .map(([k, p]) => [k, p.default]),
-  )
 
 /** The object schema a kind's props must satisfy — what the inspector's form renders
  *  from and what the review validates against. */
-export const propsSchema = (spec?: { props?: Record<string, PropSpec> }): RJSFSchema => ({
+export const propsSchema = (spec?: Spec): RJSFSchema => ({
   type: 'object',
   properties: spec?.props ?? {},
 })

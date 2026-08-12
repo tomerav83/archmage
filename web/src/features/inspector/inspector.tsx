@@ -1,31 +1,20 @@
 import Form from '@rjsf/core'
-import { CONTAINER_BASES, EDGE_KINDS, KINDS, propsSchema, validator } from '@/lib/catalog'
+import validator from '@rjsf/validator-ajv8'
+import { EDGE_KINDS, KINDS, propsSchema } from '@/lib/catalog'
 import type { BlockEdge, BlockNode } from '@/lib/board-types'
 import './inspector.css'
-
-const MAX_PICKER_OPTIONS = 200
 
 // No submit button (every field commits live) and no error list — a bad value shows
 // up as a review finding, the same place every other rule violation shows up.
 const PROPS_UI_SCHEMA = { 'ui:submitButtonOptions': { norender: true } }
 
-/** One option per block, capped: past a couple of hundred a native select is no way
- *  to find anything, and an uncapped list re-renders every option on every drag frame. */
-function NodeOptions({ nodes }: { nodes: BlockNode[] }) {
-  const shown = nodes.slice(0, MAX_PICKER_OPTIONS)
-  return (
-    <>
-      {shown.map((n) => (
-        <option key={n.id} value={n.id}>
-          {n.data.name || n.id}
-        </option>
-      ))}
-      {nodes.length > shown.length ? (
-        <option disabled>and {nodes.length - shown.length} more, not shown</option>
-      ) : null}
-    </>
-  )
-}
+/** One option per block. */
+const NodeOptions = ({ nodes }: { nodes: BlockNode[] }) =>
+  nodes.map((n) => (
+    <option key={n.id} value={n.id}>
+      {n.data.name || n.id}
+    </option>
+  ))
 
 export function Inspector({
   node,
@@ -60,12 +49,7 @@ export function Inspector({
             onChange={(e) => onPatchNode(node.id, { parent: e.target.value || null })}
           >
             <option value="">— board root —</option>
-            <NodeOptions
-              nodes={nodes.filter((n) => {
-                const base = KINDS[n.data.kind]?.base
-                return n.id !== node.id && base !== undefined && CONTAINER_BASES.has(base)
-              })}
-            />
+            <NodeOptions nodes={nodes.filter((n) => n.id !== node.id && KINDS[n.data.kind]?.holdsChildren)} />
           </select>
         </label>
         {/* the keyboard route to a connection: dragging a handle needs a mouse */}

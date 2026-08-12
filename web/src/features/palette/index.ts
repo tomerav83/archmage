@@ -1,1 +1,1 @@
-export { DRAG_KEY, Palette } from './palette'
+export { Palette } from './palette'

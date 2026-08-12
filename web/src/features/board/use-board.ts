@@ -18,7 +18,6 @@ import type { Finding } from '@/features/review' // type-only: erased, so the fe
  *
  *  Nothing is persisted or leaves the app — every load starts blank. */
 export function useBoard() {
-  const [boardId] = useState(() => newId('b'))
   const [name, setName] = useState('Untitled board')
   const [nodes, setNodes, onNodesChange] = useNodesState<BlockNode>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<BlockEdge>([])
@@ -26,7 +25,7 @@ export function useBoard() {
 
   /** The one document, rebuilt when anything on the board changes; the app layer
    *  hands it to the review. */
-  const doc = useMemo(() => toBoard(boardId, name, nodes, edges), [boardId, name, nodes, edges])
+  const doc = useMemo(() => toBoard(name, nodes, edges), [name, nodes, edges])
 
   // ------------------------------------------------------------------ edits
   // ids are minted before the setter, never inside it: React runs an updater during

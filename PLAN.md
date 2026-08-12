@@ -32,12 +32,13 @@ the design was wrong.
 }
 ```
 
-```jsonc
-// web/src/lib/catalog/data/<family>.json — one entry per block type. Each stacked PR adds one.
-{ "kind": "postgres", "base": "store",        // base = IcePanel object type
-  "label": "PostgreSQL", "icon": "lucide:database",
-  "props": { "ha":  { "enum": ["single", "primary-replica", "multi-primary"] },
-             "pii": { "type": "boolean" } } }
+```ts
+// web/src/lib/catalog/data/<family>.ts — one entry per block type. Each stacked PR adds one.
+// Data, but TypeScript: node() checks the entry against the blueprint in schema.ts as it
+// is written, and the family's union is derived from what it declares.
+node({ kind: 'postgres', base: 'store',       // base = IcePanel object type
+       label: 'PostgreSQL', icon: 'lucide:database',
+       props: { ha, pii } })                  // both declared in the blueprint, shared by family
 ```
 
 ```ts
@@ -50,8 +51,10 @@ export const rules: Rule[]
 component`. The extension is `kind` (the specialization), `props` (what the kind
 knows about itself) and `rules` (what it knows about being used wrong).
 
-Catalog files and rule files are merged by `import.meta.glob`, so a new family is a
-new file and nothing else.
+A property is declared once, in `schema.ts`'s blueprint, and a kind picks from it — two
+kinds that both carry `pii` necessarily mean the same thing by it. A family that needs a
+property nobody has yet extends the blueprint; a family that only needs existing ones is a
+new data file, a new rule file and nothing else.
 
 **Queues and APIs are mostly edge kinds.** A Kafka box asserts nothing; `publish` and
 `subscribe` edges carry the semantics, and that is where the useful rules live. PR3
@@ -72,9 +75,9 @@ Each layer: `gh stack add feature/blocks-<family>`. PR2–6 touch only `lib/cata
 `features/review/rules/` and a test — zero canvas code. If a family needs a new renderer, the
 catalog engine was wrong and that is the bug to fix.
 
-Icons are `lucide-react` components, mapped from catalog names in
-`lib/catalog/icons.ts` (offline, MIT). No AWS/Azure/GCP icon art — those sets are
-brand-restricted.
+Icons are `lucide-react` components, held directly on the catalog entry in
+`lib/catalog/data/<family>.ts` (offline, MIT). No AWS/Azure/GCP icon art — those sets
+are brand-restricted.
 
 ## Deliberately skipped
 

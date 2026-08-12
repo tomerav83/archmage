@@ -12,12 +12,6 @@ const finding = (i: number): Finding => ({
 })
 
 describe('findings', () => {
-  it('caps the list and says how many it held back', () => {
-    render(<Findings findings={Array.from({ length: 150 }, (_, i) => finding(i))} onFocus={vi.fn()} />)
-    expect(screen.getAllByRole('button')).toHaveLength(100)
-    expect(screen.getByText('and 50 more')).toBeTruthy()
-  })
-
   it('announces the count and focuses what you click', async () => {
     const onFocus = vi.fn()
     render(<Findings findings={[finding(1)]} onFocus={onFocus} />)

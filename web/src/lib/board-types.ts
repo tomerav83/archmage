@@ -19,13 +19,23 @@ export type BoardEdge = {
   to: string
   props: Record<string, unknown>
 }
-export type Board = { id: string; name: string; nodes: BoardNode[]; edges: BoardEdge[] }
+export type Board = { name: string; nodes: BoardNode[]; edges: BoardEdge[] }
+
+/** The dataTransfer key a drag source writes a kind under and the drop target reads it
+ *  back from. Shared code because the two sides are different features, and a typo on
+ *  either would just look like a drop that silently did nothing. */
+export const DRAG_KEY = 'application/archmage-kind'
 
 // The board is the document; these two are the live editing state React Flow works on.
-type BlockData = { kind: string; name: string; parent: string | null; props: Record<string, unknown> }
-type EdgeData = { kind: string; props: Record<string, unknown> }
+// A React Flow node owns its id and position itself, and an edge its id and ends, so
+// what rides in `data` is the rest of the document's own shape — derived from it, not
+// retyped, or the two drift the day a block grows a field.
+type BlockData = Omit<BoardNode, 'id' | 'x' | 'y'>
+type EdgeData = Omit<BoardEdge, 'id' | 'from' | 'to'>
 export type BlockNode = RFNode<BlockData, 'block'>
 export type BlockEdge = RFEdge<EdgeData>
 
-/** A flag rides on a block, so the word for one is vocabulary, not review internals. */
-export type Severity = 'error' | 'warn'
+/** A flag rides on a block, so the word for one is vocabulary, not review internals.
+ *  Worst first: the list is the order the findings list sorts by. */
+export const SEVERITIES = ['error', 'warn'] as const
+export type Severity = (typeof SEVERITIES)[number]

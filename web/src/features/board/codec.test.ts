@@ -1,26 +1,27 @@
 import { describe, expect, it } from 'vitest'
-import { toBoard, toRF } from './codec'
-import type { Board } from '@/lib/board-types'
+import { toBoard } from './codec'
+import type { BlockEdge, BlockNode } from '@/lib/board-types'
 
-const board = (b: Partial<Board> = {}): Board => ({ id: 'b_1', name: 'test', nodes: [], edges: [], ...b })
-const node = (id: string, over: Partial<Board['nodes'][number]> = {}) => ({
+const rfNode = (id: string, x: number, y: number): BlockNode => ({
   id,
-  kind: 'app',
-  name: id,
-  parent: null,
-  x: 0,
-  y: 0,
-  props: {},
-  ...over,
+  type: 'block',
+  position: { x, y },
+  data: { kind: 'app', name: id, parent: null, props: {} },
 })
 
-describe('react flow bridge', () => {
-  it('round-trips a board', () => {
-    const before = board({
-      nodes: [node('n1', { kind: 'store', props: { status: 'live' } }), node('n2')],
-      edges: [{ id: 'e1', kind: 'uses', from: 'n2', to: 'n1', props: {} }],
+describe('toBoard', () => {
+  it('rounds positions and flattens data onto the document', () => {
+    expect(toBoard('test', [rfNode('n1', 10.4, -3.6)], [])).toEqual({
+      name: 'test',
+      nodes: [{ id: 'n1', kind: 'app', name: 'n1', parent: null, x: 10, y: -4, props: {} }],
+      edges: [],
     })
-    const rf = toRF(before)
-    expect(toBoard(before.id, before.name, rf.nodes, rf.edges)).toEqual(before)
+  })
+
+  it('gives an edge React Flow made itself the default kind', () => {
+    const bare = { id: 'e1', source: 'n1', target: 'n2' } as BlockEdge
+    expect(toBoard('test', [], [bare]).edges).toEqual([
+      { id: 'e1', from: 'n1', to: 'n2', kind: 'uses', props: {} },
+    ])
   })
 })

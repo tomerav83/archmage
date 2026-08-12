@@ -1,15 +1,11 @@
 import { useCallback, useRef, type DragEvent } from 'react'
+import { DRAG_KEY } from '@/lib/board-types'
 
 // The interaction layer: the only place that knows about screen coordinates, the
 // pane's bounding box, or the browser's drag-and-drop API. Everything it learns
 // gets turned into one call to addBlock — the board never sees a DragEvent.
 
-/** `dragKey` is the dataTransfer key a drag source writes its kind under; the caller
- *  owns that constant since it also owns the drag source. */
-export function useBlockDrop(
-  addBlock: (kind: string, at: { x: number; y: number }) => void,
-  dragKey: string,
-) {
+export function useBlockDrop(addBlock: (kind: string, at: { x: number; y: number }) => void) {
   const pane = useRef<HTMLElement>(null)
 
   /** A drop lands where the pointer is; a click or an Enter on a palette chip lands
@@ -28,9 +24,9 @@ export function useBlockDrop(
   const onDrop = useCallback(
     (ev: DragEvent) => {
       ev.preventDefault()
-      place(ev.dataTransfer.getData(dragKey), { x: ev.clientX, y: ev.clientY })
+      place(ev.dataTransfer.getData(DRAG_KEY), { x: ev.clientX, y: ev.clientY })
     },
-    [place, dragKey],
+    [place],
   )
 
   const onDragOver = useCallback((ev: DragEvent) => {

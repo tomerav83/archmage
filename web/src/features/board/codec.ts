@@ -1,44 +1,26 @@
-import { edgeLabel } from '@/lib/catalog'
 import type { Board, BlockEdge, BlockNode } from '@/lib/board-types'
 
-// The bridge between the Board document and React Flow's live editing state.
-// The shapes live in @/lib/board-types.
+// The bridge from React Flow's live editing state back to the Board document.
+// The shapes live in @/lib/board-types. There is no other direction yet: nothing
+// loads a board, so nothing turns one into React Flow's state.
 
 export const newId = (prefix: string) => `${prefix}_${crypto.randomUUID().slice(0, 8)}`
 
-export const toRF = (b: Board): { nodes: BlockNode[]; edges: BlockEdge[] } => ({
-  nodes: b.nodes.map((n) => ({
-    id: n.id,
-    type: 'block' as const,
-    position: { x: n.x, y: n.y },
-    data: { kind: n.kind, name: n.name, parent: n.parent, props: n.props },
-  })),
-  edges: b.edges.map((e) => ({
-    id: e.id,
-    source: e.from,
-    target: e.to,
-    label: edgeLabel(e.kind),
-    data: { kind: e.kind, props: e.props },
-  })),
-})
-
-export const toBoard = (id: string, name: string, nodes: BlockNode[], edges: BlockEdge[]): Board => ({
-  id,
+// What each side owns is what each side names: React Flow holds a node's id and
+// position and an edge's id and ends, and everything else rides through as `data`.
+export const toBoard = (name: string, nodes: BlockNode[], edges: BlockEdge[]): Board => ({
   name,
   nodes: nodes.map((n) => ({
     id: n.id,
-    kind: n.data.kind,
-    name: n.data.name,
-    parent: n.data.parent,
+    ...n.data,
     x: Math.round(n.position.x),
     y: Math.round(n.position.y),
-    props: n.data.props,
   })),
+  // An edge React Flow made itself has no data; ours always does.
   edges: edges.map((e) => ({
     id: e.id,
-    kind: e.data?.kind ?? 'uses',
     from: e.source,
     to: e.target,
-    props: e.data?.props ?? {},
+    ...(e.data ?? { kind: 'uses', props: {} }),
   })),
 })
