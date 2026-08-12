@@ -92,7 +92,15 @@ export function Ward({ id }: { id: string }) {
           const [x1, y1] = pt(66, a)
           const [x2, y2] = pt(85, a)
           return (
-            <line key={a} className="c4-ward-dim" x1={x1} y1={y1} x2={x2} y2={y2} strokeWidth="1.1" />
+            <line
+              key={a}
+              className="c4-ward-dim"
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              strokeWidth="1.1"
+            />
           )
         })}
         {seats.map(({ a, p: [cx, cy], d }) => (
