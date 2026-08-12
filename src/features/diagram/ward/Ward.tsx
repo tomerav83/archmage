@@ -55,7 +55,7 @@ export function Ward({ id }: { id: string }) {
   }, [id])
 
   return (
-    <svg className="c4-ward" viewBox="-115 -115 230 230" aria-hidden>
+    <svg className="c4-ward" viewBox="-115 -115 230 230" aria-hidden="true">
       {/* the rule, drawn once round clockwise from north as the press is held */}
       <circle
         className="c4-ward-rule"

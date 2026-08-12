@@ -57,7 +57,9 @@ export function useWard(id: string) {
     clearTimeout(timer.current)
     setHolding(false)
   }
-  useEffect(() => drop, [])
+  // Only the timer outlives the card. Dropping the whole of drop() in here
+  // would set state on a card that is already gone.
+  useEffect(() => () => clearTimeout(timer.current), [])
 
   const onPointerDown = (e: ReactPointerEvent) => {
     if (e.button !== 0) return

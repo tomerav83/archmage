@@ -7,7 +7,7 @@ export function BrandMark() {
       stroke="currentColor"
       strokeWidth={1.3}
       strokeLinecap="square"
-      aria-hidden
+      aria-hidden="true"
     >
       <circle cx="12" cy="12" r="9.2" />
       <path d="M12 2.8 21.2 12 12 21.2 2.8 12Z" />
