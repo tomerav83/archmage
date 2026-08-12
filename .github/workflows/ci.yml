@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run typecheck
+
+      # Fails the build under the thresholds in vite.config.ts. `shell: bash`
+      # for the pipefail the default shell leaves off, or tee would swallow the
+      # failure and the threshold would gate nothing.
+      - run: npm run test:coverage | tee coverage.log
+        shell: bash
+
+      # The table lands on the run's summary page, so a reviewer reads the
+      # number without opening the log or downloading anything.
+      - name: Coverage summary
+        if: always()
+        run: |
+          {
+            echo '### Coverage'
+            echo '```'
+            sed -n '/% Coverage report/,$p' coverage.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+      - run: npm run build

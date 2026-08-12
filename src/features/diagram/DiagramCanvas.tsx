@@ -34,7 +34,7 @@ const centre = (n: Node) => ({
 
 // Which faces an edge leaves and lands on. The wider gap picks the axis, so
 // cards set side by side join flank to flank rather than over the top.
-const faces = (a: Node, b: Node) => {
+export const faces = (a: Node, b: Node) => {
   const dx = centre(b).x - centre(a).x
   const dy = centre(b).y - centre(a).y
   if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? (['r', 'l'] as const) : (['l', 'r'] as const)
