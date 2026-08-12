@@ -17,6 +17,7 @@ jobs:
 
       - run: npm ci
       - run: npm run format:check
+      - run: npm run lint
       - run: npm run typecheck
 
       # Fails the build under the thresholds in vite.config.ts. `shell: bash`

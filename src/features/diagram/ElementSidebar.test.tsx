@@ -21,7 +21,9 @@ describe('the rail', () => {
     const written: Record<string, string> = {}
     const dataTransfer = {
       effectAllowed: '',
-      setData: (k: string, v: string) => void (written[k] = v),
+      setData: (k: string, v: string) => {
+        written[k] = v
+      },
     }
 
     fireEvent.dragStart(screen.getByText('Person'), { dataTransfer })

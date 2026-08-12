@@ -83,7 +83,7 @@ export function Sigil({ kind }: { kind: ElementKind }) {
       stroke="currentColor"
       strokeWidth={1.4}
       strokeLinecap="square"
-      aria-hidden
+      aria-hidden="true"
     >
       {kind.sigil}
     </svg>

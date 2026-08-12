@@ -15,18 +15,21 @@ export function ElementSidebar() {
         {GROUPS.map((group) => (
           <details key={group} open>
             <summary>{group}</summary>
-            {KINDS.filter(([, el]) => el.group === group).map(([key, el]) => (
-              <div
-                key={key}
-                className="block"
-                style={{ '--accent': el.accent }}
-                draggable
-                onDragStart={(e) => setDraggedKind(e.dataTransfer, key)}
-              >
-                <Sigil kind={el} />
-                {el.title}
-              </div>
-            ))}
+            {/* A list, because that is what it is: the kinds this group offers. */}
+            <ul className="blocks">
+              {KINDS.filter(([, el]) => el.group === group).map(([key, el]) => (
+                <li
+                  key={key}
+                  className="block"
+                  style={{ '--accent': el.accent }}
+                  draggable
+                  onDragStart={(e) => setDraggedKind(e.dataTransfer, key)}
+                >
+                  <Sigil kind={el} />
+                  {el.title}
+                </li>
+              ))}
+            </ul>
           </details>
         ))}
       </div>

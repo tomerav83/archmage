@@ -54,6 +54,16 @@ describe('holding a card', () => {
     expect(result.current.state).toBe('idle')
   })
 
+  it('drops a pending hold when the card leaves the board', () => {
+    const { result, unmount } = setup()
+    act(() => result.current.onPointerDown(press()))
+    unmount()
+
+    // The timer would otherwise open a ward on a card that is no longer there.
+    waitOutTheHold()
+    expect(open).not.toHaveBeenCalled()
+  })
+
   it('is a drag, not a ward, once the press wanders past the slop', () => {
     const { result } = setup()
     act(() => result.current.onPointerDown(press(0, 0)))
