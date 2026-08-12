@@ -1,7 +1,7 @@
 import { ReactFlowProvider } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import { DiagramCanvas } from './features/diagram/DiagramCanvas'
-import { ElementSidebar } from './features/diagram/ElementSidebar'
+import { DiagramCanvas } from './DiagramCanvas'
+import { ElementSidebar } from './ElementSidebar'
 
 export default function App() {
   return (

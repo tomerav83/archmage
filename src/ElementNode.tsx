@@ -1,7 +1,7 @@
-import { Handle, Position, type Node, type NodeProps } from '@xyflow/react'
-import { ELEMENTS, Sigil, type ElementKey } from '../../c4'
-import { Ward } from './ward/Ward'
-import { useWard } from './ward/useWard'
+import { Handle, type Node, type NodeProps, Position } from '@xyflow/react'
+import { ELEMENTS, type ElementKey, Sigil } from './c4'
+import { useWard } from './useWard'
+import { Ward } from './Ward'
 
 export type ElementNodeType = Node<{ kind: ElementKey; label: string }, 'element'>
 

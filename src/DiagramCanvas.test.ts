@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
 import type { Node } from '@xyflow/react'
+import { describe, expect, it } from 'vitest'
 import { faces } from './DiagramCanvas'
 
 // A card at the given position, 200×80 like the stylesheet makes them.

@@ -1,23 +1,23 @@
-import { useMemo, useState, type DragEvent } from 'react'
 import {
-  ReactFlow,
+  addEdge,
   Background,
   BackgroundVariant,
   ConnectionMode,
-  MarkerType,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
   type DefaultEdgeOptions,
   type Edge,
+  MarkerType,
   type Node,
   type NodeTypes,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
 } from '@xyflow/react'
-import { ELEMENTS } from '../../c4'
-import { ElementNode, type ElementNodeType } from './ElementNode'
-import { DRAG_SLOP_PX, WardContext } from './ward/useWard'
+import { type DragEvent, useMemo, useState } from 'react'
+import { ELEMENTS } from './c4'
 import { readDraggedKind } from './dragAndDrop'
+import { ElementNode, type ElementNodeType } from './ElementNode'
+import { DRAG_SLOP_PX, WardContext } from './useWard'
 
 const nodeTypes = { element: ElementNode } satisfies NodeTypes
 

@@ -1,4 +1,4 @@
-import { ELEMENTS, type ElementKey } from '../../c4'
+import { ELEMENTS, type ElementKey } from './c4'
 
 // Wire format for palette → canvas drags. Kept in one place so the MIME type
 // and the validation of what comes back can't drift apart.
