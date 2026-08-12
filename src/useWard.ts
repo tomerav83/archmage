@@ -1,10 +1,10 @@
 import {
   createContext,
+  type PointerEvent as ReactPointerEvent,
   useContext,
   useEffect,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
 } from 'react'
 
 // A connection in progress: the node whose ward is open, and the two ways it

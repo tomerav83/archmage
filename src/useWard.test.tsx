@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
+import type { ReactNode, PointerEvent as ReactPointerEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { PointerEvent as ReactPointerEvent, ReactNode } from 'react'
-import { DRAG_SLOP_PX, WardContext, useWard } from './useWard'
+import { DRAG_SLOP_PX, useWard, WardContext } from './useWard'
 
 const open = vi.fn()
 const land = vi.fn()

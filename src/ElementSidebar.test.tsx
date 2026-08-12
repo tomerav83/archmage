@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { ELEMENTS, GROUPS } from '../../c4'
+import { ELEMENTS, GROUPS } from './c4'
 import { ElementSidebar } from './ElementSidebar'
 
 afterEach(cleanup)
