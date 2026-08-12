@@ -7,12 +7,10 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "typecheck": "tsc",
-    "preview": "vite preview",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "biome lint"
+    "check": "biome check",
+    "fix": "biome check --write"
   },
   "dependencies": {
     "@xyflow/react": "^12.8.2",
@@ -27,7 +25,6 @@
     "@vitejs/plugin-react": "^4.6.0",
     "@vitest/coverage-v8": "^4.1.10",
     "jsdom": "^30.0.1",
-    "prettier": "^3.9.6",
     "typescript": "^7.0.2",
     "vite": "^7.0.0",
     "vitest": "^4.1.10"
