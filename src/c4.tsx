@@ -35,18 +35,14 @@ export type ElementType = {
   sigil: ReactNode // paths only — the <svg> chrome lives in <Sigil>
 }
 
-// One file per shelf under catalog/, merged here: eighty-two types in one
-// table is a file nobody opens twice, and the shelf is the seam the rest of
-// the app already cuts on — fields.ts is keyed by it and the rail browses by
-// it. To add an element type: add a line to its shelf. To add a shelf: a file
-// and a line here. The spread keeps TypeKey exact, so a key that is not a type
-// stays a compile error everywhere it matters.
+// To add an element type: add a line to its shelf. To add a shelf: a file
+// under catalog/ and a line here. The spread keeps TypeKey the exact union.
 export const TYPES = {
   ...ACTORS,
   ...APPLICATIONS,
   ...DATA_STORES,
   ...CACHING,
-} satisfies Record<string, ElementType>
+}
 
 export type TypeKey = keyof typeof TYPES
 

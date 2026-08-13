@@ -8,23 +8,13 @@ export const DATA_STORES = {
     title: 'Relational Database',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M3.4 4.8h17.2v14.4H3.4Z" />
-        <path d="M3.4 9.6h17.2M12 9.6v9.6" />
-      </>
-    ),
+    sigil: <path d="M3.4 4.8h17.2v14.4H3.4ZM3.4 9.6h17.2M12 9.6v9.6" />,
   },
   'document-db': {
     title: 'Document Database',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M5.8 3.2h8.6l4.2 4.2v13.4H5.8Z" />
-        <path d="M14.4 3.2v4.2h4.2" />
-      </>
-    ),
+    sigil: <path d="M5.8 3.2h8.6l4.2 4.2v13.4H5.8ZM14.4 3.2v4.2h4.2" />,
   },
   'key-value-store': {
     title: 'Key-Value Store',
@@ -41,12 +31,7 @@ export const DATA_STORES = {
     title: 'Wide-Column Store',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M3.4 4.8h17.2v14.4H3.4Z" />
-        <path d="M9.2 4.8v14.4M14.8 4.8v14.4" />
-      </>
-    ),
+    sigil: <path d="M3.4 4.8h17.2v14.4H3.4ZM9.2 4.8v14.4M14.8 4.8v14.4" />,
   },
   'graph-db': {
     title: 'Graph Database',
@@ -65,12 +50,7 @@ export const DATA_STORES = {
     title: 'Time-Series Database',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M3.8 3.8v16.4h16.4" />
-        <path d="M6.6 16.4 10.4 11l3.4 2.6 5.2-6.4" />
-      </>
-    ),
+    sigil: <path d="M3.8 3.8v16.4h16.4M6.6 16.4 10.4 11l3.4 2.6 5.2-6.4" />,
   },
   'vector-db': {
     title: 'Vector Database',
@@ -99,12 +79,7 @@ export const DATA_STORES = {
     title: 'Blob / Object Store',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M3.6 5.6h16.8l-1.8 14.8H5.4Z" />
-        <path d="M4.2 10.4h15.6" />
-      </>
-    ),
+    sigil: <path d="M3.6 5.6h16.8l-1.8 14.8H5.4ZM4.2 10.4h15.6" />,
   },
   'file-system': {
     title: 'File System',
@@ -116,23 +91,14 @@ export const DATA_STORES = {
     title: 'Data Warehouse',
     level: 'container',
     category: 'Data Stores',
-    sigil: (
-      <>
-        <path d="M3.4 10.6 12 4.2l8.6 6.4v9.4H3.4Z" />
-        <path d="M9.2 20v-5.8h5.6V20" />
-      </>
-    ),
+    sigil: <path d="M3.4 10.6 12 4.2l8.6 6.4v9.4H3.4ZM9.2 20v-5.8h5.6V20" />,
   },
   'data-lake': {
     title: 'Data Lake',
     level: 'container',
     category: 'Data Stores',
     sigil: (
-      <>
-        <path d="M3.4 7.6q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0" />
-        <path d="M3.4 13q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0" />
-        <path d="M3.4 18.4q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0" />
-      </>
+      <path d="M3.4 7.6q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0M3.4 13q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0M3.4 18.4q2.15-2 4.3 0t4.3 0 4.3 0 4.3 0" />
     ),
   },
 } satisfies Record<string, ElementType>
