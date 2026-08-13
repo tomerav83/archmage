@@ -4,7 +4,7 @@ import {
   BackgroundVariant,
   ConnectionMode,
   type DefaultEdgeOptions,
-  type Edge,
+  type EdgeTypes,
   MarkerType,
   type Node,
   type NodeTypes,
@@ -18,13 +18,17 @@ import { TYPES } from './c4'
 import { readDraggedType } from './dragAndDrop'
 import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
+import { RelationshipEdge, type RelationshipEdgeType } from './RelationshipEdge'
+import { RelationshipForm } from './RelationshipForm'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
 
 const nodeTypes = { element: ElementNode } satisfies NodeTypes
+const edgeTypes = { relationship: RelationshipEdge } satisfies EdgeTypes
 
 // No colour here: the stroke comes from --xy-edge-stroke in index.css, so
 // selection can repaint an edge without an inline style outranking it.
 const defaultEdgeOptions: DefaultEdgeOptions = {
+  type: 'relationship',
   markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
 }
 
@@ -44,11 +48,11 @@ export const faces = (a: Node, b: Node) => {
 
 export function DiagramCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState<ElementNodeType>([])
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState<RelationshipEdgeType>([])
   const { screenToFlowPosition, getNode } = useReactFlow()
   // The node whose ward is open, waiting for the press that answers it.
   const [from, setFrom] = useState<string | null>(null)
-  // The node the form follows. It follows one, and it is not modal.
+  // The node or edge the form follows. It follows one, and it is not modal.
   const [editing, setEditing] = useState<string | null>(null)
   const close = useCallback(() => setEditing(null), [])
 
@@ -64,7 +68,13 @@ export function DiagramCanvas() {
         const b = getNode(target)
         if (!a || !b || a.id === b.id) return
         const [sourceHandle, targetHandle] = faces(a, b)
-        setEdges((eds) => addEdge({ source: a.id, target: b.id, sourceHandle, targetHandle }, eds))
+        // Minted here rather than left to addEdge, so the line just drawn is
+        // the one the form opens on — the same bargain the drop makes.
+        const id = crypto.randomUUID()
+        setEdges((eds) =>
+          addEdge({ id, source: a.id, target: b.id, sourceHandle, targetHandle }, eds),
+        )
+        setEditing(id)
       },
     }),
     [from, getNode, setEdges],
@@ -114,12 +124,14 @@ export function DiagramCanvas() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         // The card catches the double-click, not the text under the cursor:
         // the ward captures the pointer on every press, so the browser aims
         // click and dblclick at the card, which bubbles it on to React Flow.
         onNodeDoubleClick={(_, node) => setEditing(node.id)}
+        onEdgeDoubleClick={(_, edge) => setEditing(edge.id)}
         // Empty ground — or an edge — calls off an open ward.
         onPaneClick={ward.cancel}
         onEdgeClick={ward.cancel}
@@ -133,8 +145,12 @@ export function DiagramCanvas() {
         <Background id="minor" gap={21} size={1} color="#414950" />
       </ReactFlow>
       {/* Over the board rather than beside it, so opening the panel doesn't
-          reflow the canvas under the cursor. */}
+          reflow the canvas under the cursor. Both rails are mounted and only
+          one is ever pointed at anything — an id is a node's or an edge's —
+          so each slides on its own instead of one popping in where the other
+          was. */}
       <ElementForm node={nodes.find((n) => n.id === editing)} onClose={close} />
+      <RelationshipForm edge={edges.find((e) => e.id === editing)} onClose={close} />
     </WardContext.Provider>
   )
 }

@@ -14,9 +14,8 @@ export default defineConfig({
       reporter: ['text'],
       // Where the suite stands today, rounded down. The floor, not the goal:
       // raise it as the suite grows, never lower it to make a red build green.
-      // What is still open: the ward's landing, which wants a board that has
-      // been pressed, and the app shell, which is four lines of composition.
-      thresholds: { lines: 90, statements: 90, functions: 82, branches: 85 },
+      // What is still open: the app shell, which is four lines of composition.
+      thresholds: { lines: 95, statements: 95, functions: 85, branches: 95 },
     },
   },
 })

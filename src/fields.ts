@@ -20,6 +20,7 @@ export type FieldKey =
   | 'status'
   | 'link'
   | 'tags'
+  | 'interaction' // an edge only: is anybody waiting for the answer
 
 export type Field = {
   key: FieldKey
@@ -80,6 +81,16 @@ const CATEGORY_FIELDS = {
   'Boundaries & Zones': [], // a boundary is a name and a reason
   'Deployment & Infrastructure': [TECHNOLOGY, { key: 'instances', title: 'Instances', hint: '3' }],
 } satisfies Record<string, Field[]>
+
+// An edge takes the element list with the category tier removed — which is why
+// it is this panel pointed at a line rather than an editor of its own.
+export const RELATIONSHIP: Field[] = [
+  { key: 'label', title: 'Label', hint: 'publishes OrderPlaced' },
+  { key: 'technology', title: 'Technology', hint: 'gRPC, JSON/HTTPS' },
+  // Dashed or solid falls out of this, and nothing else does — the fact is
+  // the model's, the line it draws is the picture's.
+  { key: 'interaction', title: 'Interaction', input: 'pick', options: ['Sync', 'Async'] },
+]
 
 // A type declaring a category the table has no line for is a compile error in
 // c4.tsx — which is the only check the two files need of each other.

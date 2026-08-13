@@ -235,8 +235,11 @@ Structurizr gives a relationship description, technology, tags, url and
 properties. C4-PlantUML's `Rel()` takes label, techn, descr, tags and link. That
 is the element list with the category tier removed — which means
 `feature/relationship-detail` is not a second editor, it is this panel pointed at
-an edge, with `[label, technology, style]` for its fields and dashed-versus-solid
-falling out of `style`.
+an edge, with `[label, technology, interaction]` for its fields and
+dashed-versus-solid falling out of `interaction`. Not `style`: that is the word
+Structurizr keeps for appearance, and both it and C4-PlantUML put the fact on
+the model and derive the line from it, which is the same division this document
+makes everywhere else.
 
 So it moves after the form rather than before it. Building click-an-edge
 editing first means building it twice.
