@@ -1,29 +1,17 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { ReactFlow, ReactFlowProvider, useNodesState } from '@xyflow/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 
 afterEach(cleanup)
 
-// jsdom has none and React Flow measures every node with one.
-globalThis.ResizeObserver = class {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
 const nodeTypes = { element: ElementNode }
 
-// One card on a real board, because a rename has to travel the whole way: the
-// card writes to node data, the canvas holds it, the card reads it back.
-function Board() {
+// One card on a real board: the card reads node data and nothing else, so what
+// it prints is the whole of it.
+function Board({ data }: { data: ElementNodeType['data'] }) {
   const [nodes, , onNodesChange] = useNodesState<ElementNodeType>([
-    {
-      id: 'a',
-      type: 'element',
-      position: { x: 0, y: 0 },
-      data: { type: 'container', label: 'Orders' },
-    },
+    { id: 'a', type: 'element', position: { x: 0, y: 0 }, data },
   ])
   return (
     <ReactFlowProvider>
@@ -32,58 +20,33 @@ function Board() {
   )
 }
 
-// On the card, not on the name under the cursor: the ward captures the pointer
-// on every press, so the browser aims the dblclick at the element holding the
-// capture. Opening it off the name passes here and does nothing in a browser.
-const openTheCard = () =>
-  fireEvent.doubleClick(screen.getByText('Orders').closest('.c4-node') as Element)
-const type = (field: string, value: string) =>
-  fireEvent.change(screen.getByLabelText(field), { target: { value } })
-
-describe('naming a card', () => {
+describe('a card', () => {
   it('reads level · type in the band', () => {
-    render(<Board />)
+    render(<Board data={{ type: 'container', label: 'Orders' }} />)
     expect(screen.getByText('Container · Container')).toBeTruthy()
   })
 
-  it('keeps the name and the technology after the fields close', () => {
-    render(<Board />)
-    openTheCard()
-    type('Name', 'Orders Service')
-    type('Technology', 'Go 1.22')
-    fireEvent.keyDown(screen.getByLabelText('Name'), { key: 'Enter' })
-
-    expect(screen.queryByLabelText('Name')).toBeNull()
-    expect(screen.getByText('Orders Service')).toBeTruthy()
+  it('prints the first field of its category under the name', () => {
+    render(<Board data={{ type: 'container', label: 'Orders', technology: 'Go 1.22' }} />)
     expect(screen.getByText('Go 1.22')).toBeTruthy()
   })
 
-  it('leaves the caret where it was put', () => {
-    render(<Board />)
-    openTheCard()
-    const tech = screen.getByLabelText('Technology')
-    tech.focus()
-    type('Technology', 'Go')
-
-    // The name field takes the caret when the fields open, and never again.
-    expect(document.activeElement).toBe(tech)
+  it('prints the field its own category carries, not technology', () => {
+    // A person is a job, not a stack: Role is the first field of Actors &
+    // Externals, so a technology written on a person has nowhere to print.
+    render(
+      <Board
+        data={{ type: 'person', label: 'Ana', role: 'Support agent', technology: 'Go 1.22' }}
+      />,
+    )
+    expect(screen.getByText('Support agent')).toBeTruthy()
+    expect(screen.queryByText('Go 1.22')).toBeNull()
   })
 
-  it('holds the fields open while focus moves between them', () => {
-    render(<Board />)
-    openTheCard()
-    fireEvent.blur(screen.getByLabelText('Name'), {
-      relatedTarget: screen.getByLabelText('Technology'),
-    })
-
-    expect(screen.getByLabelText('Name')).toBeTruthy()
-  })
-
-  it('closes the fields when focus leaves the card', () => {
-    render(<Board />)
-    openTheCard()
-    fireEvent.blur(screen.getByLabelText('Name'), { relatedTarget: document.body })
-
-    expect(screen.queryByLabelText('Name')).toBeNull()
+  it('says a deprecated element is deprecated', () => {
+    const { container } = render(
+      <Board data={{ type: 'container', label: 'Orders', status: 'Deprecated' }} />,
+    )
+    expect(container.querySelector('.c4-node')?.getAttribute('data-status')).toBe('Deprecated')
   })
 })

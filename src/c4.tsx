@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import type { Category } from './fields'
 
 // An element sits on three independent axes, never one enum: what you are
 // zoomed to, what kind of thing it is, and what it is built from. Postgres is
@@ -26,6 +27,7 @@ export type LevelKey = keyof typeof LEVELS
 export type ElementType = {
   title: string
   level: LevelKey // the level this type is legal at
+  category: Category // which fields it carries — see fields.ts
   sigil: ReactNode // paths only — the <svg> chrome lives in <Sigil>
 }
 
@@ -34,6 +36,7 @@ export const TYPES = {
   person: {
     title: 'Person',
     level: 'context',
+    category: 'Actors & Externals',
     sigil: (
       <>
         <circle cx="12" cy="7.6" r="4" />
@@ -44,6 +47,7 @@ export const TYPES = {
   system: {
     title: 'Software System',
     level: 'context',
+    category: 'Actors & Externals',
     sigil: (
       <>
         <path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z" />
@@ -54,6 +58,7 @@ export const TYPES = {
   container: {
     title: 'Container',
     level: 'container',
+    category: 'Applications',
     sigil: (
       <>
         <ellipse cx="12" cy="6.2" rx="7.4" ry="3" />
@@ -65,6 +70,7 @@ export const TYPES = {
   component: {
     title: 'Component',
     level: 'component',
+    category: 'Applications',
     sigil: (
       <>
         <path d="M7.8 4.4h12.6v15.2H7.8Z" />

@@ -236,26 +236,26 @@ Done when the four existing kinds render unchanged off the new tables and
 `dragAndDrop` still rejects a key that is not a type.
 Touches `c4.tsx`, `ElementNode.tsx`, `ElementSidebar.tsx`, `dragAndDrop.ts`.
 
-**3. `feature/element-inspector`**
+**3. `feature/element-form`**
 A rail on the right, opening on a drop and on a double-click, carrying the
 fields a type actually has — a person a role, a cache a TTL, a boundary
 neither. One table of field descriptors, one renderer, no form per type. Lands
 on the branch above because the table is keyed by category, and takes the fields
-off the card that branch 1 put there. See [inspector.md](inspector.md).
+off the card that branch 1 put there. See [form.md](form.md).
 Done when dropping an element opens the panel with the caret in its name, and a
 category's fields are one line to change.
-Touches a new `ElementInspector.tsx` and `fields.ts`, `ElementNode.tsx`,
+Touches a new `ElementForm.tsx` and `fields.ts`, `ElementNode.tsx`,
 `DiagramCanvas.tsx`, `index.css`.
 
 **4. `feature/relationship-detail`**
 Edge label and protocol text. Dashed for async, solid for sync. An edge carries
 the same handful of fields an element does — description, technology, tags, link
 in both Structurizr and C4-PlantUML — so it is edited in the panel above rather
-than in an editor of its own. That is why it follows the inspector instead of
+than in an editor of its own. That is why it follows the form instead of
 opening Phase A.
 Done when an edge carries a label and a protocol, async draws dashed, and a test
 covers the sync/async split.
-Touches `DiagramCanvas.tsx`, a new `RelationshipEdge.tsx`, `ElementInspector.tsx`,
+Touches `DiagramCanvas.tsx`, a new `RelationshipEdge.tsx`, `ElementForm.tsx`,
 `index.css`.
 
 **5. `feature/persistence`**

@@ -1,4 +1,4 @@
-# Element fields and the inspector
+# Element fields and the form
 
 A Person has no technology. A cache has a TTL that nothing else on the board
 has. A trust zone has neither. Eighty-two types do not want one form, and they
@@ -47,29 +47,30 @@ older tools and required in the newest — they are what a catalog wants and wha
 a drawing traditionally did not. Take them anyway. A diagram that cannot say
 *this one is on the way out* is a diagram that gets redrawn from scratch.
 
-## Three tiers, plus a fold
+## Three tiers, and four more fields
 
 ```
 core, always      : Name, Description                      2 fields
 core, by category : what this category is made of          0–2 fields
 core, by type     : where one type disagrees               1 exception today
-fold, always      : Owner, Status, Link, Tags              4 fields, collapsed
+catalogue, always : Owner, Status, Link, Tags              4 fields
 ```
 
-The lookup is one line — `TYPE_FIELDS[type] ?? CATEGORY_FIELDS[category]` — and
-the type tier exists because the catalog breaks the category rule in its own
-first three rows. Person's examples are *Customer, support agent, admin*, which
-is a role; External System's are *Stripe, Salesforce, HMRC*, which is a
-technology. One category, two shapes. (C4 proper would give External System
-nothing, since a system has no `techn`. The catalog already wrote *Stripe* in
-that column and IcePanel agrees with the catalog, so it keeps it.)
+The lookup is one line — `CATEGORY_FIELDS[category]`, with `system` branched
+out ahead of it — because the catalog breaks the category rule in its own first
+three rows. Person's examples are *Customer, support agent, admin*, which is a
+role; External System's are *Stripe, Salesforce, HMRC*, which is a technology.
+One category, two shapes. (C4 proper would give External System nothing, since a
+system has no `techn`. The catalog already wrote *Stripe* in that column and
+IcePanel agrees with the catalog, so it keeps it.)
 
-Nothing else needs the type tier yet. It is there so Load Balancer can say *L4
-or L7* later without a mechanism being invented for it.
+That exception is a branch and not a table because there is one of it. The
+second type to disagree — Load Balancer saying *L4 or L7* — is what buys a
+`TYPE_FIELDS` table, and it can buy it then.
 
-The fold is `<details>`, the same element the left rail already collapses its
-groups with. Four fields that apply to everything would double the height of
-every panel; shut, they cost one line of chrome.
+There is no fold. The panel that shipped is a sheet of one-line rows, so four
+more fields cost four lines rather than four inputs — the height the fold was
+invented to save. See [The panel](#the-panel).
 
 ## The core: what each category carries
 
@@ -99,7 +100,7 @@ architecture one — every element in a data-flow diagram carries a trust level,
 and stores carry a sensitivity. The catalog already models Trust Zone as a type,
 so the vocabulary is half there. It is also the first row on the cut line below.
 
-## The fold: what everything carries
+## The catalogue four: what everything carries
 
 | Field | Input | Taken from |
 | --- | --- | --- |
@@ -108,7 +109,7 @@ so the vocabulary is half there. It is also the first row on the cut line below.
 | Link | url — repo, runbook, dashboard | Structurizr `url`, C4-PlantUML `link` |
 | Tags | text, comma separated | all four |
 
-Status is the one fold field that changes the card: Planned draws a dashed
+Status is the one of these that changes the card: Planned draws a dashed
 border, Deprecated dims it. Two CSS rules, and they land in the same branch —
 a status that renders nowhere is a field nobody fills in.
 
@@ -118,7 +119,7 @@ form, and the consumer that would want real tags — Structurizr-style themes
 mapping tags to vendor icons — is out of scope in taxonomy.md.
 
 `external` is not here because taxonomy.md gives it to `feature/taxonomy-model`.
-When that lands it appends one line to this fold.
+When that lands it appends one line to this table.
 
 ## The table
 
@@ -180,21 +181,31 @@ down its inner edge, mono engraved labels over sans inputs. The left rail is
 what you take *from*; the right is what you say *about* what you took. Same
 instrument, two faces.
 
+It is a sheet of what the element says, with **one row open for typing**. A
+press on another row moves the caret there and shuts the one behind it, so the
+open field is the only lit thing in the rail and there is nothing else to hunt
+for. Rows are buttons, so the sheet is walkable on Tab.
+
 ```
 ┌──────────────────────────────┐
 │ CONTAINER · RELATIONAL DB  ✕ │  band, same pigment as the card
 ├──────────────────────────────┤
-│ NAME                         │
-│ [ Orders DB               ]  │
-│ DESCRIPTION                  │
-│ [                         ]  │
-│ TECHNOLOGY                   │
-│ [ PostgreSQL 16           ]  │
-│ CLASSIFICATION               │
-│ [ Confidential          ▾ ]  │
-│ › CATALOG                    │  shut: owner, status, link, tags
+│ NAME                         │  the open row: cut below the panel,
+│ [ Orders DB               ]  │  lit brass along its top edge
+├──────────────────────────────┤
+│ DESCRIPTION  The orders …    │
+│ TECHNOLOGY   PostgreSQL 16   │
+│ CLASSIF…     Confidential    │
+│ OWNER        —               │  nothing said yet
+│ STATUS       Live            │
+│ LINK         —               │
+│ TAGS         pci, tier-1     │
 └──────────────────────────────┘
 ```
+
+Every field is a row, which is what killed the fold: four more fields cost four
+lines, not four inputs. It is also why an empty field reads as an em dash — the
+row's own gutter already names it, so the value column only has to say empty.
 
 **Opens** on a drop — the element you just placed is the one you want to name —
 and on a double-click of any node. Both are one line in `DiagramCanvas`: the
@@ -213,9 +224,10 @@ transitioned alongside so it takes no focus when shut. The last opened node is
 held in a ref so the panel has something to draw while it slides away.
 `prefers-reduced-motion` drops the transition.
 
-**The name field takes the caret on open**, with its text selected, so a fresh
-drop is named by typing. Same stable-ref trick as the card's field, for the same
-reason: React re-runs a ref it is handed anew each render.
+**The name row is the open one on every open**, with its text selected, so a
+fresh drop is named by typing whatever row was left open last time. A control
+takes the caret as it mounts, which is one callback ref for all of it: the click
+that opens a row is the only click that row costs.
 
 ## Relationships take the same shape
 
@@ -226,7 +238,7 @@ is the element list with the category tier removed — which means
 an edge, with `[label, technology, style]` for its fields and dashed-versus-solid
 falling out of `style`.
 
-So it moves after the inspector rather than before it. Building click-an-edge
+So it moves after the form rather than before it. Building click-an-edge
 editing first means building it twice.
 
 ## What this deletes
@@ -247,7 +259,7 @@ today and rekeying it a branch later. Before `feature/persistence`, so the
 fields are in the schema before anything is written to disk. And before
 `feature/relationship-detail`, for the reason above.
 
-That makes Phase A: taxonomy-model, inspector, relationship-detail, persistence,
+That makes Phase A: taxonomy-model, form, relationship-detail, persistence,
 palette-search.
 
 ## The cut line
@@ -270,7 +282,8 @@ The field table is data: one test that every category resolves to a list, and
 that every key in every list is a `FieldKey` — the second is a `satisfies`, so
 it costs a compile rather than a test. The panel gets the harness from
 `ElementNode.test.tsx`: opens on drop, opens on double-click, a write reaches
-node data, the fold's fields write the same way, Escape closes. Dispatch the
+node data, a press on a row opens it and shuts the one behind it, a catalogue
+field writes the same way, Escape closes. Dispatch the
 double-click at the card, not at the text under it — a test that aims at the
 text passes while the app does nothing.
 
