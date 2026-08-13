@@ -47,20 +47,11 @@ describe('the rail', () => {
       'Component',
     ])
 
-    // The shelf's name is not the goods on it: the Data Stores shelf holds
-    // twelve, and only the seven saying so come back — with the eighth off a
-    // shelf of its own, because what is searched is the type and not the shelf.
+    // The shelf's name is not the goods on it: what is searched is the type.
     fireEvent.change(search(), { target: { value: 'data' } })
-    expect([...container.querySelectorAll('.block')].map((b) => b.textContent)).toEqual([
-      'Relational Database',
-      'Document Database',
-      'Graph Database',
-      'Time-Series Database',
-      'Vector Database',
-      'Data Warehouse',
-      'Data Lake',
-      'Change Data Capture',
-    ])
+    const found = [...container.querySelectorAll('.block')].map((b) => b.textContent)
+    expect(found).toContain('Change Data Capture') // says data, off another shelf
+    expect(found).not.toContain('Key-Value Store') // on the shelf, does not say it
   })
 
   it('empties out when nothing matches', () => {

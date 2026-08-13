@@ -1,11 +1,9 @@
-import type { ElementType } from '../c4'
+import { shelf } from './shelf'
 
 // Applications. Something that runs: the drum is spent here, on Container.
-export const APPLICATIONS = {
+export const APPLICATIONS = shelf('Applications', {
   container: {
     title: 'Container',
-    level: 'container',
-    category: 'Applications',
     sigil: (
       <>
         <ellipse cx="12" cy="6.2" rx="7.4" ry="3" />
@@ -17,7 +15,6 @@ export const APPLICATIONS = {
   component: {
     title: 'Component',
     level: 'component',
-    category: 'Applications',
     sigil: (
       <>
         <path d="M7.8 4.4h12.6v15.2H7.8Z" />
@@ -25,4 +22,4 @@ export const APPLICATIONS = {
       </>
     ),
   },
-} satisfies Record<string, ElementType>
+})

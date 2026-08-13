@@ -1,11 +1,10 @@
-import type { ElementType } from '../c4'
+import { shelf } from './shelf'
 
 // Actors & Externals. Who and what is outside the thing you are drawing.
-export const ACTORS = {
+export const ACTORS = shelf('Actors & Externals', {
   person: {
     title: 'Person',
     level: 'context',
-    category: 'Actors & Externals',
     sigil: (
       <>
         <circle cx="12" cy="7.6" r="4" />
@@ -16,7 +15,6 @@ export const ACTORS = {
   system: {
     title: 'Software System',
     level: 'context',
-    category: 'Actors & Externals',
     sigil: (
       <>
         <path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z" />
@@ -24,4 +22,4 @@ export const ACTORS = {
       </>
     ),
   },
-} satisfies Record<string, ElementType>
+})
