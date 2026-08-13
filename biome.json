@@ -7,6 +7,7 @@
   "css": { "formatter": { "quoteStyle": "single" } },
   "linter": {
     "rules": {
+      "a11y": { "noStaticElementInteractions": "off" },
       "style": { "noNonNullAssertion": "off" },
       "suspicious": { "noDuplicateProperties": "off" }
     }

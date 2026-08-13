@@ -13,9 +13,9 @@ export default defineConfig({
       reporter: ['text'],
       // Where the suite stands today, rounded down. The floor, not the goal:
       // raise it as the suite grows, never lower it to make a red build green.
-      // What is still open: the canvas and the card, which need a rendered
-      // React Flow, and the app shell, which is four lines of composition.
-      thresholds: { lines: 70, statements: 70, functions: 65, branches: 70 },
+      // What is still open: the canvas, whose drop and ward wiring want a
+      // rendered board, and the app shell, which is four lines of composition.
+      thresholds: { lines: 75, statements: 75, functions: 70, branches: 75 },
     },
   },
 })

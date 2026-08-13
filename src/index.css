@@ -10,7 +10,6 @@
   --g-850: #15181a;
   --g-800: #1a1e21;
   --g-750: #21262a;
-  --g-700: #292f33;
   --g-600: #363d42;
   --canvas: #33393d;
 
@@ -246,8 +245,39 @@ body {
   flex: none;
 }
 
+/* level · type on one line — a long type is clipped rather than wrapping the
+   band to two rows */
+.c4-band span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .c4-body {
   padding: 8px 10px 10px;
+}
+
+/* An open field takes the shape of the line it replaced — type comes from
+   .c4-name or .c4-tech below. The bed is all that marks it open, and it takes
+   the outline's job under the caret. */
+.c4-edit {
+  display: block;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--g-600);
+  outline: none;
+}
+
+.c4-edit:focus-visible {
+  border-bottom-color: var(--brass);
+}
+
+.c4-edit::placeholder {
+  color: var(--ink-faint);
 }
 
 /* the user's words are set in sans; the system's are engraved in mono */
@@ -255,6 +285,13 @@ body {
   font-size: 13.5px;
   font-weight: 620;
   letter-spacing: -0.008em;
+}
+
+.c4-tech {
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-dim);
 }
 
 /* selection is registration marks, like a print plate — not a glow */
