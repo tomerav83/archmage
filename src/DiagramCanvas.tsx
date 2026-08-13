@@ -1,23 +1,23 @@
-import { useMemo, useState, type DragEvent } from 'react'
 import {
-  ReactFlow,
+  addEdge,
   Background,
   BackgroundVariant,
   ConnectionMode,
-  MarkerType,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  useReactFlow,
   type DefaultEdgeOptions,
   type Edge,
+  MarkerType,
   type Node,
   type NodeTypes,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
 } from '@xyflow/react'
-import { ELEMENTS } from '../../c4'
-import { ElementNode, type ElementNodeType } from './ElementNode'
-import { DRAG_SLOP_PX, WardContext } from './ward/useWard'
+import { type DragEvent, useMemo, useState } from 'react'
+import { ELEMENTS } from './c4'
 import { readDraggedKind } from './dragAndDrop'
+import { ElementNode, type ElementNodeType } from './ElementNode'
+import { DRAG_SLOP_PX, WardContext } from './useWard'
 
 const nodeTypes = { element: ElementNode } satisfies NodeTypes
 
@@ -34,7 +34,7 @@ const centre = (n: Node) => ({
 
 // Which faces an edge leaves and lands on. The wider gap picks the axis, so
 // cards set side by side join flank to flank rather than over the top.
-const faces = (a: Node, b: Node) => {
+export const faces = (a: Node, b: Node) => {
   const dx = centre(b).x - centre(a).x
   const dy = centre(b).y - centre(a).y
   if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? (['r', 'l'] as const) : (['l', 'r'] as const)

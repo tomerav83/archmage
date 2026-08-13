@@ -1,4 +1,4 @@
-import { ELEMENTS, type ElementKey } from '../../c4'
+import { ELEMENTS, type ElementKey } from './c4'
 
 // Wire format for palette → canvas drags. Kept in one place so the MIME type
 // and the validation of what comes back can't drift apart.
@@ -11,5 +11,7 @@ export function setDraggedKind(dt: DataTransfer, key: ElementKey) {
 
 export function readDraggedKind(dt: DataTransfer): ElementKey | null {
   const key = dt.getData(MIME)
-  return key in ELEMENTS ? (key as ElementKey) : null
+  // hasOwn, not `in`: `in` walks the prototype, so a drag carrying "toString"
+  // would pass and hand the canvas a function for an element kind.
+  return Object.hasOwn(ELEMENTS, key) ? (key as ElementKey) : null
 }

@@ -25,8 +25,9 @@
   --ink-dim: #9ba09f;
   --ink-faint: #6a7072;
 
-  --sans: 'Segoe UI Variable Text', ui-sans-serif, system-ui, -apple-system,
-    'Helvetica Neue', Arial, sans-serif;
+  --sans:
+    'Segoe UI Variable Text', ui-sans-serif, system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
   --mono: ui-monospace, 'Cascadia Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
 }
 
@@ -163,6 +164,12 @@ body {
   color: var(--ink-dim);
 }
 
+.blocks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 /* draggable element block */
 .block {
   display: flex;
@@ -261,12 +268,28 @@ body {
   position: absolute;
   inset: -5px;
   pointer-events: none;
-  background: var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick),
-    var(--tick), var(--tick);
+  background:
+    var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick),
+    var(--tick);
   background-repeat: no-repeat;
-  background-size: 8px 1px, 1px 8px, 8px 1px, 1px 8px, 8px 1px, 1px 8px, 8px 1px, 1px 8px;
-  background-position: left top, left top, right top, right top, left bottom, left bottom,
-    right bottom, right bottom;
+  background-size:
+    8px 1px,
+    1px 8px,
+    8px 1px,
+    1px 8px,
+    8px 1px,
+    1px 8px,
+    8px 1px,
+    1px 8px;
+  background-position:
+    left top,
+    left top,
+    right top,
+    right top,
+    left bottom,
+    left bottom,
+    right bottom,
+    right bottom;
 }
 
 /* ── ports ──────────────────────────────────────────────────
