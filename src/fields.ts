@@ -96,6 +96,9 @@ export const RELATIONSHIP: Field[] = [
 // c4.tsx — which is the only check the two files need of each other.
 export type Category = keyof typeof CATEGORY_FIELDS
 
+// The shelves in catalogue order, which is the order they stand in the rail.
+export const CATEGORIES = Object.keys(CATEGORY_FIELDS) as Category[]
+
 // Beyond Name and Description, which everything takes. The card prints the
 // first of these under the name; the panel prints all of them. Role is the
 // person's half of Actors & Externals; C4 gives a software system no

@@ -1,8 +1,7 @@
-import { type ElementType, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
+import { LEVELS, Sigil } from './c4'
 import { setDraggedType } from './dragAndDrop'
-
-const ROWS = Object.entries(TYPES) as [TypeKey, ElementType][]
-const SECTIONS = Object.entries(LEVELS)
+import { CATEGORIES } from './fields'
+import { useSearch } from './useSearch'
 
 // The astrolabe. Brand chrome, not an element — it never appears on a node.
 function BrandMark() {
@@ -24,33 +23,41 @@ function BrandMark() {
 }
 
 export function ElementSidebar() {
+  const { found, open, box } = useSearch()
+
   return (
     <aside className="rail">
       <header className="rail-head">
         <BrandMark />
         <span>Archmage</span>
       </header>
+      {box}
       <div className="rail-body">
-        {SECTIONS.map(([level, { title, accent }]) => (
-          <details key={level} open>
-            <summary>{title}</summary>
-            {/* A list, because that is what it is: the types legal at this level. */}
-            <ul className="blocks">
-              {ROWS.filter(([, t]) => t.level === level).map(([key, t]) => (
-                <li
-                  key={key}
-                  className="block"
-                  style={{ '--accent': accent }}
-                  draggable
-                  onDragStart={(e) => setDraggedType(e.dataTransfer, key)}
-                >
-                  <Sigil type={t} />
-                  {t.title}
-                </li>
-              ))}
-            </ul>
-          </details>
-        ))}
+        {CATEGORIES.map((category) => {
+          const rows = found.filter(([, t]) => t.category === category)
+          // A shelf with nothing on it is not a shelf.
+          if (!rows.length) return null
+          return (
+            <details key={category} open={open}>
+              <summary>{category}</summary>
+              {/* A list, because that is what it is: the types on this shelf. */}
+              <ul className="blocks">
+                {rows.map(([key, t]) => (
+                  <li
+                    key={key}
+                    className="block"
+                    style={{ '--accent': LEVELS[t.level].accent }}
+                    draggable
+                    onDragStart={(e) => setDraggedType(e.dataTransfer, key)}
+                  >
+                    <Sigil type={t} />
+                    {t.title}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )
+        })}
       </div>
     </aside>
   )

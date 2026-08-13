@@ -218,8 +218,8 @@ Fifteen branches, each on the one above, each a pull request.
 
 ### Phase A — foundations
 
-Make one node worth naming, then settle the schema so nothing after this
-migrates it.
+Make one node worth naming, then give the elements and the lines between them
+the fields they carry.
 
 **1. `feature/element-identity`**
 Double-click to rename a node. Add `technology` to node data, set in mono under
@@ -258,14 +258,7 @@ covers the sync/async split.
 Touches `DiagramCanvas.tsx`, a new `RelationshipEdge.tsx`, `ElementForm.tsx`,
 `index.css`.
 
-**5. `feature/persistence`**
-Save to localStorage, import and export JSON. Lands here because the schema is
-settled: the seven type batches only add values to a string union, never a
-field.
-Done when a diagram survives a reload and round-trips through export/import.
-Touches `DiagramCanvas.tsx`, a new `model.ts`.
-
-**6. `feature/palette-search`**
+**5. `feature/palette-search`**
 A search box and collapsed-by-default categories in the rail. Twelve sections
 holding 82 items is unusable without it, and it has to exist before the batches
 rather than after.
@@ -300,21 +293,33 @@ branches moving and neither changes the model.
 
 ### Phase C — nesting
 
-**14. `feature/boundaries`**
+**13. `feature/boundaries`**
 React Flow parent nodes. Drop an element inside a boundary and it reparents,
 moves with it and clips to it. Enterprise, system, container, domain, trust
 zone, team. Everything before this was registry edits; this is real interaction
 work.
-Done when a container dropped into a system boundary moves with it and the
-parent survives export/import.
-Touches a new `BoundaryNode.tsx`, `DiagramCanvas.tsx`, `model.ts`.
+Done when a container dropped into a system boundary moves with it and clips to
+it.
+Touches a new `BoundaryNode.tsx`, `DiagramCanvas.tsx`.
 
-**15. `feature/deployment-view`**
+**14. `feature/deployment-view`**
 Deployment environments, regions, clusters, compute nodes, infrastructure nodes,
 and instance-of references. A deployment node is a nestable boundary, so this
 rides on the branch above instead of reinventing it.
 Done when a container instance can be placed inside a cluster inside a region.
-Touches `c4.tsx`, `BoundaryNode.tsx`, `model.ts`.
+Touches `c4.tsx`, `BoundaryNode.tsx`.
+
+### Phase D — persistence
+
+**15. `feature/persistence`**
+Save to localStorage, import and export JSON. Last, because it is the only
+branch that has to know the whole schema and nesting is what finishes it:
+boundaries give a node a parent and the deployment view gives it an instance-of,
+and a file format written before those is a file format migrated after them.
+Everything between here and Phase A only adds values to a string union.
+Done when a diagram survives a reload and round-trips through export/import,
+parents and all.
+Touches `DiagramCanvas.tsx`, a new `model.ts`.
 
 ## Out of scope
 
