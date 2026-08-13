@@ -3,6 +3,7 @@ import { ACTORS } from './catalog/actors'
 import { APPLICATIONS } from './catalog/applications'
 import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
+import { MESSAGING } from './catalog/messaging'
 import type { Category } from './fields'
 
 // An element sits on three independent axes, never one enum: what you are
@@ -42,6 +43,7 @@ export const TYPES = {
   ...APPLICATIONS,
   ...DATA_STORES,
   ...CACHING,
+  ...MESSAGING,
 }
 
 export type TypeKey = keyof typeof TYPES
