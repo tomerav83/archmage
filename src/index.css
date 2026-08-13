@@ -140,6 +140,32 @@ body {
   text-transform: uppercase;
 }
 
+/* Twelve shelves of eighty-two is a catalogue you look things up in, not one
+   you scroll. Engraved like every other label the system writes. */
+.rail-search {
+  margin: 11px 9px 2px;
+  padding: 6px 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  background: var(--g-800);
+  border: 1px solid var(--g-750);
+  border-radius: 2px;
+  outline: none;
+}
+
+.rail-search:focus {
+  border-color: var(--brass);
+}
+
+.rail-search::placeholder {
+  text-transform: uppercase;
+  letter-spacing: 0.19em;
+  color: var(--ink-faint);
+  opacity: 1; /* Firefox dims placeholders by default */
+}
+
 .rail-body {
   padding: 6px 9px;
   overflow-y: auto;

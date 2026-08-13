@@ -258,12 +258,11 @@ division. A card is a thing on a board; the panel is where you talk about it.
 
 After `feature/taxonomy-model`, which is what creates the categories the table
 is keyed by — landing it earlier means keying it to the four kinds that exist
-today and rekeying it a branch later. Before `feature/persistence`, so the
-fields are in the schema before anything is written to disk. And before
-`feature/relationship-detail`, for the reason above.
+today and rekeying it a branch later. And before `feature/relationship-detail`,
+for the reason above. `feature/persistence` is no longer a deadline: it now
+lands after nesting, which is the branch that actually finishes the schema.
 
-That makes Phase A: taxonomy-model, form, relationship-detail, persistence,
-palette-search.
+That makes Phase A: taxonomy-model, form, relationship-detail, palette-search.
 
 ## The cut line
 
