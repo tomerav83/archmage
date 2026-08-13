@@ -16,7 +16,7 @@ import {
 import { type DragEvent, useCallback, useMemo, useState } from 'react'
 import { TYPES } from './c4'
 import { readDraggedType } from './dragAndDrop'
-import { ElementInspector } from './ElementInspector'
+import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
 
@@ -48,9 +48,9 @@ export function DiagramCanvas() {
   const { screenToFlowPosition, getNode } = useReactFlow()
   // The node whose ward is open, waiting for the press that answers it.
   const [from, setFrom] = useState<string | null>(null)
-  // The node the inspector follows. It follows one, and it is not modal.
-  const [inspecting, setInspecting] = useState<string | null>(null)
-  const close = useCallback(() => setInspecting(null), [])
+  // The node the form follows. It follows one, and it is not modal.
+  const [editing, setEditing] = useState<string | null>(null)
+  const close = useCallback(() => setEditing(null), [])
 
   const ward = useMemo(
     () => ({
@@ -90,7 +90,7 @@ export function DiagramCanvas() {
       },
     ])
     // The element you just placed is the one you want to name.
-    setInspecting(id)
+    setEditing(id)
   }
 
   return (
@@ -119,7 +119,7 @@ export function DiagramCanvas() {
         // The card catches the double-click, not the text under the cursor:
         // the ward captures the pointer on every press, so the browser aims
         // click and dblclick at the card, which bubbles it on to React Flow.
-        onNodeDoubleClick={(_, node) => setInspecting(node.id)}
+        onNodeDoubleClick={(_, node) => setEditing(node.id)}
         // Empty ground — or an edge — calls off an open ward.
         onPaneClick={ward.cancel}
         onEdgeClick={ward.cancel}
@@ -134,7 +134,7 @@ export function DiagramCanvas() {
       </ReactFlow>
       {/* Over the board rather than beside it, so opening the panel doesn't
           reflow the canvas under the cursor. */}
-      <ElementInspector node={nodes.find((n) => n.id === inspecting)} onClose={close} />
+      <ElementForm node={nodes.find((n) => n.id === editing)} onClose={close} />
     </WardContext.Provider>
   )
 }

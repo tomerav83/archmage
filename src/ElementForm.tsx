@@ -18,13 +18,7 @@ const caret = (el: HTMLElement | null) => {
   if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
 }
 
-export function ElementInspector({
-  node,
-  onClose,
-}: {
-  node?: ElementNodeType
-  onClose: () => void
-}) {
+export function ElementForm({ node, onClose }: { node?: ElementNodeType; onClose: () => void }) {
   const { updateNodeData } = useReactFlow()
   // Held so the panel has something to draw while it slides away.
   const last = useRef(node)
@@ -51,7 +45,7 @@ export function ElementInspector({
   }, [open, onClose])
 
   // Mounted always, so it can slide; empty until something has been opened.
-  if (!shown) return <aside className="inspector" />
+  if (!shown) return <aside className="form" />
 
   const type = TYPES[shown.data.type]
   const level = LEVELS[type.level]
@@ -61,11 +55,11 @@ export function ElementInspector({
 
   return (
     <aside
-      className="inspector"
+      className="form"
       data-open={open ? true : undefined}
       style={{ '--accent': level.accent, '--accent-ink': level.ink }}
     >
-      <div className="inspector-band">
+      <div className="form-band">
         <Sigil type={type} />
         <span>
           {level.title} · {type.title}
@@ -74,7 +68,7 @@ export function ElementInspector({
           ✕
         </button>
       </div>
-      <div className="inspector-body">
+      <div className="form-body">
         {fields.map((f) => {
           const value = shown.data[f.key] ?? ''
           const write = (e: { target: { value: string } }) =>

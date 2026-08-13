@@ -1,4 +1,4 @@
-# Element fields and the inspector
+# Element fields and the form
 
 A Person has no technology. A cache has a TTL that nothing else on the board
 has. A trust zone has neither. Eighty-two types do not want one form, and they
@@ -238,7 +238,7 @@ is the element list with the category tier removed — which means
 an edge, with `[label, technology, style]` for its fields and dashed-versus-solid
 falling out of `style`.
 
-So it moves after the inspector rather than before it. Building click-an-edge
+So it moves after the form rather than before it. Building click-an-edge
 editing first means building it twice.
 
 ## What this deletes
@@ -259,7 +259,7 @@ today and rekeying it a branch later. Before `feature/persistence`, so the
 fields are in the schema before anything is written to disk. And before
 `feature/relationship-detail`, for the reason above.
 
-That makes Phase A: taxonomy-model, inspector, relationship-detail, persistence,
+That makes Phase A: taxonomy-model, form, relationship-detail, persistence,
 palette-search.
 
 ## The cut line

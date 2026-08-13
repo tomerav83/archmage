@@ -49,7 +49,7 @@ body {
 .diagram-editor {
   display: flex;
   height: 100%;
-  /* the bed the inspector rides over */
+  /* the bed the form rides over */
   position: relative;
 }
 
@@ -333,12 +333,12 @@ body {
   outline-offset: 3px;
 }
 
-/* ── inspector ──────────────────────────────────────────────
+/* ── form ──────────────────────────────────────────────
    The right rail answers the left: the one is what you take from, the other is
    what you say about what you took. Same instrument, two faces — so the brass
    hairline runs down its inner edge too. It rides over the board rather than
    beside it, so opening it doesn't reflow the canvas under the cursor. */
-.inspector {
+.form {
   position: absolute;
   top: 0;
   right: 0;
@@ -357,19 +357,19 @@ body {
     visibility 180ms;
 }
 
-.inspector[data-open] {
+.form[data-open] {
   visibility: visible;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .inspector {
+  .form {
     transition: none;
   }
 }
 
 /* the same band the card wears, in the same pigment */
-.inspector-band {
+.form-band {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -384,19 +384,19 @@ body {
   color: var(--accent-ink);
 }
 
-.inspector-band svg {
+.form-band svg {
   width: 13px;
   height: 13px;
   flex: none;
 }
 
-.inspector-band span {
+.form-band span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.inspector-band button {
+.form-band button {
   margin-left: auto;
   padding: 0;
   width: 16px;
@@ -410,11 +410,11 @@ body {
   cursor: pointer;
 }
 
-.inspector-band button:hover {
+.form-band button:hover {
   color: var(--ink);
 }
 
-.inspector-body {
+.form-body {
   padding: 4px 0 16px;
   overflow-y: auto;
 }
@@ -508,7 +508,7 @@ body {
   opacity: 1; /* Firefox dims placeholders by default */
 }
 
-.inspector button:focus-visible {
+.form button:focus-visible {
   outline: 1px solid var(--brass);
   outline-offset: 2px;
 }

@@ -19,7 +19,7 @@ const PORTS = [
   ['l', Position.Left],
 ] as const
 
-// A card is a thing on a board; the inspector is where you talk about it. So
+// A card is a thing on a board; the form is where you talk about it. So
 // this reads and never writes: band, name, and one line under it.
 export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
   const type = TYPES[data.type]

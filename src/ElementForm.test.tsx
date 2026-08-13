@@ -28,9 +28,9 @@ const field = (title: string) => screen.getByLabelText(title) as HTMLInputElemen
 const write = (title: string, value: string) =>
   fireEvent.change(field(title), { target: { value } })
 const isOpen = (container: HTMLElement) =>
-  container.querySelector('.inspector')?.hasAttribute('data-open')
+  container.querySelector('.form')?.hasAttribute('data-open')
 
-describe('the inspector', () => {
+describe('the form', () => {
   it('opens on a drop with the name under the caret', () => {
     const container = board()
     drop(container)
