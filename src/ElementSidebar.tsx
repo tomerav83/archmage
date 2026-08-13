@@ -1,7 +1,8 @@
-import { ELEMENTS, type ElementKey, type ElementKind, GROUPS, Sigil } from './c4'
-import { setDraggedKind } from './dragAndDrop'
+import { type ElementType, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
+import { setDraggedType } from './dragAndDrop'
 
-const KINDS = Object.entries(ELEMENTS) as [ElementKey, ElementKind][]
+const ROWS = Object.entries(TYPES) as [TypeKey, ElementType][]
+const SECTIONS = Object.entries(LEVELS)
 
 // The astrolabe. Brand chrome, not an element — it never appears on a node.
 function BrandMark() {
@@ -30,21 +31,21 @@ export function ElementSidebar() {
         <span>Archmage</span>
       </header>
       <div className="rail-body">
-        {GROUPS.map((group) => (
-          <details key={group} open>
-            <summary>{group}</summary>
-            {/* A list, because that is what it is: the kinds this group offers. */}
+        {SECTIONS.map(([level, { title, accent }]) => (
+          <details key={level} open>
+            <summary>{title}</summary>
+            {/* A list, because that is what it is: the types legal at this level. */}
             <ul className="blocks">
-              {KINDS.filter(([, el]) => el.group === group).map(([key, el]) => (
+              {ROWS.filter(([, t]) => t.level === level).map(([key, t]) => (
                 <li
                   key={key}
                   className="block"
-                  style={{ '--accent': el.accent }}
+                  style={{ '--accent': accent }}
                   draggable
-                  onDragStart={(e) => setDraggedKind(e.dataTransfer, key)}
+                  onDragStart={(e) => setDraggedType(e.dataTransfer, key)}
                 >
-                  <Sigil kind={el} />
-                  {el.title}
+                  <Sigil type={t} />
+                  {t.title}
                 </li>
               ))}
             </ul>

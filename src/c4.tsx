@@ -1,29 +1,39 @@
 import type { ReactNode } from 'react'
 
-// Sidebar section order. Declared rather than derived from the registry, so a
-// typo'd group is a compile error instead of a phantom section.
-export const GROUPS = ['Context', 'Container', 'Component'] as const
+// An element sits on three independent axes, never one enum: what you are
+// zoomed to, what kind of thing it is, and what it is built from. Postgres is
+// not a type — it is a technology on a Relational Database, free text on the
+// node. That is what keeps a large catalogue a table instead of an icon pack.
 
-// Everything the app knows about one C4 element kind.
-//
-// Named ElementKind, not Element: in C4 an *element* is an instance on the
-// diagram ("Support Agent"), while this describes its kind. It also keeps the
-// DOM's global Element out of the shadow.
-export type ElementKind = {
-  group: (typeof GROUPS)[number]
+export type Level = {
   title: string
   accent: string // stripe and band tint
   ink: string // the same pigment, lifted for 8px type on a dark card
+}
+
+// The zoom, and the only thing carrying pigment: a colour per type would be
+// mud, so the colour tells you the level and the sigil tells you the type.
+// Section order in the rail is this order.
+export const LEVELS = {
+  context: { title: 'Context', accent: '#4a7fc1', ink: '#6f9fd8' },
+  container: { title: 'Container', accent: '#3f9e8c', ink: '#56bda9' },
+  component: { title: 'Component', accent: '#cf9b3c', ink: '#e0b358' },
+} satisfies Record<string, Level>
+
+export type LevelKey = keyof typeof LEVELS
+
+// What kind of thing it is. No colour here — see LEVELS.
+export type ElementType = {
+  title: string
+  level: LevelKey // the level this type is legal at
   sigil: ReactNode // paths only — the <svg> chrome lives in <Sigil>
 }
 
-// To add an element kind: add a line here.
-export const ELEMENTS = {
+// To add an element type: add a line here.
+export const TYPES = {
   person: {
-    group: 'Context',
     title: 'Person',
-    accent: '#c25a45',
-    ink: '#d97663',
+    level: 'context',
     sigil: (
       <>
         <circle cx="12" cy="7.6" r="4" />
@@ -32,10 +42,8 @@ export const ELEMENTS = {
     ),
   },
   system: {
-    group: 'Context',
     title: 'Software System',
-    accent: '#4a7fc1',
-    ink: '#6f9fd8',
+    level: 'context',
     sigil: (
       <>
         <path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z" />
@@ -44,10 +52,8 @@ export const ELEMENTS = {
     ),
   },
   container: {
-    group: 'Container',
     title: 'Container',
-    accent: '#3f9e8c',
-    ink: '#56bda9',
+    level: 'container',
     sigil: (
       <>
         <ellipse cx="12" cy="6.2" rx="7.4" ry="3" />
@@ -57,10 +63,8 @@ export const ELEMENTS = {
     ),
   },
   component: {
-    group: 'Component',
     title: 'Component',
-    accent: '#cf9b3c',
-    ink: '#e0b358',
+    level: 'component',
     sigil: (
       <>
         <path d="M7.8 4.4h12.6v15.2H7.8Z" />
@@ -68,14 +72,14 @@ export const ELEMENTS = {
       </>
     ),
   },
-} satisfies Record<string, ElementKind>
+} satisfies Record<string, ElementType>
 
-export type ElementKey = keyof typeof ELEMENTS
+export type TypeKey = keyof typeof TYPES
 
 // Every mark is drawn on the same 24-unit grid at the same stroke, so they set
-// evenly beside 8px engraved type. The sigil carries the element kind; the
-// pigment only confirms it — a diagram still reads in greyscale.
-export function Sigil({ kind }: { kind: ElementKind }) {
+// evenly beside 8px engraved type. The sigil carries the type; the pigment only
+// confirms the level — a diagram still reads in greyscale.
+export function Sigil({ type }: { type: ElementType }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -85,7 +89,7 @@ export function Sigil({ kind }: { kind: ElementKind }) {
       strokeLinecap="square"
       aria-hidden="true"
     >
-      {kind.sigil}
+      {type.sigil}
     </svg>
   )
 }
