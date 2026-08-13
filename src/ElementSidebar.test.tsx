@@ -17,6 +17,8 @@ describe('the rail', () => {
     expect([...container.querySelectorAll('summary')].map((s) => s.textContent)).toEqual([
       'Actors & Externals',
       'Applications',
+      'Data Stores',
+      'Caching',
     ])
   })
 
@@ -44,11 +46,17 @@ describe('the rail', () => {
       'Component',
     ])
 
-    // The shelf's name is not the goods on it: every category holds a c.
-    fireEvent.change(search(), { target: { value: 'c' } })
+    // The shelf's name is not the goods on it: the Data Stores shelf holds
+    // twelve, and only the seven saying so come back.
+    fireEvent.change(search(), { target: { value: 'data' } })
     expect([...container.querySelectorAll('.block')].map((b) => b.textContent)).toEqual([
-      'Container',
-      'Component',
+      'Relational Database',
+      'Document Database',
+      'Graph Database',
+      'Time-Series Database',
+      'Vector Database',
+      'Data Warehouse',
+      'Data Lake',
     ])
   })
 
