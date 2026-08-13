@@ -214,7 +214,7 @@ These contain other elements. A new mechanic, not a new sigil.
 
 ## The stack
 
-Fourteen branches, each on the one above, each a pull request.
+Fifteen branches, each on the one above, each a pull request.
 
 ### Phase A — foundations
 
@@ -228,14 +228,7 @@ Done when a node can be named and given a technology, both survive a re-render,
 and a test covers the rename.
 Touches `ElementNode.tsx`, `DiagramCanvas.tsx`, `index.css`.
 
-**2. `feature/relationship-detail`**
-Edge label and protocol text. Dashed for async, solid for sync. Click an edge to
-edit it.
-Done when an edge carries a label and a protocol, async draws dashed, and a test
-covers the sync/async split.
-Touches `DiagramCanvas.tsx`, a new `RelationshipEdge.tsx`, `index.css`.
-
-**3. `feature/taxonomy-model`**
+**2. `feature/taxonomy-model`**
 Split `ELEMENTS` into `LEVELS` and `TYPES`. Add `category`, `levels[]` and the
 `external` flag. Migrate the existing four kinds and the three Actors. No new
 types — a pure reshape, so the diff stays reviewable.
@@ -243,14 +236,36 @@ Done when the four existing kinds render unchanged off the new tables and
 `dragAndDrop` still rejects a key that is not a type.
 Touches `c4.tsx`, `ElementNode.tsx`, `ElementSidebar.tsx`, `dragAndDrop.ts`.
 
-**4. `feature/persistence`**
+**3. `feature/element-inspector`**
+A rail on the right, opening on a drop and on a double-click, carrying the
+fields a type actually has — a person a role, a cache a TTL, a boundary
+neither. One table of field descriptors, one renderer, no form per type. Lands
+on the branch above because the table is keyed by category, and takes the fields
+off the card that branch 1 put there. See [inspector.md](inspector.md).
+Done when dropping an element opens the panel with the caret in its name, and a
+category's fields are one line to change.
+Touches a new `ElementInspector.tsx` and `fields.ts`, `ElementNode.tsx`,
+`DiagramCanvas.tsx`, `index.css`.
+
+**4. `feature/relationship-detail`**
+Edge label and protocol text. Dashed for async, solid for sync. An edge carries
+the same handful of fields an element does — description, technology, tags, link
+in both Structurizr and C4-PlantUML — so it is edited in the panel above rather
+than in an editor of its own. That is why it follows the inspector instead of
+opening Phase A.
+Done when an edge carries a label and a protocol, async draws dashed, and a test
+covers the sync/async split.
+Touches `DiagramCanvas.tsx`, a new `RelationshipEdge.tsx`, `ElementInspector.tsx`,
+`index.css`.
+
+**5. `feature/persistence`**
 Save to localStorage, import and export JSON. Lands here because the schema is
 settled: the seven type batches only add values to a string union, never a
 field.
 Done when a diagram survives a reload and round-trips through export/import.
 Touches `DiagramCanvas.tsx`, a new `model.ts`.
 
-**5. `feature/palette-search`**
+**6. `feature/palette-search`**
 A search box and collapsed-by-default categories in the rail. Twelve sections
 holding 82 items is unusable without it, and it has to exist before the batches
 rather than after.
@@ -285,7 +300,7 @@ branches moving and neither changes the model.
 
 ### Phase C — nesting
 
-**13. `feature/boundaries`**
+**14. `feature/boundaries`**
 React Flow parent nodes. Drop an element inside a boundary and it reparents,
 moves with it and clips to it. Enterprise, system, container, domain, trust
 zone, team. Everything before this was registry edits; this is real interaction
@@ -294,7 +309,7 @@ Done when a container dropped into a system boundary moves with it and the
 parent survives export/import.
 Touches a new `BoundaryNode.tsx`, `DiagramCanvas.tsx`, `model.ts`.
 
-**14. `feature/deployment-view`**
+**15. `feature/deployment-view`**
 Deployment environments, regions, clusters, compute nodes, infrastructure nodes,
 and instance-of references. A deployment node is a nestable boundary, so this
 rides on the branch above instead of reinventing it.
