@@ -49,6 +49,8 @@ body {
 .diagram-editor {
   display: flex;
   height: 100%;
+  /* the bed the inspector rides over */
+  position: relative;
 }
 
 .react-flow {
@@ -257,29 +259,6 @@ body {
   padding: 8px 10px 10px;
 }
 
-/* An open field takes the shape of the line it replaced — type comes from
-   .c4-name or .c4-tech below. The bed is all that marks it open, and it takes
-   the outline's job under the caret. */
-.c4-edit {
-  display: block;
-  width: 100%;
-  padding: 0;
-  font: inherit;
-  color: inherit;
-  background: none;
-  border: none;
-  border-bottom: 1px solid var(--g-600);
-  outline: none;
-}
-
-.c4-edit:focus-visible {
-  border-bottom-color: var(--brass);
-}
-
-.c4-edit::placeholder {
-  color: var(--ink-faint);
-}
-
 /* the user's words are set in sans; the system's are engraved in mono */
 .c4-name {
   font-size: 13.5px;
@@ -287,11 +266,22 @@ body {
   letter-spacing: -0.008em;
 }
 
-.c4-tech {
+.c4-subtitle {
   margin-top: 3px;
   font-family: var(--mono);
   font-size: 10px;
   color: var(--ink-dim);
+}
+
+/* Status is the one catalogue field that shows on the board. A status that
+   renders nowhere is a field nobody fills in. */
+.c4-node[data-status='Planned'] {
+  border-style: dashed;
+  border-color: var(--g-600);
+}
+
+.c4-node[data-status='Deprecated'] {
+  opacity: 0.55;
 }
 
 /* selection is registration marks, like a print plate — not a glow */
@@ -341,4 +331,189 @@ body {
 .block:focus-visible {
   outline: 1px solid var(--brass);
   outline-offset: 3px;
+}
+
+/* ── inspector ──────────────────────────────────────────────
+   The right rail answers the left: the one is what you take from, the other is
+   what you say about what you took. Same instrument, two faces — so the brass
+   hairline runs down its inner edge too. It rides over the board rather than
+   beside it, so opening it doesn't reflow the canvas under the cursor. */
+.inspector {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 288px;
+  display: flex;
+  flex-direction: column;
+  background: var(--g-850);
+  border-left: 1px solid var(--g-900);
+  box-shadow: inset 2px 0 0 -1px color-mix(in srgb, var(--brass) 26%, transparent);
+  /* shut: off the edge, and hidden so it takes no focus while it is gone */
+  visibility: hidden;
+  transform: translateX(100%);
+  transition:
+    transform 180ms ease,
+    visibility 180ms;
+}
+
+.inspector[data-open] {
+  visibility: visible;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inspector {
+    transition: none;
+  }
+}
+
+/* the same band the card wears, in the same pigment */
+.inspector-band {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 12px;
+  flex: none;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-bottom: 1px solid var(--g-800);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.inspector-band svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.inspector-band span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inspector-band button {
+  margin-left: auto;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  background: none;
+  border: none;
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.inspector-band button:hover {
+  color: var(--ink);
+}
+
+.inspector-body {
+  padding: 4px 0 16px;
+  overflow-y: auto;
+}
+
+/* A shut row: the field's name engraved in the gutter, what it says beside it.
+   The whole row is the button that opens it. */
+.row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--g-800);
+  cursor: pointer;
+}
+
+.row:hover {
+  background: var(--g-800);
+}
+
+.row > span:first-child {
+  padding-top: 3px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.val {
+  font-size: 13px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Nothing said yet. Quieter than a value, and never mistaken for one. */
+.val.empty {
+  color: var(--ink-faint);
+}
+
+/* The one row open for typing: cut below the panel, lit along its top edge, so
+   it is the only thing in the rail asking to be written in. */
+.open {
+  padding: 9px 12px 12px;
+  background: var(--g-900);
+  border-top: 1px solid var(--brass);
+  border-bottom: 1px solid var(--g-800);
+  box-shadow: inset 0 12px 22px -18px #000;
+}
+
+.field {
+  display: block;
+}
+
+.field > span {
+  display: block;
+  margin-bottom: 5px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brass-lit);
+}
+
+.field input,
+.field textarea,
+.field select {
+  display: block;
+  width: 100%;
+  padding: 6px 8px;
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--ink);
+  background: var(--g-850);
+  border: 1px solid var(--brass);
+  border-radius: 2px;
+  outline: none;
+}
+
+.field textarea {
+  resize: vertical;
+}
+
+/* A hint has to be readable to be a hint; what keeps it from reading as a
+   value is that a value is set in --ink, three steps brighter. */
+.field ::placeholder {
+  color: var(--ink-dim);
+  opacity: 1; /* Firefox dims placeholders by default */
+}
+
+.inspector button:focus-visible {
+  outline: 1px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* a row runs the full width, so its mark has to be struck inside it */
+.row:focus-visible {
+  outline-offset: -2px;
 }

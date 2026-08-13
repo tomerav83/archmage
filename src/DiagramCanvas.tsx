@@ -13,9 +13,10 @@ import {
   useNodesState,
   useReactFlow,
 } from '@xyflow/react'
-import { type DragEvent, useMemo, useState } from 'react'
+import { type DragEvent, useCallback, useMemo, useState } from 'react'
 import { TYPES } from './c4'
 import { readDraggedType } from './dragAndDrop'
+import { ElementInspector } from './ElementInspector'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
 
@@ -47,6 +48,9 @@ export function DiagramCanvas() {
   const { screenToFlowPosition, getNode } = useReactFlow()
   // The node whose ward is open, waiting for the press that answers it.
   const [from, setFrom] = useState<string | null>(null)
+  // The node the inspector follows. It follows one, and it is not modal.
+  const [inspecting, setInspecting] = useState<string | null>(null)
+  const close = useCallback(() => setInspecting(null), [])
 
   const ward = useMemo(
     () => ({
@@ -75,15 +79,18 @@ export function DiagramCanvas() {
     e.preventDefault()
     const type = readDraggedType(e.dataTransfer)
     if (!type) return
+    const id = crypto.randomUUID()
     setNodes((nds) => [
       ...nds,
       {
-        id: crypto.randomUUID(),
+        id,
         type: 'element',
         position: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
         data: { type, label: TYPES[type].title },
       },
     ])
+    // The element you just placed is the one you want to name.
+    setInspecting(id)
   }
 
   return (
@@ -109,6 +116,10 @@ export function DiagramCanvas() {
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        // The card catches the double-click, not the text under the cursor:
+        // the ward captures the pointer on every press, so the browser aims
+        // click and dblclick at the card, which bubbles it on to React Flow.
+        onNodeDoubleClick={(_, node) => setInspecting(node.id)}
         // Empty ground — or an edge — calls off an open ward.
         onPaneClick={ward.cancel}
         onEdgeClick={ward.cancel}
@@ -121,6 +132,9 @@ export function DiagramCanvas() {
         <Background id="major" variant={BackgroundVariant.Lines} gap={105} color="#3f403d" />
         <Background id="minor" gap={21} size={1} color="#414950" />
       </ReactFlow>
+      {/* Over the board rather than beside it, so opening the panel doesn't
+          reflow the canvas under the cursor. */}
+      <ElementInspector node={nodes.find((n) => n.id === inspecting)} onClose={close} />
     </WardContext.Provider>
   )
 }
