@@ -1,0 +1,284 @@
+/* Archmage — pigment on slate, fitted in brass.
+   Slate ramp inverts the usual habit: the canvas is the lightest surface and
+   the chrome sits behind it, the way a pale bench top sits in a dark frame.
+   Brass is chrome only — rail edge, selection, focus, major grid line. It
+   never lands on a node; element colour comes from ELEMENTS in c4.tsx. */
+:root {
+  color-scheme: dark;
+
+  --g-900: #101315;
+  --g-850: #15181a;
+  --g-800: #1a1e21;
+  --g-750: #21262a;
+  --g-700: #292f33;
+  --g-600: #363d42;
+  --canvas: #33393d;
+
+  --brass: #b8873f;
+  --brass-lit: #e0ab5c;
+
+  /* how long a press holds before the ward closes; paces the drawing of the
+     figure, and must match HOLD_MS in ward/useWard.ts */
+  --hold: 420ms;
+
+  --ink: #e9e6df;
+  --ink-dim: #9ba09f;
+  --ink-faint: #6a7072;
+
+  --sans: 'Segoe UI Variable Text', ui-sans-serif, system-ui, -apple-system,
+    'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'Cascadia Mono', 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  background: var(--g-900);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100dvh;
+}
+
+.diagram-editor {
+  display: flex;
+  height: 100%;
+}
+
+.react-flow {
+  flex: 1;
+  min-width: 0;
+  --xy-background-color: var(--canvas);
+  --xy-edge-stroke: #838b90;
+  /* selection is brass, same as a node's registration marks */
+  --xy-edge-stroke-selected: var(--brass-lit);
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke-width: 1.8;
+}
+
+/* One marker is shared by every edge, so it can't be repainted per edge —
+   context-stroke has it take the colour of the line that points to it. The
+   plain declaration first is the fallback where that isn't understood. */
+.react-flow__arrowhead polyline {
+  stroke: var(--xy-edge-stroke);
+  stroke: context-stroke;
+}
+
+.react-flow__arrowhead polyline.arrowclosed {
+  fill: var(--xy-edge-stroke);
+  fill: context-stroke;
+}
+
+/* ── rail ─────────────────────────────────────────────────── */
+.rail {
+  width: 194px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  padding-top: 14px;
+  background: var(--g-850);
+  border-right: 1px solid var(--g-900);
+  /* the one bright line in the frame: the two panes read as fitted parts */
+  box-shadow: inset -2px 0 0 -1px color-mix(in srgb, var(--brass) 26%, transparent);
+}
+
+.rail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 13px 18px;
+  border-bottom: 1px solid var(--g-800);
+}
+
+.rail-head svg {
+  width: 26px;
+  height: 26px;
+  color: var(--brass);
+  flex: none;
+}
+
+.rail-head span {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.rail-body {
+  padding: 6px 9px;
+  overflow-y: auto;
+}
+
+/* engraved plate label: caret, name, hairline to the edge */
+.rail summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 4px 7px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.rail summary::-webkit-details-marker {
+  display: none;
+}
+
+.rail summary::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  flex: none;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(-45deg) translate(-1px, 1px);
+}
+
+.rail details[open] > summary::before {
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.rail summary::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--g-750);
+}
+
+.rail summary:hover {
+  color: var(--ink-dim);
+}
+
+/* draggable element block */
+.block {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 3px 0;
+  padding: 8px 9px;
+  background: var(--g-800);
+  border: 1px solid var(--g-750);
+  border-left: 3px solid var(--accent);
+  border-radius: 2px;
+  font-size: 12.5px;
+  cursor: grab;
+}
+
+.block svg {
+  width: 15px;
+  height: 15px;
+  color: var(--accent);
+  flex: none;
+}
+
+/* knurled grip */
+.block::after {
+  content: '';
+  margin-left: auto;
+  width: 9px;
+  height: 11px;
+  flex: none;
+  background: repeating-linear-gradient(90deg, var(--g-600) 0 1px, transparent 1px 3px);
+}
+
+.block:hover {
+  background: var(--g-750);
+  border-color: color-mix(in srgb, var(--brass) 45%, transparent);
+  border-left-color: var(--accent);
+  box-shadow: 0 7px 16px -8px #000;
+}
+
+.block:active {
+  cursor: grabbing;
+}
+
+/* ── node ─────────────────────────────────────────────────── */
+/* No z-index here on purpose: the card must not open a stacking context, or
+   the ward inside it can only fall behind the card's text and not the plate
+   itself. React Flow's own node wrapper is the context that keeps it in. */
+.c4-node {
+  position: relative;
+  width: 200px;
+  background: var(--g-800);
+  border: 1px solid var(--g-900);
+  border-radius: 2px;
+  box-shadow: 0 12px 26px -14px rgb(0 0 0 / 0.85);
+}
+
+.c4-band {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px 5px;
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-bottom: 1px solid var(--g-750);
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.c4-band svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.c4-body {
+  padding: 8px 10px 10px;
+}
+
+/* the user's words are set in sans; the system's are engraved in mono */
+.c4-name {
+  font-size: 13.5px;
+  font-weight: 620;
+  letter-spacing: -0.008em;
+}
+
+/* selection is registration marks, like a print plate — not a glow */
+.react-flow__node.selected .c4-node {
+  border-color: color-mix(in srgb, var(--brass) 65%, transparent);
+}
+
+.react-flow__node.selected .c4-node::after {
+  --tick: linear-gradient(var(--brass) 0 0);
+  content: '';
+  position: absolute;
+  inset: -5px;
+  pointer-events: none;
+  background: var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick),
+    var(--tick), var(--tick);
+  background-repeat: no-repeat;
+  background-size: 8px 1px, 1px 8px, 8px 1px, 1px 8px, 8px 1px, 1px 8px, 8px 1px, 1px 8px;
+  background-position: left top, left top, right top, right top, left bottom, left bottom,
+    right bottom, right bottom;
+}
+
+/* ── ports ──────────────────────────────────────────────────
+   Nothing to see: joining is the ward's job. The handles stay in the markup
+   because React Flow anchors an edge to a handle's box and drops the edge
+   without one — hidden, they still measure, and they take no press. */
+.react-flow__handle {
+  visibility: hidden;
+}
+
+.react-flow__node:focus-visible .c4-node,
+.block:focus-visible {
+  outline: 1px solid var(--brass);
+  outline-offset: 3px;
+}

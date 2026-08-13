@@ -1,0 +1,109 @@
+/* ── the ward ─────────────────────────────────────────────────
+   Hold a node and its ward is inscribed: the rule is drawn once round, then
+   the rune band, then the medallions. Once it closes the wheel turns in
+   place, about the node's centre: the rotation is on the <svg> box, never on a
+   group inside it, since a group's transform-origin resolves against a box
+   that isn't the geometry and swings the figure off to one side.
+
+   The palette and --hold come from the tokens on :root in index.css; the
+   .c4-node and .react-flow selectors are read, never declared, here. */
+.c4-ward {
+  --size: 380px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  z-index: -1;
+  overflow: visible;
+  opacity: 0;
+  pointer-events: none;
+  /* lit ink, not neon: two small bleeds and no halo */
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--brass-lit) 70%, transparent))
+    drop-shadow(0 0 9px color-mix(in srgb, var(--brass) 45%, transparent));
+  transition: opacity 130ms ease;
+}
+
+.c4-ward circle,
+.c4-ward line,
+.c4-ward path {
+  fill: none;
+  stroke: var(--brass-lit);
+}
+
+.c4-ward .c4-ward-dim {
+  stroke: var(--brass);
+  opacity: 0.75;
+}
+
+.c4-ward .c4-ward-disc {
+  fill: color-mix(in srgb, var(--g-900) 88%, transparent);
+  stroke: none;
+}
+
+.c4-ward-rule {
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 130ms ease;
+}
+
+.c4-ward-runes,
+.c4-ward-inner {
+  opacity: 0;
+  transition: opacity 130ms ease;
+}
+
+/* Three beats inside the one hold: rule, runes, medallions. Every beat waits
+   out a dead zone first, so an ordinary click — which selects — never flashes
+   the figure on its way back down. */
+.c4-node.holding .c4-ward,
+.c4-node.armed .c4-ward {
+  opacity: 1;
+  transition-duration: calc(var(--hold) * 0.2);
+  transition-delay: calc(var(--hold) * 0.15);
+}
+
+.c4-node.holding .c4-ward-rule,
+.c4-node.armed .c4-ward-rule {
+  stroke-dashoffset: 0;
+  transition-duration: calc(var(--hold) * 0.4);
+  transition-delay: calc(var(--hold) * 0.15);
+}
+
+.c4-node.holding .c4-ward-runes,
+.c4-node.armed .c4-ward-runes {
+  opacity: 1;
+  transition-duration: calc(var(--hold) * 0.35);
+  transition-delay: calc(var(--hold) * 0.4);
+}
+
+.c4-node.holding .c4-ward-inner,
+.c4-node.armed .c4-ward-inner {
+  opacity: 1;
+  transition-duration: calc(var(--hold) * 0.35);
+  transition-delay: calc(var(--hold) * 0.62);
+}
+
+@keyframes ward-turn {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.c4-node.armed .c4-ward {
+  animation: ward-turn 40s linear infinite;
+}
+
+/* the canvas steps back so the ward is the only lit thing on it */
+.react-flow:has(.c4-node.armed) .react-flow__edges,
+.react-flow:has(.c4-node.armed) .react-flow__background,
+.react-flow:has(.c4-node.armed) .react-flow__node:not(:has(.c4-node.armed)) {
+  opacity: 0.3;
+  transition: opacity 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c4-node.armed .c4-ward {
+    animation: none;
+  }
+}
