@@ -22,7 +22,7 @@ function Board() {
       id: 'a',
       type: 'element',
       position: { x: 0, y: 0 },
-      data: { kind: 'container', label: 'Orders' },
+      data: { type: 'container', label: 'Orders' },
     },
   ])
   return (

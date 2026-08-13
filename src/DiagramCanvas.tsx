@@ -14,8 +14,8 @@ import {
   useReactFlow,
 } from '@xyflow/react'
 import { type DragEvent, useMemo, useState } from 'react'
-import { ELEMENTS } from './c4'
-import { readDraggedKind } from './dragAndDrop'
+import { TYPES } from './c4'
+import { readDraggedType } from './dragAndDrop'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
 
@@ -73,15 +73,15 @@ export function DiagramCanvas() {
 
   const onDrop = (e: DragEvent) => {
     e.preventDefault()
-    const kind = readDraggedKind(e.dataTransfer)
-    if (!kind) return
+    const type = readDraggedType(e.dataTransfer)
+    if (!type) return
     setNodes((nds) => [
       ...nds,
       {
         id: crypto.randomUUID(),
         type: 'element',
         position: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
-        data: { kind, label: ELEMENTS[kind].title },
+        data: { type, label: TYPES[type].title },
       },
     ])
   }

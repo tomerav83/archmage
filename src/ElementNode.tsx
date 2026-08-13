@@ -1,15 +1,12 @@
 import { Handle, type Node, type NodeProps, Position, useReactFlow } from '@xyflow/react'
 import { useState } from 'react'
-import { ELEMENTS, type ElementKey, Sigil } from './c4'
+import { LEVELS, Sigil, TYPES, type TypeKey } from './c4'
 import { useWard } from './useWard'
 import { Ward } from './Ward'
 
 // label is the element's own name — "Orders Service"; technology is what it is
-// built from — "Go 1.22". kind stays a key into the registry.
-export type ElementNodeType = Node<
-  { kind: ElementKey; label: string; technology?: string },
-  'element'
->
+// built from — "Go 1.22". type stays a key into the registry.
+export type ElementNodeType = Node<{ type: TypeKey; label: string; technology?: string }, 'element'>
 
 const PORTS = [
   ['t', Position.Top],
@@ -19,7 +16,8 @@ const PORTS = [
 ] as const
 
 export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
-  const kind = ELEMENTS[data.kind]
+  const type = TYPES[data.type]
+  const level = LEVELS[type.level]
   const { state, ...press } = useWard(id)
   const { updateNodeData } = useReactFlow()
   const [editing, setEditing] = useState(false)
@@ -31,15 +29,15 @@ export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
     // under the cursor. This card is that element.
     <div
       className={`c4-node ${state}`}
-      style={{ '--accent': kind.accent, '--accent-ink': kind.ink }}
+      style={{ '--accent': level.accent, '--accent-ink': level.ink }}
       onDoubleClick={() => setEditing(true)}
       {...press}
     >
       <Ward id={id} />
       <div className="c4-band">
-        <Sigil kind={kind} />
+        <Sigil type={type} />
         <span>
-          {kind.group} · {kind.title}
+          {level.title} · {type.title}
         </span>
       </div>
       {editing ? (
