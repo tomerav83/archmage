@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { ACTORS } from './catalog/actors'
+import { ANALYTICS } from './catalog/analytics'
 import { APIS } from './catalog/apis'
 import { APPLICATIONS } from './catalog/applications'
 import { CACHING } from './catalog/caching'
@@ -54,6 +55,7 @@ export const TYPES = {
   ...EDGE,
   ...PLATFORM,
   ...OBSERVABILITY,
+  ...ANALYTICS,
 }
 
 export type TypeKey = keyof typeof TYPES

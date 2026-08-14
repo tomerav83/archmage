@@ -24,6 +24,7 @@ describe('the rail', () => {
       'Edge & Traffic',
       'Platform & Security',
       'Observability & Ops',
+      'Analytics & ML',
     ])
   })
 
