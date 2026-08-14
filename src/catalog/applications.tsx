@@ -1,12 +1,8 @@
 import { shelf } from './shelf'
 
-// Applications. Something that runs, and the marks say where it runs rather
+// Applications. Something that runs, and the mark says where it runs rather
 // than what it is written in: Rails and Next.js are one Web Application told
-// apart by its technology. The drum is spent here, on Container, so the nine
-// below are drawn from the screen they face and the shape of the work — a
-// window, a phone, a bolt, a rotor, a clock, a funnel. The catalogue gives API
-// Service a Cmp as well as a Cnt; there is one level per type, so it stands as
-// a container with the rest.
+// apart by its technology. The drum is spent here, on Container.
 export const APPLICATIONS = shelf('Applications', {
   container: {
     title: 'Container',
@@ -62,7 +58,7 @@ export const APPLICATIONS = shelf('Applications', {
     sigil: (
       <>
         <circle cx="12" cy="12" r="3.6" />
-        <path d="M12 3.2v4.2M12 16.6v4.2M4.4 7.6 8 9.7M16 14.3l3.6 2.1M4.4 16.4 8 14.3M16 9.7l3.6-2.1" />
+        <path d="M12 3.4v4.2M12 16.4v4.2M3.4 12h4.2M16.4 12h4.2" />
       </>
     ),
   },
