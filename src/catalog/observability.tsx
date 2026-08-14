@@ -2,7 +2,7 @@ import { shelf } from './shelf'
 
 // Observability & Ops. The three signals and what wakes somebody when they go
 // bad, so the marks are the signals themselves: bars, streams merging, spans
-// down a clock. The pipeline is a Dep too, and stands here as a container.
+// down a clock.
 export const OBSERVABILITY = shelf('Observability & Ops', {
   'metrics-store': {
     title: 'Metrics Store',

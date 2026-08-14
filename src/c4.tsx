@@ -24,6 +24,8 @@ export type Level = {
 // The zoom, and the only thing carrying pigment: a colour per type would be
 // mud, so the colour tells you the level and the sigil tells you the type. The
 // rail is shelved by category, not by this — a level holds too much to browse.
+// There is no deployment level yet, so a type the catalogue also gives a Dep
+// stands as a container until the deployment view lands.
 export const LEVELS = {
   context: { title: 'Context', accent: '#4a7fc1', ink: '#6f9fd8' },
   container: { title: 'Container', accent: '#3f9e8c', ink: '#56bda9' },

@@ -1,17 +1,14 @@
 import { shelf } from './shelf'
 
 // Platform & Security. What every service on the diagram leans on and nobody
-// draws: who you are, what you may do, and where the secret came from. The
-// identity provider is a Ctx as well, and the secrets manager, KMS and registry
-// are a Dep; there is no deployment level yet, so all eight stand as containers.
+// draws: who you are, what you may do, and where the secret came from.
 export const PLATFORM = shelf('Platform & Security', {
   'identity-provider': {
     title: 'Identity Provider',
     sigil: (
       <>
-        <path d="M3.4 4.8h17.2v14.4H3.4ZM14.2 9.6h3.8M14.2 13.2h3.8" />
         <circle cx="9.4" cy="10.4" r="2.2" />
-        <path d="M5.8 16.4c0-2 1.6-3.4 3.6-3.4s3.6 1.4 3.6 3.4" />
+        <path d="M3.4 4.8h17.2v14.4H3.4ZM14.2 9.6h3.8M14.2 13.2h3.8M5.8 16.4c0-2 1.6-3.4 3.6-3.4s3.6 1.4 3.6 3.4" />
       </>
     ),
   },
@@ -34,7 +31,6 @@ export const PLATFORM = shelf('Platform & Security', {
       <>
         <path d="M3.6 3.6h16.8v11.2H3.6ZM7 7.2h10M7 10.6h6" />
         <circle cx="15.6" cy="17.2" r="2.6" />
-        <path d="M13.4 19 12.2 21.8l3.4-1.4 3.4 1.4L18 19" />
       </>
     ),
   },
