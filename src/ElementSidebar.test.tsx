@@ -20,6 +20,7 @@ describe('the rail', () => {
       'Data Stores',
       'Caching',
       'Messaging & Streaming',
+      'Edge & Traffic',
     ])
   })
 
