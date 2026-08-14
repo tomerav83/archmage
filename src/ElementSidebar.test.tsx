@@ -17,6 +17,7 @@ describe('the rail', () => {
     expect([...container.querySelectorAll('summary')].map((s) => s.textContent)).toEqual([
       'Actors & Externals',
       'Applications',
+      'APIs & Contracts',
       'Data Stores',
       'Caching',
       'Messaging & Streaming',

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { ACTORS } from './catalog/actors'
+import { APIS } from './catalog/apis'
 import { APPLICATIONS } from './catalog/applications'
 import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
@@ -42,6 +43,7 @@ export type ElementType = {
 export const TYPES = {
   ...ACTORS,
   ...APPLICATIONS,
+  ...APIS,
   ...DATA_STORES,
   ...CACHING,
   ...MESSAGING,
