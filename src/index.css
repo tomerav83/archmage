@@ -216,24 +216,30 @@ body {
   color: var(--ink-dim);
 }
 
+/* Two tiles to a row: seventy-one types is a case you scan, not a column you
+   scroll. */
 .blocks {
   margin: 0;
-  padding: 0;
+  padding: 1px 0 3px;
   list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
 }
 
-/* draggable element block */
+/* draggable element tile — no grip; the whole tile is the handle */
 .block {
   display: flex;
   align-items: center;
-  gap: 9px;
-  margin: 3px 0;
-  padding: 8px 9px;
+  gap: 7px;
+  min-height: 40px;
+  padding: 5px 7px;
   background: var(--g-800);
   border: 1px solid var(--g-750);
   border-left: 3px solid var(--accent);
   border-radius: 2px;
-  font-size: 12.5px;
+  font-size: 10.5px;
+  line-height: 1.25;
   cursor: grab;
 }
 
@@ -244,14 +250,13 @@ body {
   flex: none;
 }
 
-/* knurled grip */
-.block::after {
-  content: '';
-  margin-left: auto;
-  width: 9px;
-  height: 11px;
-  flex: none;
-  background: repeating-linear-gradient(90deg, var(--g-600) 0 1px, transparent 1px 3px);
+/* The sigil can't carry seventy-one names alone, so the label stays printed on
+   the tile — clipped at two lines, the title attribute holding the rest. */
+.block span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
 .block:hover {

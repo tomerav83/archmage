@@ -47,11 +47,12 @@ export function ElementSidebar() {
                     key={key}
                     className="block"
                     style={{ '--accent': LEVELS[t.level].accent }}
+                    title={t.title}
                     draggable
                     onDragStart={(e) => setDraggedType(e.dataTransfer, key)}
                   >
                     <Sigil type={t} />
-                    {t.title}
+                    <span>{t.title}</span>
                   </li>
                 ))}
               </ul>
