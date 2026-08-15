@@ -6,6 +6,8 @@ import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
 import { EDGE } from './catalog/edge'
 import { MESSAGING } from './catalog/messaging'
+import { OBSERVABILITY } from './catalog/observability'
+import { PLATFORM } from './catalog/platform'
 import type { Category } from './fields'
 
 // An element sits on three independent axes, never one enum: what you are
@@ -22,6 +24,8 @@ export type Level = {
 // The zoom, and the only thing carrying pigment: a colour per type would be
 // mud, so the colour tells you the level and the sigil tells you the type. The
 // rail is shelved by category, not by this — a level holds too much to browse.
+// There is no deployment level yet, so a type the catalogue also gives a Dep
+// stands as a container until the deployment view lands.
 export const LEVELS = {
   context: { title: 'Context', accent: '#4a7fc1', ink: '#6f9fd8' },
   container: { title: 'Container', accent: '#3f9e8c', ink: '#56bda9' },
@@ -48,6 +52,8 @@ export const TYPES = {
   ...CACHING,
   ...MESSAGING,
   ...EDGE,
+  ...PLATFORM,
+  ...OBSERVABILITY,
 }
 
 export type TypeKey = keyof typeof TYPES

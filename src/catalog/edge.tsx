@@ -2,9 +2,7 @@ import { shelf } from './shelf'
 
 // Edge & Traffic. The front door, in the order a request meets it, and the
 // marks follow it: a request crosses the page left to right through every one
-// of them. Six are a Dep as well as a Cnt in the catalogue and the WAF is a
-// Dep alone; there is no deployment level yet, so all eight stand as
-// containers.
+// of them.
 export const EDGE = shelf('Edge & Traffic', {
   dns: {
     title: 'DNS',
