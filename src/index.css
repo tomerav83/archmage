@@ -338,10 +338,22 @@ body {
 }
 
 .c4-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   margin-top: 3px;
   font-family: var(--mono);
   font-size: 10px;
   color: var(--ink-dim);
+}
+
+/* The brand mark sets to the line it stands in, in the line's own ink — the
+   pigment still carries the level. It pops in when the chunk lands, so it
+   holds no space until it does. */
+.c4-subtitle svg {
+  flex: none;
+  width: 11px;
+  height: 11px;
 }
 
 /* Status is the one catalogue field that shows on the board. A status that
