@@ -46,6 +46,17 @@ describe('the rack', () => {
     expect(names(container)).toEqual([])
   })
 
+  it('shuts the standing shelf on Escape, and stands through any other key', () => {
+    const { container } = render(<ElementRack />)
+
+    fireEvent.click(tab('Caching'))
+    fireEvent.keyDown(tab('Caching'), { key: 'a' })
+    expect(names(container)).toContain('In-Memory Cache')
+
+    fireEvent.keyDown(tab('Caching'), { key: 'Escape' })
+    expect(names(container)).toEqual([])
+  })
+
   it('faces every type on some shelf', () => {
     const { container } = render(<ElementRack />)
     const seen = new Set<string>()
