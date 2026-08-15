@@ -216,23 +216,26 @@ body {
   opacity: 1; /* Firefox dims placeholders by default */
 }
 
-/* The standing shelf: faceplates in a row, dragged onto the board. The row
-   is its own scroll container, so its bar — thin here, classic on Windows —
-   stays inside the shelf and steals from no one. */
+/* The standing shelf: faceplates in rows, dragged onto the board. A long
+   shelf wraps and scrolls down, never sideways, and its scrollbar — thin
+   here, classic on Windows — stays inside the shelf and steals from no one. */
 .rack-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 0;
   padding: 4px 13px 12px;
   list-style: none;
-  overflow-x: auto;
+  /* two rows of plates; a taller shelf scrolls behind them */
+  max-height: 256px;
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--g-600) transparent;
 }
 
 /* the same slimness where scrollbar-width is not understood */
 .rack-row::-webkit-scrollbar {
-  height: 9px;
+  width: 9px;
 }
 
 .rack-row::-webkit-scrollbar-thumb {
