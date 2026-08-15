@@ -1,7 +1,7 @@
 /* Archmage — pigment on slate, fitted in brass.
    Slate ramp inverts the usual habit: the canvas is the lightest surface and
    the chrome sits behind it, the way a pale bench top sits in a dark frame.
-   Brass is chrome only — rail edge, selection, focus, major grid line. It
+   Brass is chrome only — rack sill, selection, focus, major grid line. It
    never lands on a node; element colour comes from ELEMENTS in c4.tsx. */
 :root {
   color-scheme: dark;
@@ -40,6 +40,9 @@ body {
   background: var(--g-900);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  /* The frame holds: panes scroll, the page never does. Anything that spills
+     would otherwise summon page scrollbars over the rack's sill. */
+  overflow: hidden;
 }
 
 #root {
@@ -79,6 +82,11 @@ body {
   fill: context-stroke;
 }
 
+/* the rack sills the bottom edge; the attribution steps up onto the bar */
+.react-flow__attribution {
+  bottom: 41px;
+}
+
 /* What the line says, set on a slate plate so it reads over the grid rather
    than over whatever it crosses. It takes no press: the edge under it is what
    you click and double-click. */
@@ -104,47 +112,89 @@ body {
   color: var(--ink-dim);
 }
 
-/* ── rail ─────────────────────────────────────────────────── */
-.rail {
-  width: 194px;
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  padding-top: 14px;
+/* ── rack ─────────────────────────────────────────────────── */
+/* The catalogue faced along the bottom sill, one shelf at a time. It rides
+   over the board rather than below it, so standing a shelf doesn't reflow
+   the canvas — the same bargain the form makes. */
+.rack {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: var(--g-850);
-  border-right: 1px solid var(--g-900);
-  /* the one bright line in the frame: the two panes read as fitted parts */
-  box-shadow: inset -2px 0 0 -1px color-mix(in srgb, var(--brass) 26%, transparent);
+  border-top: 1px solid var(--g-900);
+  /* the one bright line in the frame, run along the sill */
+  box-shadow: inset 0 2px 0 -1px color-mix(in srgb, var(--brass) 26%, transparent);
 }
 
-.rail-head {
+.rack-bar {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 2px 13px 18px;
-  border-bottom: 1px solid var(--g-800);
+  min-height: 41px;
+  padding: 2px 13px;
 }
 
-.rail-head svg {
-  width: 26px;
-  height: 26px;
+.rack-bar > svg {
+  width: 22px;
+  height: 22px;
   color: var(--brass);
   flex: none;
 }
 
-.rail-head span {
+.rack-name {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-/* Twelve shelves of eighty-two is a catalogue you look things up in, not one
-   you scroll. Engraved like every other label the system writes. */
-.rail-search {
-  margin: 11px 9px 2px;
-  padding: 6px 8px;
+/* The shelf names, engraved on the bar; the pressed one is the standing
+   shelf. They wrap sooner than they scroll: a scrollbar in the bar is a
+   17px classic bar on Windows, and it was seen standing on the text. */
+.rack-tabs {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin-left: 8px;
+  column-gap: 2px;
+}
+
+.rack-tabs button {
+  padding: 9px 8px 8px;
+  font-family: var(--mono);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.rack-tabs button:hover {
+  color: var(--ink-dim);
+}
+
+.rack-tabs button[aria-pressed='true'] {
+  color: var(--brass-lit);
+  border-bottom-color: var(--brass);
+}
+
+.rack-tabs button:focus-visible {
+  outline: 1px solid var(--brass);
+  outline-offset: -4px;
+}
+
+/* Engraved like every other label the system writes. */
+.rack-search {
+  width: 132px;
+  flex: none;
+  padding: 5px 8px;
   font-family: var(--mono);
   font-size: 11px;
   letter-spacing: 0.1em;
@@ -155,113 +205,83 @@ body {
   outline: none;
 }
 
-.rail-search:focus {
+.rack-search:focus {
   border-color: var(--brass);
 }
 
-.rail-search::placeholder {
+.rack-search::placeholder {
   text-transform: uppercase;
   letter-spacing: 0.19em;
   color: var(--ink-faint);
   opacity: 1; /* Firefox dims placeholders by default */
 }
 
-.rail-body {
-  padding: 6px 9px;
-  overflow-y: auto;
-}
-
-/* engraved plate label: caret, name, hairline to the edge */
-.rail summary {
+/* The standing shelf: faceplates in rows, dragged onto the board. A long
+   shelf wraps and scrolls down, never sideways, and its scrollbar — thin
+   here, classic on Windows — stays inside the shelf and steals from no one. */
+.rack-row {
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 12px 4px 7px;
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.19em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  cursor: pointer;
-  list-style: none;
-  user-select: none;
-}
-
-.rail summary::-webkit-details-marker {
-  display: none;
-}
-
-.rail summary::before {
-  content: '';
-  width: 5px;
-  height: 5px;
-  flex: none;
-  border-right: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  transform: rotate(-45deg) translate(-1px, 1px);
-}
-
-.rail details[open] > summary::before {
-  transform: rotate(45deg) translate(-1px, -1px);
-}
-
-.rail summary::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--g-750);
-}
-
-.rail summary:hover {
-  color: var(--ink-dim);
-}
-
-.blocks {
   margin: 0;
-  padding: 0;
+  padding: 4px 13px 12px;
   list-style: none;
+  /* two rows of plates; a taller shelf scrolls behind them */
+  max-height: 256px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--g-600) transparent;
 }
 
-/* draggable element block */
-.block {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 3px 0;
-  padding: 8px 9px;
+/* a device faceplate: the level band the card would wear, the sigil at
+   reading size, the name engraved under it */
+.fplate {
+  flex: none;
+  width: 128px;
   background: var(--g-800);
   border: 1px solid var(--g-750);
-  border-left: 3px solid var(--accent);
   border-radius: 2px;
-  font-size: 12.5px;
+  text-align: center;
   cursor: grab;
 }
 
-.block svg {
-  width: 15px;
-  height: 15px;
+.fp-level {
+  display: block;
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-bottom: 1px solid var(--g-750);
+  font-family: var(--mono);
+  font-size: 7.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+.fplate svg {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 11px auto 5px;
   color: var(--accent);
-  flex: none;
 }
 
-/* knurled grip */
-.block::after {
-  content: '';
-  margin-left: auto;
-  width: 9px;
-  height: 11px;
-  flex: none;
-  background: repeating-linear-gradient(90deg, var(--g-600) 0 1px, transparent 1px 3px);
+.fp-name {
+  display: block;
+  padding: 0 8px 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.5;
 }
 
-.block:hover {
+.fplate:hover {
   background: var(--g-750);
   border-color: color-mix(in srgb, var(--brass) 45%, transparent);
-  border-left-color: var(--accent);
-  box-shadow: 0 7px 16px -8px #000;
+  box-shadow: 0 10px 22px -12px #000;
 }
 
-.block:active {
+.fplate:active {
   cursor: grabbing;
 }
 
@@ -379,13 +399,13 @@ body {
 }
 
 .react-flow__node:focus-visible .c4-node,
-.block:focus-visible {
+.fplate:focus-visible {
   outline: 1px solid var(--brass);
   outline-offset: 3px;
 }
 
 /* ── form ──────────────────────────────────────────────
-   The right rail answers the left: the one is what you take from, the other is
+   The form answers the rack: the one is what you take from, the other is
    what you say about what you took. Same instrument, two faces — so the brass
    hairline runs down its inner edge too. It rides over the board rather than
    beside it, so opening it doesn't reflow the canvas under the cursor. */
@@ -395,6 +415,8 @@ body {
   right: 0;
   bottom: 0;
   width: 288px;
+  /* over the rack's corner of the sill: while you are saying, saying wins */
+  z-index: 1;
   display: flex;
   flex-direction: column;
   background: var(--g-850);

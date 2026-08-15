@@ -5,8 +5,9 @@ const ROWS = Object.entries(TYPES) as [TypeKey, ElementType][]
 
 /**
  * Twelve shelves of eighty-two is a catalogue you look things up in, not one
- * you scroll. The query never leaves here: what the rail wants back is which
- * types to shelve, whether the shelves stand open, and a box to put on top.
+ * you page through. The query never leaves here: what the rack wants back is
+ * which types to face, whether it stands open over every shelf, and a box to
+ * put in the bar.
  */
 export function useSearch() {
   const [query, setQuery] = useState('')
@@ -16,12 +17,12 @@ export function useSearch() {
     // The type's own name and nothing else. Matching the shelf too meant one
     // letter of "Applications" brought back every application.
     found: ROWS.filter(([, t]) => t.title.toLowerCase().includes(hit)),
-    // Shut, until you type: twelve open shelves is a scroll, not a palette,
-    // and a search is already a statement of what you want open.
+    // Shut, until you type: a search is already a statement of what you want
+    // standing.
     open: !!hit,
     box: (
       <input
-        className="rail-search"
+        className="rack-search"
         type="search"
         aria-label="Search elements"
         placeholder="Search"
