@@ -233,20 +233,6 @@ body {
   scrollbar-color: var(--g-600) transparent;
 }
 
-/* the same slimness where scrollbar-width is not understood */
-.rack-row::-webkit-scrollbar {
-  width: 9px;
-}
-
-.rack-row::-webkit-scrollbar-thumb {
-  background: var(--g-600);
-  border-radius: 2px;
-}
-
-.rack-row::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 /* a device faceplate: the level band the card would wear, the sigil at
    reading size, the name engraved under it */
 .fplate {
