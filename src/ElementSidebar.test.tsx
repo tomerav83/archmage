@@ -19,6 +19,7 @@ describe('the rail', () => {
       'Applications',
       'Data Stores',
       'Caching',
+      'Messaging & Streaming',
     ])
   })
 
@@ -47,7 +48,8 @@ describe('the rail', () => {
     ])
 
     // The shelf's name is not the goods on it: the Data Stores shelf holds
-    // twelve, and only the seven saying so come back.
+    // twelve, and only the seven saying so come back — with the eighth off a
+    // shelf of its own, because what is searched is the type and not the shelf.
     fireEvent.change(search(), { target: { value: 'data' } })
     expect([...container.querySelectorAll('.block')].map((b) => b.textContent)).toEqual([
       'Relational Database',
@@ -57,6 +59,7 @@ describe('the rail', () => {
       'Vector Database',
       'Data Warehouse',
       'Data Lake',
+      'Change Data Capture',
     ])
   })
 
