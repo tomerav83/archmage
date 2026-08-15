@@ -3,6 +3,7 @@ import { ACTORS } from './catalog/actors'
 import { APPLICATIONS } from './catalog/applications'
 import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
+import { EDGE } from './catalog/edge'
 import { MESSAGING } from './catalog/messaging'
 import type { Category } from './fields'
 
@@ -44,6 +45,7 @@ export const TYPES = {
   ...DATA_STORES,
   ...CACHING,
   ...MESSAGING,
+  ...EDGE,
 }
 
 export type TypeKey = keyof typeof TYPES
