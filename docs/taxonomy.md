@@ -312,14 +312,18 @@ module mocked.
 Touches a new `technology.tsx`, `ElementNode.tsx`, `index.css`.
 
 **14. `feature/technology-picker`**
-Suggestions wearing their marks under the technology row, values already on
-the board standing first. One flag on the shared Technology descriptor arms
-every category that carries the field; the edge's protocol line is its own
-object and stays plain text. No `<datalist>` — it cannot put a mark in its
-rows and its popup is unstylable browser chrome.
-Done when typing "post" offers PostgreSQL wearing its mark, Enter writes the
-canonical title and the card takes it, and a test covers pick-writes-title.
-Touches a new `TechInput.tsx`, `fields.ts`, `Form.tsx`, `index.css`.
+The technology row stops being a blank line and becomes the shortlist for the
+type you dropped — a Relational Database offers Postgres and MySQL, wearing
+their marks, with a search box over them and **Other…** for what nobody wrote
+down. That shortlist is the one thing the brand set cannot supply, so it is
+curated per type in `catalog/tech.ts`; one flag on the shared Technology
+descriptor arms every category that carries the field, and the edge's protocol
+line is its own object and stays plain text.
+Done when a dropped Relational Database offers PostgreSQL and not Pinecone,
+"sql" narrows the list, Other takes free text through to the card, and tests
+cover pick-writes-title and the Other line.
+Touches a new `catalog/tech.ts` and `TechPick.tsx`, `fields.ts`, `Form.tsx`,
+`index.css`.
 
 ### Phase D — nesting
 

@@ -22,6 +22,10 @@ const drop = (container: HTMLElement, type = 'container') =>
     dataTransfer: { getData: () => type },
   })
 
+// A row of the technology list. The mark inside it is aria-hidden, so the
+// product's name is the whole of the button's name.
+const option = (name: string) => screen.getByRole('button', { name })
+
 // A shut field is a row you press; an open one is a control you type in.
 const row = (title: string) => screen.getByRole('button', { name: new RegExp(`^${title}`) })
 const field = (title: string) => screen.getByLabelText(title) as HTMLInputElement
@@ -57,10 +61,78 @@ describe('the form', () => {
     drop(container)
     write('Name', 'Orders Service')
     fireEvent.click(row('Technology'))
-    write('Technology', 'Go 1.22')
+    fireEvent.click(option('Go'))
 
     expect(container.querySelector('.c4-name')?.textContent).toBe('Orders Service')
-    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Go 1.22')
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Go')
+  })
+
+  it('offers what the dropped type is built from, and nothing else', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+
+    expect(option('PostgreSQL')).toBeTruthy()
+    // The shelf is shared with Vector Database; the shortlist is not.
+    expect(screen.queryByRole('button', { name: 'Pinecone' })).toBeNull()
+  })
+
+  it('narrows the list to what is searched for', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    write('Technology', 'sql')
+
+    expect(option('PostgreSQL')).toBeTruthy()
+    expect(option('MySQL')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Oracle' })).toBeNull()
+  })
+
+  it('walks the list with the arrows and takes one with Enter', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowDown' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
+
+    // Second row of the shortlist, and the caret never left the search box.
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('MySQL')
+  })
+
+  it('walks the list backwards too, and wraps at the top', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    // Up from the first row is the last one, which is always Other.
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowUp' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
+
+    expect(screen.getByLabelText('Other technology')).toBeTruthy()
+  })
+
+  it('takes anything nobody wrote down, behind Other', () => {
+    const container = board()
+    drop(container, 'pubsub-topic')
+    fireEvent.click(row('Technology'))
+    fireEvent.click(option('Other…'))
+    fireEvent.change(screen.getByLabelText('Other technology'), {
+      target: { value: 'BackwardsBroker 2' },
+    })
+
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('BackwardsBroker 2')
+  })
+
+  it('reopens a hand-written value on the line it was written on', () => {
+    const container = board()
+    drop(container, 'pubsub-topic')
+    fireEvent.click(row('Technology'))
+    fireEvent.click(option('Other…'))
+    fireEvent.change(screen.getByLabelText('Other technology'), { target: { value: 'MyBroker' } })
+    // Away and back: the value is not in the list, so the list cannot show it.
+    fireEvent.click(row('Name'))
+    fireEvent.click(row('Technology'))
+
+    expect((screen.getByLabelText('Other technology') as HTMLInputElement).value).toBe('MyBroker')
   })
 
   it('takes a description in a field with room for one', () => {

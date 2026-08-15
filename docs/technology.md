@@ -130,10 +130,47 @@ anchors.
 
 ## The picker
 
-The native answer is a `<datalist>`, and it loses twice: it cannot put a mark
-in its rows, and its popup is unstylable browser chrome in an app whose whole
-point is the faceplate. (form.md kept a datalist as a follow-on; this
-supersedes it.)
+The native answer is a `<datalist>`, and it loses three times: it cannot put a
+mark in its rows, its popup is unstylable browser chrome, and it can only
+offer back what someone has already typed. (form.md kept a datalist as a
+follow-on; this supersedes it.)
+
+Nor is the answer a search box over all 3,453 brands. Dropping a Relational
+Database and being offered Figma, Adidas and PostgreSQL alike is a catalogue,
+not a field. **The element type is what narrows it** — and that mapping is the
+one thing the brand set does not carry. Its entries are `title, slug, hex,
+path` and nothing about what kind of thing a product is.
+
+So it is written here: `catalog/tech.ts`, one line per type, the products that
+type is actually built from.
+
+```ts
+export const TECH: Record<TypeKey, string[]> = {
+  'relational-db': ['PostgreSQL', 'MySQL', 'MariaDB', 'Microsoft SQL Server', …],
+  'pubsub-topic': ['Google Pub/Sub', 'Amazon SNS', 'Redis', 'NATS', …],
+  person: [], // a person is a job, not a stack
+}
+```
+
+Three things that table has to survive, and does:
+
+- **A product belongs to several types.** Redis is an In-Memory Cache, a
+  Key-Value Store, a Pub/Sub Topic and a Task Queue, so it stands on four
+  lines. A list per type, not a type per product, is what makes that a
+  non-question.
+- **Nobody wrote your broker down.** Every shortlist ends in **Other…**, which
+  opens a plain line and writes whatever you type. `technology` is still a free
+  string, so the escape costs nothing and closes nothing off.
+- **A name is spelled the way the brand set titles it** — "Apache Kafka", not
+  "Kafka" — so the mark lands from the same render-time lookup the card uses.
+  Products the set has no line for (Amazon pulled its own in 2024; Java, gRPC
+  and HAProxy were never in it) are still good rows and simply stand bare.
+
+The cost is honest and worth stating: 71 curated lines that a `npm update` does
+not maintain. Staleness shows up as a missing row, and a missing row is Other,
+which is a working field rather than a broken one.
+
+## `TechPick.tsx` — the shortlist, searched
 
 One flag on the one shared descriptor in `fields.ts` arms every category that
 carries the field — the edge's protocol line in `RELATIONSHIP` is its own
@@ -143,112 +180,52 @@ object and stays plain text, because gRPC-the-protocol is not a product:
 const TECHNOLOGY: Field = { key: 'technology', title: 'Technology', hint: 'PostgreSQL 16', input: 'tech' }
 ```
 
-`Form.tsx` grows one branch beside `area` and `pick`. The fallback is today's
-input, typeable during the cold-start second before the chunk lands; both
-controls take `ref={caret}`, so focus survives the swap.
+The shortlist is the *type's*, not the category's — Relational Database and
+Vector Database share a shelf and share no products — so `fieldsFor` stamps it
+on the descriptor at the one moment the type is known:
 
-```tsx
-) : f.input === 'tech' ? (
-  <Suspense fallback={<input ref={caret} placeholder={f.hint} value={value} onChange={write} />}>
-    <TechInput caret={caret} hint={f.hint} value={value} write={(v) => shown.write(f.key, v)} />
-  </Suspense>
-) : (
+```ts
+CATEGORY_FIELDS[TYPES[type].category].map((f) =>
+  f.key === 'technology' ? { ...f, options: TECH[type] } : f)
 ```
 
-And the control itself. The form's one-open-row design has already paid the
-combobox's hardest bills: the row unmounts when another opens, so there is no
-outside-click or blur choreography, no stacking, and Escape keeps its one
-meaning — shutting the rail.
+Which means the panel needs no wiring at all: `options` is already a field, the
+way it is for a pick. `Form.tsx` grows one branch beside `area` and `pick`, and
+the control under it is a search box, a list of buttons, and a line behind
+Other:
 
 ```tsx
-import { useReactFlow } from '@xyflow/react'
-import { type Ref, use, useState } from 'react'
-import type { ElementNodeType } from './ElementNode'
-import { search, TECH, TechLogo } from './technology'
+const hits = [...options.filter((o) => o.toLowerCase().includes(q)), OTHER]
 
-// The technology row's line of text with the catalog standing under it. No
-// open flag: the list stands while the value names more than exactly itself,
-// and picking writes the canonical title — which is what shuts it.
-export function TechInput({ caret, hint, value, write }: {
-  caret: Ref<HTMLInputElement>
-  hint?: string
-  value: string
-  write: (v: string) => void
-}) {
-  const { marks } = use(TECH)
-  const { getNodes } = useReactFlow<ElementNodeType>()
-  const [active, setActive] = useState(0)
-
-  const q = value.trim().toLowerCase()
-  // What the board already says stands first: your own "PostgreSQL 16"
-  // outranks the catalog's bare "PostgreSQL".
-  const yours = [...new Set(getNodes().flatMap((n) => n.data.technology || []))]
-    .filter((t) => t !== value && t.toLowerCase().includes(q))
-  const hits = q
-    ? [...new Set([...yours, ...search(marks, q).map((i) => i.title)])].slice(0, 8)
-    : []
-  const shown = hits.length === 1 && hits[0] === value ? [] : hits
-  const at = Math.max(0, Math.min(active, shown.length - 1))
-
-  return (
-    <>
-      <input
-        ref={caret}
-        role="combobox"
-        aria-expanded={shown.length > 0}
-        aria-controls="tech-list"
-        aria-activedescendant={shown.length ? `tech-opt-${at}` : undefined}
-        placeholder={hint}
-        value={value}
-        onChange={(e) => {
-          setActive(0)
-          write(e.target.value)
-        }}
-        onKeyDown={(e) => {
-          if (!shown.length) return
-          if (e.key === 'ArrowDown') {
-            e.preventDefault()
-            setActive((at + 1) % shown.length)
-          }
-          if (e.key === 'ArrowUp') {
-            e.preventDefault()
-            setActive((at + shown.length - 1) % shown.length)
-          }
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            write(shown[at])
-          }
-        }}
-      />
-      {shown.length > 0 && (
-        <ul className="tech-list" id="tech-list" role="listbox">
-          {shown.map((title, i) => (
-            <li key={title} id={`tech-opt-${i}`} role="option" aria-selected={i === at}>
-              <button type="button" tabIndex={-1} onClick={() => write(title)}>
-                <TechLogo name={title} />
-                <span>{title}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  )
+const take = (pick: string) => {
+  setOther(pick === OTHER)
+  if (pick !== OTHER) write(pick)   // Other keeps what was there to be edited
 }
 ```
 
-`.tech-list` in `index.css` is the rail's own materials: slate ground, brass
-hairline, the active row lit the way the open row is.
+Two decisions inside it:
+
+- **Plain buttons, not a listbox of options.** The ARIA combobox pattern wants
+  `role="option"` rows that no key can reach except through the input's
+  `aria-activedescendant`. Real buttons are reachable by Tab, named by their own
+  text, and cost three lint suppressions less. The arrows and Enter are the fast
+  path over the list, not the only way into it.
+- **No open flag and no outside-click choreography.** The form's one-open-row
+  design already pays that bill: the row unmounts when another opens, so Escape
+  keeps its one meaning — shutting the rail.
+
+`.tech-list` in `index.css` is the rail's own materials: slate ground, the row
+under the arrows lit the way the open row is, the chosen row in brass.
 
 ## Testing
 
-`vi.mock('simple-icons')` with three hand-written entries, so jsdom never
-parses five megabytes. The match is data — "PostgreSQL 16" hits PostgreSQL,
-"Apache Kafka consumer" hits Apache Kafka before Apache, unknown text hits
-nothing — which is why `logoFor` is exported. The picker rides the
-`ElementForm` harness: type "post", the list stands, Enter writes the
-canonical title, the card takes the mark, and a value already on the board
-stands above the catalog's.
+`vi.mock('simple-icons')` with hand-written entries, so jsdom never parses five
+megabytes — `technology.test.tsx` for the match, `ElementNode.test.tsx` for the
+mark on the card. The picker rides the `ElementForm` harness with the real
+module, because what it asserts is the shortlist and not the paint: a dropped
+Relational Database offers PostgreSQL and not Pinecone, "sql" narrows to two of
+them, the arrows walk and Enter takes, Other writes free text through to the
+card, and a hand-written value reopens on the line it was written on.
 
 ## What it costs, and the exit
 
@@ -275,13 +252,20 @@ not a model change, whenever it is wanted.
 **Brand-colour marks.** `hex` is on every entry; the pigment law says no. A
 theme toggle, if ever.
 
-**Categories in the picker.** IcePanel's picker browses by category because
-its catalog is the whole model. Here the category already lives on the
-element type; the picker only finishes a string.
+**Values already on the board.** A "MyBroker 3" typed behind Other on one node
+does not offer itself on the next. It is one `getNodes()` away whenever the
+retyping grates; until then the shortlist is the answer, and a second, softer
+list beside it is two things to read.
+
+**Searching all 3,453 from the field.** The shortlist plus Other covers both
+ends — the product you meant and the product nobody wrote down. A full-catalogue
+search covers the middle, which is Figma offered to a database.
 
 **Tech-aware rack search.** "postgres" in the rack suggesting Relational
-Database means hand-curating a product-to-type table — the pipeline again,
-per entry. The rack searches types; the form searches products.
+Database is the same table read backwards, and backwards it does not work:
+Redis stands on four lines here, so the rack would have to guess which. The
+rack searches types; the form offers products.
 
 **Aliases.** The 448 KB data JSON knows "Golang"; the runtime objects do not.
-Merge it into the search index only if the misses grate.
+Any product worth a row is spelled the brand set's way in `tech.ts` instead,
+which is the same fix for the rows that matter.
