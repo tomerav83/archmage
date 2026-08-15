@@ -40,6 +40,9 @@ body {
   background: var(--g-900);
   color: var(--ink);
   -webkit-font-smoothing: antialiased;
+  /* The frame holds: panes scroll, the page never does. Anything that spills
+     would otherwise summon page scrollbars over the rack's sill. */
+  overflow: hidden;
 }
 
 #root {
@@ -128,8 +131,8 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 40px;
-  padding: 0 13px;
+  min-height: 41px;
+  padding: 2px 13px;
 }
 
 .rack-bar > svg {
@@ -147,20 +150,20 @@ body {
   text-transform: uppercase;
 }
 
-/* the shelf names, engraved on the bar; the pressed one is the standing shelf */
+/* The shelf names, engraved on the bar; the pressed one is the standing
+   shelf. They wrap sooner than they scroll: a scrollbar in the bar is a
+   17px classic bar on Windows, and it was seen standing on the text. */
 .rack-tabs {
   display: flex;
   flex: 1;
+  flex-wrap: wrap;
   min-width: 0;
   margin-left: 8px;
-  overflow-x: auto;
-  /* thin, and only there when the shelf names outrun the bar */
-  scrollbar-width: thin;
-  scrollbar-color: var(--g-600) transparent;
+  column-gap: 2px;
 }
 
 .rack-tabs button {
-  padding: 13px 8px 12px;
+  padding: 9px 8px 8px;
   font-family: var(--mono);
   font-size: 8.5px;
   letter-spacing: 0.12em;
@@ -213,7 +216,9 @@ body {
   opacity: 1; /* Firefox dims placeholders by default */
 }
 
-/* the standing shelf: faceplates in a row, dragged onto the board */
+/* The standing shelf: faceplates in a row, dragged onto the board. The row
+   is its own scroll container, so its bar — thin here, classic on Windows —
+   stays inside the shelf and steals from no one. */
 .rack-row {
   display: flex;
   gap: 8px;
@@ -223,6 +228,20 @@ body {
   overflow-x: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--g-600) transparent;
+}
+
+/* the same slimness where scrollbar-width is not understood */
+.rack-row::-webkit-scrollbar {
+  height: 9px;
+}
+
+.rack-row::-webkit-scrollbar-thumb {
+  background: var(--g-600);
+  border-radius: 2px;
+}
+
+.rack-row::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* a device faceplate: the level band the card would wear, the sigil at
