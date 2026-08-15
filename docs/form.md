@@ -315,9 +315,10 @@ deleting it is two clicks. Revisit if it turns out to be four.
 
 **Multi-select.** The panel follows one node.
 
-**A `<datalist>` over technologies already typed.** Four lines, native, and
-exactly the autocomplete taxonomy.md asks for. A follow-on rather than a cut:
-it wants a couple of diagrams' worth of typing before it helps.
+**A `<datalist>` over technologies already typed.** Superseded by
+[technology.md](technology.md): the picker there suggests from the full brand
+catalog with values already on the board standing first, and a datalist could
+not have put a mark in its rows anyway.
 
 **Per-type placeholders.** The catalog tables already hold three examples for
 each of the 82 types, so the data is written — it is a column in the `TYPES`
