@@ -347,13 +347,31 @@ body {
   color: var(--ink-dim);
 }
 
-/* The brand mark sets to the line it stands in, in the line's own ink — the
-   pigment still carries the level. It pops in when the chunk lands, so it
-   holds no space until it does. */
-.c4-subtitle svg {
+/* No brand mark, so the initials are the mark: engraved like every other label
+   the system writes, and boxed so the row reads as marks all the way down
+   rather than as a word that lost its picture. */
+.mono-mark {
+  display: grid;
+  place-items: center;
+  background: var(--g-800);
+  border: 1px solid var(--g-750);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: currentColor;
+}
+
+/* The mark sets to the line it stands in, in the line's own ink — the pigment
+   still carries the level. It pops in when the chunk lands, so it holds no
+   space until it does. One slot, whether a brand fills it or two letters do. */
+.c4-subtitle svg,
+.c4-subtitle .mono-mark {
   flex: none;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 
 /* Status is the one catalogue field that shows on the board. A status that
@@ -584,6 +602,67 @@ body {
 
 .field textarea {
   resize: vertical;
+}
+
+/* The shortlist under the search box, in the rail's own materials. What a type
+   is built from is a short list of products, so it stands open rather than
+   dropping down over the rows beneath it. */
+.tech-list {
+  margin: 6px 0 0;
+  padding: 0;
+  max-height: 168px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--g-600) transparent;
+  list-style: none;
+  background: var(--g-850);
+  border: 1px solid var(--g-800);
+  border-radius: 2px;
+}
+
+.tech-list button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+/* The mark rides the row in the row's own ink, the way it rides the card. */
+.tech-list svg,
+.tech-list .mono-mark {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+/* Where the arrows are standing, lit the way the open row is. */
+.tech-list [data-active] button,
+.tech-list button:hover {
+  background: var(--g-800);
+  color: var(--ink);
+}
+
+/* What the field already says. */
+.tech-list button[aria-pressed='true'] {
+  color: var(--brass-lit);
+}
+
+/* The registry is the only way in, so the one moment it is not enough is the
+   one moment to say where it lives. */
+.tech-none {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
 }
 
 /* A hint has to be readable to be a hint; what keeps it from reading as a

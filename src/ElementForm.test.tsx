@@ -22,6 +22,10 @@ const drop = (container: HTMLElement, type = 'container') =>
     dataTransfer: { getData: () => type },
   })
 
+// A row of the technology list. The mark inside it is aria-hidden, so the
+// product's name is the whole of the button's name.
+const option = (name: string) => screen.getByRole('button', { name })
+
 // A shut field is a row you press; an open one is a control you type in.
 const row = (title: string) => screen.getByRole('button', { name: new RegExp(`^${title}`) })
 const field = (title: string) => screen.getByLabelText(title) as HTMLInputElement
@@ -57,10 +61,90 @@ describe('the form', () => {
     drop(container)
     write('Name', 'Orders Service')
     fireEvent.click(row('Technology'))
-    write('Technology', 'Go 1.22')
+    fireEvent.click(option('Go'))
 
     expect(container.querySelector('.c4-name')?.textContent).toBe('Orders Service')
-    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Go 1.22')
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Go')
+  })
+
+  it('offers what the dropped type is built from, and nothing else', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+
+    expect(option('PostgreSQL')).toBeTruthy()
+    // The shelf is shared with Vector Database; the shortlist is not.
+    expect(screen.queryByRole('button', { name: 'Pinecone' })).toBeNull()
+  })
+
+  it('narrows the list to what is searched for', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    write('Technology', 'sql')
+
+    expect(option('PostgreSQL')).toBeTruthy()
+    expect(option('MySQL')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Oracle' })).toBeNull()
+  })
+
+  it('walks the list with the arrows and takes one with Enter', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowDown' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
+
+    // Second row of the shortlist, and the caret never left the search box.
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('MySQL')
+  })
+
+  it('walks the list backwards too, and wraps at the top', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    // Up from the first row is the last row of the shelf.
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowUp' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
+
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Neon')
+  })
+
+  it('says where a product it does not offer has to be added', () => {
+    const container = board()
+    drop(container, 'pubsub-topic')
+    fireEvent.click(row('Technology'))
+    write('Technology', 'backwardsbroker')
+
+    // No free-text line: the registry is the only way a technology gets on the
+    // board, which is what keeps every value on it a canonical name.
+    expect(screen.getByText(/add it to catalog\/tech\.ts/)).toBeTruthy()
+    expect(screen.queryByLabelText('Other technology')).toBeNull()
+    // Nothing typed reaches the card.
+    expect(container.querySelector('.c4-subtitle')).toBeNull()
+  })
+
+  it('leaves the keys alone when the search has narrowed to nothing', () => {
+    const container = board()
+    drop(container, 'relational-db')
+    fireEvent.click(row('Technology'))
+    write('Technology', 'backwardsbroker')
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowDown' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
+
+    expect(container.querySelector('.c4-subtitle')).toBeNull()
+    expect(screen.getByText(/add it to catalog\/tech\.ts/)).toBeTruthy()
+  })
+
+  it('gives a product with no brand mark its initials', () => {
+    const container = board()
+    drop(container, 'event-stream')
+    fireEvent.click(row('Technology'))
+    fireEvent.click(option('Redpanda'))
+
+    // The initials are a mark and the name is the line: both, never one.
+    expect(container.querySelector('.c4-subtitle .mono-mark')?.textContent).toBe('Re')
+    expect(container.querySelector('.c4-subtitle')?.textContent).toContain('Redpanda')
   })
 
   it('takes a description in a field with room for one', () => {

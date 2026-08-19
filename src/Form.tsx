@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import type { Field, FieldKey } from './fields'
+import { TechPick } from './TechPick'
 
 // The right rail is a spec sheet of what one thing on the board says, and one
 // line of it is open for typing. Clicking another line moves the caret there and
@@ -90,6 +91,16 @@ export function Form({ subject, onClose }: { subject?: Sheet; onClose: () => voi
                       <option key={o}>{o}</option>
                     ))}
                   </select>
+                ) : f.input === 'tech' ? (
+                  // What this type is built from is a shortlist, not a blank
+                  // line — and the shortlist's last row is the blank line.
+                  <TechPick
+                    caret={caret}
+                    title={f.title}
+                    options={f.options ?? []}
+                    value={value}
+                    write={(v) => shown.write(f.key, v)}
+                  />
                 ) : (
                   <input ref={caret} placeholder={f.hint} value={value} onChange={write} />
                 )}

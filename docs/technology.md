@@ -27,10 +27,11 @@ rather than trusted:
   every editor with a brand picker relies on.
 - **One ESM module: 5.0 MB raw, 2.1 MB gzipped, icons only** in the
   namespace, so `Object.values` of a dynamic import is the whole catalog.
-- **No AWS or Azure marks.** Amazon pulled its brands from the set in 2024.
-  taxonomy.md already rules vendor service iconography out of scope, so the
-  dataset agrees with the plan: "DynamoDB" stays legal free text and goes
-  unmarked.
+- **No AWS or Azure marks.** Amazon pulled its brands from the set in 2024, and
+  no permissively licensed monochrome set carries them either — checked, one
+  name at a time. taxonomy.md already rules vendor service iconography out of
+  scope, so the dataset agrees with the plan: "Amazon DynamoDB" is a good row
+  and wears two engraved letters instead.
 - **Aliases are not on the runtime objects.** "Golang" finding Go means
   merging the package's 448 KB data JSON into the search index — a follow-on,
   taken only if the misses grate.
@@ -45,8 +46,8 @@ string in, icon out. No new FieldKey, no node-data change, nothing for
 `feature/persistence` to migrate, and *Postgres is not an element type*
 survives untouched. The picker's one job is to write canonical titles into
 the same string, which is what turns render-time lookup from fuzzy matching
-into an exact hit. Text the catalog has no line for was never illegal and
-simply goes unmarked.
+into an exact hit — and what leaves the file worth reading by anything that
+comes after, since one product then has exactly one spelling on the board.
 
 ## `technology.tsx` — the data and the mark
 
@@ -75,20 +76,20 @@ export const logoFor = (byTitle: Map<string, SimpleIcon>, value: string) => {
   }
 }
 
-// The top of the catalog under a part-typed value, for the picker.
-export const search = (marks: SimpleIcon[], q: string) =>
-  marks.filter((i) => i.title.toLowerCase().includes(q.toLowerCase())).slice(0, 8)
-
-// The brand mark beside a technology, in whatever ink surrounds it — colour
-// still belongs to the level. Mount under <Suspense>; null until the chunk
-// lands, null again for text the catalog has no line for.
+// The mark beside a technology, in whatever ink surrounds it — colour still
+// belongs to the level. Mount under <Suspense>. Never nothing: a product with
+// no mark wears its initials, so the column reads as marks all the way down.
 export function TechLogo({ name }: { name: string }) {
   const hit = logoFor(use(TECH).byTitle, name)
   return hit ? (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d={hit.path} fill="currentColor" />
     </svg>
-  ) : null
+  ) : (
+    <span className="mono-mark" aria-hidden="true">
+      {monogram(name)}
+    </span>
+  )
 }
 ```
 
@@ -112,28 +113,71 @@ Three choices worth defending:
 subtitle is technology — Role and the other first-fields stay bare text.
 
 ```tsx
-{subtitle && data[subtitle.key] && (
+{said && (
   <div className="c4-subtitle">
-    {subtitle.key === 'technology' && (
+    {subtitle?.key === 'technology' && (
       <Suspense>
-        <TechLogo name={data.technology ?? ''} />
+        <TechLogo name={said} />
       </Suspense>
     )}
-    {data[subtitle.key]}
+    {said}
   </div>
 )}
 ```
 
-Plus a rule in `index.css` sizing the svg to the subtitle line. The mark pops
-in when the chunk lands; React Flow re-measures the node, so edges keep their
-anchors.
+Plus a rule in `index.css` giving the mark and the monogram one slot on the
+subtitle line. The mark pops in when the chunk lands; React Flow re-measures
+the node, so edges keep their anchors.
 
 ## The picker
 
-The native answer is a `<datalist>`, and it loses twice: it cannot put a mark
-in its rows, and its popup is unstylable browser chrome in an app whose whole
-point is the faceplate. (form.md kept a datalist as a follow-on; this
-supersedes it.)
+The native answer is a `<datalist>`, and it loses three times: it cannot put a
+mark in its rows, its popup is unstylable browser chrome, and it can only
+offer back what someone has already typed. (form.md kept a datalist as a
+follow-on; this supersedes it.)
+
+Nor is the answer a search box over all 3,453 brands. Dropping a Relational
+Database and being offered Figma, Adidas and PostgreSQL alike is a catalogue,
+not a field. **The element type is what narrows it** — and that mapping is the
+one thing the brand set does not carry. Its entries are `title, slug, hex,
+path` and nothing about what kind of thing a product is.
+
+So it is written here: `catalog/tech.ts`, one line per type, the products that
+type is actually built from.
+
+```ts
+export const TECH: Record<TypeKey, string[]> = {
+  'relational-db': ['PostgreSQL', 'MySQL', 'MariaDB', 'Microsoft SQL Server', …],
+  'pubsub-topic': ['Google Pub/Sub', 'Amazon SNS', 'Redis', 'NATS', …],
+  person: [], // a person is a job, not a stack
+}
+```
+
+Three things that table has to survive, and does:
+
+- **A product belongs to several types.** Redis is an In-Memory Cache, a
+  Key-Value Store, a Pub/Sub Topic and a Task Queue, so it stands on four
+  lines. A list per type, not a type per product, is what makes that a
+  non-question.
+- **Nobody wrote your broker down — so write it down.** There is no free-text
+  line. A product the shortlist does not hold is a product the registry does
+  not know, and the fix is a line in `tech.ts`, said in the panel at the one
+  moment anybody needs to hear it. That is a policy, not an omission: every
+  technology on the board is then a canonical name, which is what the model is
+  worth to whatever reads the file next. A validator that meets `postgres`,
+  `Postgres 16` and `PSQL` has three products; the registry leaves it one.
+- **A name is spelled the way the brand set titles it** — "Apache Kafka", not
+  "Kafka" — so the mark lands from the same render-time lookup the card uses.
+  Four products in ten have no mark at all, and none is coming: Amazon pulled
+  its own in 2024, Java and gRPC were never in the set, and nobody has drawn
+  Valkey. Those wear their initials instead — see below.
+
+The cost is honest and worth stating: 71 curated lines that a `npm update` does
+not maintain. Staleness shows up as a missing row, and a missing row is a pull
+request against `tech.ts` — which is the policy, and the reason the field is
+worth reading downstream.
+
+## `TechPick.tsx` — the shortlist, searched
 
 One flag on the one shared descriptor in `fields.ts` arms every category that
 carries the field — the edge's protocol line in `RELATIONSHIP` is its own
@@ -143,112 +187,87 @@ object and stays plain text, because gRPC-the-protocol is not a product:
 const TECHNOLOGY: Field = { key: 'technology', title: 'Technology', hint: 'PostgreSQL 16', input: 'tech' }
 ```
 
-`Form.tsx` grows one branch beside `area` and `pick`. The fallback is today's
-input, typeable during the cold-start second before the chunk lands; both
-controls take `ref={caret}`, so focus survives the swap.
+The shortlist is the *type's*, not the category's — Relational Database and
+Vector Database share a shelf and share no products — so `fieldsFor` stamps it
+on the descriptor at the one moment the type is known:
 
-```tsx
-) : f.input === 'tech' ? (
-  <Suspense fallback={<input ref={caret} placeholder={f.hint} value={value} onChange={write} />}>
-    <TechInput caret={caret} hint={f.hint} value={value} write={(v) => shown.write(f.key, v)} />
-  </Suspense>
-) : (
+```ts
+CATEGORY_FIELDS[TYPES[type].category].map((f) =>
+  f.key === 'technology' ? { ...f, options: TECH[type] } : f)
 ```
 
-And the control itself. The form's one-open-row design has already paid the
-combobox's hardest bills: the row unmounts when another opens, so there is no
-outside-click or blur choreography, no stacking, and Escape keeps its one
-meaning — shutting the rail.
+Which means the panel needs no wiring at all: `options` is already a field, the
+way it is for a pick. `Form.tsx` grows one branch beside `area` and `pick`, and
+the control under it is a search box, a list of buttons, and a line behind
+no free-text line at all:
 
 ```tsx
-import { useReactFlow } from '@xyflow/react'
-import { type Ref, use, useState } from 'react'
-import type { ElementNodeType } from './ElementNode'
-import { search, TECH, TechLogo } from './technology'
+const hits = options.filter((o) => o.toLowerCase().includes(q))
+// undefined exactly when the search has narrowed the shelf to nothing, which
+// is also when there is nothing for a key to do
+const standing = hits[at]
+```
 
-// The technology row's line of text with the catalog standing under it. No
-// open flag: the list stands while the value names more than exactly itself,
-// and picking writes the canonical title — which is what shuts it.
-export function TechInput({ caret, hint, value, write }: {
-  caret: Ref<HTMLInputElement>
-  hint?: string
-  value: string
-  write: (v: string) => void
-}) {
-  const { marks } = use(TECH)
-  const { getNodes } = useReactFlow<ElementNodeType>()
-  const [active, setActive] = useState(0)
+Three decisions inside it:
 
-  const q = value.trim().toLowerCase()
-  // What the board already says stands first: your own "PostgreSQL 16"
-  // outranks the catalog's bare "PostgreSQL".
-  const yours = [...new Set(getNodes().flatMap((n) => n.data.technology || []))]
-    .filter((t) => t !== value && t.toLowerCase().includes(q))
-  const hits = q
-    ? [...new Set([...yours, ...search(marks, q).map((i) => i.title)])].slice(0, 8)
-    : []
-  const shown = hits.length === 1 && hits[0] === value ? [] : hits
-  const at = Math.max(0, Math.min(active, shown.length - 1))
+- **Plain buttons, not a listbox of options.** The ARIA combobox pattern wants
+  `role="option"` rows that no key can reach except through the input's
+  `aria-activedescendant`. Real buttons are reachable by Tab, named by their own
+  text, and cost three lint suppressions less. The arrows and Enter are the fast
+  path over the list, not the only way into it.
+- **No open flag and no outside-click choreography.** The form's one-open-row
+  design already pays that bill: the row unmounts when another opens, so Escape
+  keeps its one meaning — shutting the rail.
+- **Narrowed to nothing is not an error state.** It is where the policy is
+  said: *Not in the registry — add it to catalog/tech.ts*. The field's name is
+  given explicitly rather than by the wrapping label, because a label holding a
+  list and a note would otherwise rename the box underneath it.
 
-  return (
-    <>
-      <input
-        ref={caret}
-        role="combobox"
-        aria-expanded={shown.length > 0}
-        aria-controls="tech-list"
-        aria-activedescendant={shown.length ? `tech-opt-${at}` : undefined}
-        placeholder={hint}
-        value={value}
-        onChange={(e) => {
-          setActive(0)
-          write(e.target.value)
-        }}
-        onKeyDown={(e) => {
-          if (!shown.length) return
-          if (e.key === 'ArrowDown') {
-            e.preventDefault()
-            setActive((at + 1) % shown.length)
-          }
-          if (e.key === 'ArrowUp') {
-            e.preventDefault()
-            setActive((at + shown.length - 1) % shown.length)
-          }
-          if (e.key === 'Enter') {
-            e.preventDefault()
-            write(shown[at])
-          }
-        }}
-      />
-      {shown.length > 0 && (
-        <ul className="tech-list" id="tech-list" role="listbox">
-          {shown.map((title, i) => (
-            <li key={title} id={`tech-opt-${i}`} role="option" aria-selected={i === at}>
-              <button type="button" tabIndex={-1} onClick={() => write(title)}>
-                <TechLogo name={title} />
-                <span>{title}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
-  )
+`.tech-list` in `index.css` is the rail's own materials: slate ground, the row
+under the arrows lit the way the open row is, the chosen row in brass.
+
+## The initials, where there is no mark
+
+A row with no mark is a hole in a column of marks, and it reads as something
+missing rather than as something known. So `TechLogo` never returns nothing:
+
+```tsx
+export const monogram = (name: string) => {
+  const words = name
+    .replace(/^(Amazon|AWS|Azure|Microsoft|Google|Apache)\s+/, '')
+    .split(/\s+/)
+    .filter((w) => w && !/^v?[\d.]+$/.test(w))
+  const [first = name, second] = words
+  return second ? first.slice(0, 1) + second.slice(0, 1) : first.slice(0, 2)
 }
 ```
 
-`.tech-list` in `index.css` is the rail's own materials: slate ground, brass
-hairline, the active row lit the way the open row is.
+*Event Hubs* → **EH**, *Redpanda* → **Re**, *Amazon SQS* → **SQ**, *PostgreSQL
+16* → **Po**. The vendor goes the way it goes in the shortlist, because what
+tells Amazon SQS from Amazon SNS is never the word Amazon, and a version is not
+a word.
+
+Two letters, boxed, engraved in the mono the system writes every other label
+in, sized to the slot a brand mark would take. It is decoration and nothing
+else: the name is written beside it in both places it appears, the box is
+`aria-hidden`, and the model holds the name alone. Nothing downstream ever
+meets "Re" — it meets `"technology": "Redpanda"`.
+
+This is also what retires the question of drawing the missing marks by hand.
+Coverage is complete today rather than after sixty hours of tracing, and every
+mark that ever arrives — from `npm update` or from a pencil — simply replaces
+a monogram.
 
 ## Testing
 
-`vi.mock('simple-icons')` with three hand-written entries, so jsdom never
-parses five megabytes. The match is data — "PostgreSQL 16" hits PostgreSQL,
-"Apache Kafka consumer" hits Apache Kafka before Apache, unknown text hits
-nothing — which is why `logoFor` is exported. The picker rides the
-`ElementForm` harness: type "post", the list stands, Enter writes the
-canonical title, the card takes the mark, and a value already on the board
-stands above the catalog's.
+`vi.mock('simple-icons')` with hand-written entries, so jsdom never parses five
+megabytes — `technology.test.tsx` for the match and for the initials, which are
+pure data, `ElementNode.test.tsx` for the mark on the card. The picker rides
+the `ElementForm` harness with the real module, because what it asserts is the
+shortlist and not the paint: a dropped Relational Database offers PostgreSQL
+and not Pinecone, "sql" narrows to two of them, the arrows walk and wrap and
+Enter takes, a search that matches nothing says where to add it and leaves the
+keys alone, and Redpanda reaches the card wearing **Re**.
 
 ## What it costs, and the exit
 
@@ -275,13 +294,21 @@ not a model change, whenever it is wanted.
 **Brand-colour marks.** `hex` is on every entry; the pigment law says no. A
 theme toggle, if ever.
 
-**Categories in the picker.** IcePanel's picker browses by category because
-its catalog is the whole model. Here the category already lives on the
-element type; the picker only finishes a string.
+**Free text in the panel.** Deliberately gone. Its absence is what makes every
+technology on the board a name the registry knows, which is the whole of what
+the next stage wants from this field. The cost is a round trip through
+`tech.ts` for a product nobody has added yet, which is a pull request rather
+than a keystroke, and a shortlist that grows by use.
+
+**Searching all 3,453 from the field.** The shortlist is the whole of what a
+type can run, so a catalogue search only adds Figma offered to a database. What
+is genuinely missing belongs in `tech.ts`, not in the field.
 
 **Tech-aware rack search.** "postgres" in the rack suggesting Relational
-Database means hand-curating a product-to-type table — the pipeline again,
-per entry. The rack searches types; the form searches products.
+Database is the same table read backwards, and backwards it does not work:
+Redis stands on four lines here, so the rack would have to guess which. The
+rack searches types; the form offers products.
 
 **Aliases.** The 448 KB data JSON knows "Golang"; the runtime objects do not.
-Merge it into the search index only if the misses grate.
+Any product worth a row is spelled the brand set's way in `tech.ts` instead,
+which is the same fix for the rows that matter.

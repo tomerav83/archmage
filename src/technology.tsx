@@ -26,15 +26,36 @@ export const logoFor = (byTitle: Map<string, SimpleIcon>, value: string) => {
   }
 }
 
-// The brand mark beside a technology, in whatever ink surrounds it — colour
-// still belongs to the level, so the brand hex goes unread. Mount under
-// <Suspense>: null until the chunk lands, null again for text the catalogue has
-// no line for, which was never illegal.
+// Two letters in the engraved hand, for the four products in ten the brand set
+// has no line for — Amazon pulled its own in 2024 and nobody has drawn Valkey.
+// The vendor prefix goes the way it goes in the shortlist: what tells Amazon SQS
+// from Amazon SNS is never the word Amazon. A version is not a word either.
+export const monogram = (name: string) => {
+  const words = name
+    .replace(/^(Amazon|AWS|Azure|Microsoft|Google|Apache)\s+/, '')
+    .split(/\s+/)
+    .filter((w) => w && !/^v?[\d.]+$/.test(w))
+  // A name that is only a version is nobody's product, and still gets a mark.
+  const [first = name, second] = words
+  return second ? first.slice(0, 1) + second.slice(0, 1) : first.slice(0, 2)
+}
+
+// The mark beside a technology, in whatever ink surrounds it — colour still
+// belongs to the level, so the brand hex goes unread. Never nothing: a product
+// with no mark wears its initials, so the column reads as marks all the way
+// down and an unfamiliar name is still a thing rather than a gap. Both are
+// decoration — the name is written beside them, and the model only ever held
+// the name. Mount under <Suspense>; the monogram waits for the chunk too,
+// because until it lands there is no telling which of the two this is.
 export function TechLogo({ name }: { name: string }) {
   const hit = logoFor(use(TECH).byTitle, name)
   return hit ? (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d={hit.path} fill="currentColor" />
     </svg>
-  ) : null
+  ) : (
+    <span className="mono-mark" aria-hidden="true">
+      {monogram(name)}
+    </span>
+  )
 }

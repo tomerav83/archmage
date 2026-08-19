@@ -1,4 +1,5 @@
 import { TYPES, type TypeKey } from './c4'
+import { TECH } from './catalog/tech'
 
 // A person has no technology, a cache has a TTL nothing else has, a boundary
 // has neither. Eighty-two types do not want one form and they certainly do not
@@ -25,9 +26,9 @@ export type FieldKey =
 export type Field = {
   key: FieldKey
   title: string // what the panel engraves over the input
-  input?: 'area' | 'pick' // a line of text unless said otherwise
+  input?: 'area' | 'pick' | 'tech' // a line of text unless said otherwise
   hint?: string // placeholder, lifted from the catalogue tables
-  options?: string[] // pick only
+  options?: string[] // pick and tech: the whole of a pick, the shortlist of a tech
 }
 
 // What every element takes, whatever it is.
@@ -46,7 +47,12 @@ export const CATALOG: Field[] = [
 
 // Eight of the twelve categories take this and nothing else. That repetition is
 // the argument: one table with a value repeated, not twelve forms alike.
-const TECHNOLOGY: Field = { key: 'technology', title: 'Technology', hint: 'PostgreSQL 16' }
+const TECHNOLOGY: Field = {
+  key: 'technology',
+  title: 'Technology',
+  hint: 'PostgreSQL 16',
+  input: 'tech',
+}
 
 // The twelve shelves of the catalogue in docs/taxonomy.md, written once: a
 // category is a line in this table and nothing else, and c4's Category is these
@@ -105,5 +111,15 @@ export const CATEGORIES = Object.keys(CATEGORY_FIELDS) as Category[]
 // technology, so a system takes a name and a description — the one type today
 // that disagrees with its category. A second one wants a table, not a second
 // branch here.
+//
+// Technology is the one field whose options are the type's rather than the
+// category's — Relational Database and Vector Database share a shelf and share
+// no products — so the shortlist is stamped on the shared descriptor here,
+// where the type is finally known. That is also why the panel needs no wiring
+// for it: options is a field, exactly as it is for a pick.
 export const fieldsFor = (type: TypeKey): Field[] =>
-  type === 'system' ? [] : CATEGORY_FIELDS[TYPES[type].category]
+  type === 'system'
+    ? []
+    : CATEGORY_FIELDS[TYPES[type].category].map((f) =>
+        f.key === 'technology' ? { ...f, options: TECH[type] } : f,
+      )

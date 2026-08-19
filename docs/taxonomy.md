@@ -304,22 +304,31 @@ format never learn it exists. See [technology.md](technology.md).
 The dependency, the match, the mark. "PostgreSQL 16" finds the PostgreSQL
 mark by the longest leading run of words naming an entry, and the card's
 subtitle wears it in the surrounding ink — colour stays the level's. Text the
-catalog has no line for stays legal and goes unmarked. The module rides in
-its own lazy chunk behind first paint, 2.1 MB gzipped, cached after.
-Done when a hand-typed "PostgreSQL 16" puts the elephant on the card, unknown
-text stays bare, and a test covers the version-stripping match with the
-module mocked.
+catalog has no line for stays legal and goes unmarked, until the branch below
+hands it two engraved letters instead. The module rides in its own lazy chunk
+behind first paint, 2.1 MB gzipped, cached after.
+Done when a hand-typed "PostgreSQL 16" puts the elephant on the card and a
+test covers the version-stripping match with the module mocked.
 Touches a new `technology.tsx`, `ElementNode.tsx`, `index.css`.
 
 **14. `feature/technology-picker`**
-Suggestions wearing their marks under the technology row, values already on
-the board standing first. One flag on the shared Technology descriptor arms
-every category that carries the field; the edge's protocol line is its own
-object and stays plain text. No `<datalist>` — it cannot put a mark in its
-rows and its popup is unstylable browser chrome.
-Done when typing "post" offers PostgreSQL wearing its mark, Enter writes the
-canonical title and the card takes it, and a test covers pick-writes-title.
-Touches a new `TechInput.tsx`, `fields.ts`, `Form.tsx`, `index.css`.
+The technology row stops being a blank line and becomes the shortlist for the
+type you dropped — a Relational Database offers Postgres and MySQL, wearing
+their marks, with a search box over them and no free-text line at all: a
+product the shortlist does not hold is one the registry does not know, and the
+panel says so. That keeps every technology on the board a canonical name, which
+is what the field is worth to anything that reads the file later. The shortlist
+is the one thing the brand set cannot supply, so it is curated per type in
+`catalog/tech.ts`; one flag on the shared Technology descriptor arms every
+category that carries the field, and the edge's protocol line is its own object
+and stays plain text. Four products in ten have no brand mark and none is
+coming, so those wear two engraved letters in the same slot — the column reads
+as marks all the way down and the model still holds only the name.
+Done when a dropped Relational Database offers PostgreSQL and not Pinecone,
+"sql" narrows the list, a search that matches nothing says where to add it, and
+Redpanda reaches the card wearing Re.
+Touches a new `catalog/tech.ts` and `TechPick.tsx`, `technology.tsx`,
+`fields.ts`, `Form.tsx`, `index.css`.
 
 ### Phase D — nesting
 
