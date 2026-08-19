@@ -304,11 +304,11 @@ format never learn it exists. See [technology.md](technology.md).
 The dependency, the match, the mark. "PostgreSQL 16" finds the PostgreSQL
 mark by the longest leading run of words naming an entry, and the card's
 subtitle wears it in the surrounding ink — colour stays the level's. Text the
-catalog has no line for stays legal and goes unmarked. The module rides in
-its own lazy chunk behind first paint, 2.1 MB gzipped, cached after.
-Done when a hand-typed "PostgreSQL 16" puts the elephant on the card, unknown
-text stays bare, and a test covers the version-stripping match with the
-module mocked.
+catalog has no line for stays legal and goes unmarked, until the branch below
+hands it two engraved letters instead. The module rides in its own lazy chunk
+behind first paint, 2.1 MB gzipped, cached after.
+Done when a hand-typed "PostgreSQL 16" puts the elephant on the card and a
+test covers the version-stripping match with the module mocked.
 Touches a new `technology.tsx`, `ElementNode.tsx`, `index.css`.
 
 **14. `feature/technology-picker`**
