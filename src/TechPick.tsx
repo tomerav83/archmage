@@ -6,43 +6,41 @@ import { TechLogo } from './technology'
 // not the brand set's other 3,451 entries — the type is what narrows it, which
 // is the one thing the brand set cannot do for us. See catalog/tech.ts.
 
-// The list is the answer nine times out of ten; the search box is for the long
-// shelves and the last row is for everything nobody wrote down.
-export const OTHER = 'Other…'
+// There is no line for free text on purpose. A product the shortlist does not
+// hold is a product the registry does not know, and the fix is a line in
+// catalog/tech.ts — which is what keeps every technology on the board a
+// canonical name, for the eye now and for whatever reads the file later.
 
 export function TechPick({
   caret,
+  title,
   options,
   value,
   write,
 }: {
   caret: Ref<HTMLInputElement>
+  title: string
   options: string[]
   value: string
   write: (v: string) => void
 }) {
   const [q, setQ] = useState('')
-  // A value the list does not hold was written by hand, so the hand-written
-  // line is already open when you come back to it. Derived on mount and kept
-  // by hand after, because clicking Other on an empty field has to open it too.
-  const [other, setOther] = useState(!!value && !options.includes(value))
   const [active, setActive] = useState(0)
 
-  const hits = [...options.filter((o) => o.toLowerCase().includes(q.trim().toLowerCase())), OTHER]
+  const hits = options.filter((o) => o.toLowerCase().includes(q.trim().toLowerCase()))
   const at = Math.min(active, hits.length - 1)
-
-  const take = (pick: string) => {
-    setOther(pick === OTHER)
-    // Other keeps whatever was there to be edited; a product replaces it.
-    if (pick !== OTHER) write(pick)
-  }
+  // Undefined exactly when the search has narrowed the shelf to nothing, which
+  // is also when there is nothing for a key to do.
+  const standing = hits[at]
 
   return (
     <>
       <input
         ref={caret}
-        // Named by the row's own engraved title: this is the Technology field,
-        // and the box at the top of it is how you get through a long shelf.
+        // The row's own engraved title, said again: the wrapping label holds a
+        // list and a note as well as this box, and a field's name must not
+        // wander when one of them appears.
+        aria-label={title}
         placeholder="Search"
         value={q}
         onChange={(e) => {
@@ -50,14 +48,14 @@ export function TechPick({
           setQ(e.target.value)
         }}
         onKeyDown={(e) => {
+          if (!standing) return
           if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
             e.preventDefault()
             setActive((at + (e.key === 'ArrowDown' ? 1 : hits.length - 1)) % hits.length)
           }
           if (e.key === 'Enter') {
             e.preventDefault()
-            // hits always holds Other, so the fallback is the row itself.
-            take(hits[at] ?? OTHER)
+            write(standing)
           }
         }}
       />
@@ -67,11 +65,7 @@ export function TechPick({
       <ul className="tech-list">
         {hits.map((title, i) => (
           <li key={title} data-active={i === at || undefined}>
-            <button
-              type="button"
-              aria-pressed={title === OTHER ? other : title === value}
-              onClick={() => take(title)}
-            >
+            <button type="button" aria-pressed={title === value} onClick={() => write(title)}>
               <Suspense>
                 <TechLogo name={title} />
               </Suspense>
@@ -80,17 +74,8 @@ export function TechPick({
           </li>
         ))}
       </ul>
-      {other && (
-        <input
-          className="tech-other"
-          // Chosen from the list, so it takes the caret the way an opened row does.
-          ref={(el) => el?.focus()}
-          aria-label="Other technology"
-          placeholder="What it runs"
-          value={value}
-          onChange={(e) => write(e.target.value)}
-        />
-      )}
+      {/* Where the policy is said, at the one moment anybody needs it. */}
+      {!hits.length && <p className="tech-none">Not in the registry — add it to catalog/tech.ts</p>}
     </>
   )
 }

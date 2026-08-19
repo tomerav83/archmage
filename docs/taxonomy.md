@@ -314,16 +314,21 @@ Touches a new `technology.tsx`, `ElementNode.tsx`, `index.css`.
 **14. `feature/technology-picker`**
 The technology row stops being a blank line and becomes the shortlist for the
 type you dropped — a Relational Database offers Postgres and MySQL, wearing
-their marks, with a search box over them and **Other…** for what nobody wrote
-down. That shortlist is the one thing the brand set cannot supply, so it is
-curated per type in `catalog/tech.ts`; one flag on the shared Technology
-descriptor arms every category that carries the field, and the edge's protocol
-line is its own object and stays plain text.
+their marks, with a search box over them and no free-text line at all: a
+product the shortlist does not hold is one the registry does not know, and the
+panel says so. That keeps every technology on the board a canonical name, which
+is what the field is worth to anything that reads the file later. The shortlist
+is the one thing the brand set cannot supply, so it is curated per type in
+`catalog/tech.ts`; one flag on the shared Technology descriptor arms every
+category that carries the field, and the edge's protocol line is its own object
+and stays plain text. Four products in ten have no brand mark and none is
+coming, so those wear two engraved letters in the same slot — the column reads
+as marks all the way down and the model still holds only the name.
 Done when a dropped Relational Database offers PostgreSQL and not Pinecone,
-"sql" narrows the list, Other takes free text through to the card, and tests
-cover pick-writes-title and the Other line.
-Touches a new `catalog/tech.ts` and `TechPick.tsx`, `fields.ts`, `Form.tsx`,
-`index.css`.
+"sql" narrows the list, a search that matches nothing says where to add it, and
+Redpanda reaches the card wearing Re.
+Touches a new `catalog/tech.ts` and `TechPick.tsx`, `technology.tsx`,
+`fields.ts`, `Form.tsx`, `index.css`.
 
 ### Phase D — nesting
 

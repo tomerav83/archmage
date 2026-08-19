@@ -96,6 +96,7 @@ export function Form({ subject, onClose }: { subject?: Sheet; onClose: () => voi
                   // line — and the shortlist's last row is the blank line.
                   <TechPick
                     caret={caret}
+                    title={f.title}
                     options={f.options ?? []}
                     value={value}
                     write={(v) => shown.write(f.key, v)}

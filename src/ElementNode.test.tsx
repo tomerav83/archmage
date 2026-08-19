@@ -73,11 +73,13 @@ describe('a card', () => {
     expect(view?.querySelector('.c4-subtitle svg')).toBeNull()
 
     cleanup()
-    // A person's first field is Role, which is a job and not a product.
+    // A person's first field is Role, which is a job and not a product: no
+    // mark, and no initials either.
     await act(async () => {
       view = render(<Board data={{ type: 'person', label: 'Ana', role: 'PostgreSQL' }} />).container
     })
     expect(view?.querySelector('.c4-subtitle svg')).toBeNull()
+    expect(view?.querySelector('.c4-subtitle .mono-mark')).toBeNull()
   })
 
   it('says a deprecated element is deprecated', () => {

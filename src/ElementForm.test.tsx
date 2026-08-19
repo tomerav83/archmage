@@ -103,36 +103,48 @@ describe('the form', () => {
     const container = board()
     drop(container, 'relational-db')
     fireEvent.click(row('Technology'))
-    // Up from the first row is the last one, which is always Other.
+    // Up from the first row is the last row of the shelf.
     fireEvent.keyDown(field('Technology'), { key: 'ArrowUp' })
     fireEvent.keyDown(field('Technology'), { key: 'Enter' })
 
-    expect(screen.getByLabelText('Other technology')).toBeTruthy()
+    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('Neon')
   })
 
-  it('takes anything nobody wrote down, behind Other', () => {
+  it('says where a product it does not offer has to be added', () => {
     const container = board()
     drop(container, 'pubsub-topic')
     fireEvent.click(row('Technology'))
-    fireEvent.click(option('Other…'))
-    fireEvent.change(screen.getByLabelText('Other technology'), {
-      target: { value: 'BackwardsBroker 2' },
-    })
+    write('Technology', 'backwardsbroker')
 
-    expect(container.querySelector('.c4-subtitle')?.textContent).toBe('BackwardsBroker 2')
+    // No free-text line: the registry is the only way a technology gets on the
+    // board, which is what keeps every value on it a canonical name.
+    expect(screen.getByText(/add it to catalog\/tech\.ts/)).toBeTruthy()
+    expect(screen.queryByLabelText('Other technology')).toBeNull()
+    // Nothing typed reaches the card.
+    expect(container.querySelector('.c4-subtitle')).toBeNull()
   })
 
-  it('reopens a hand-written value on the line it was written on', () => {
+  it('leaves the keys alone when the search has narrowed to nothing', () => {
     const container = board()
-    drop(container, 'pubsub-topic')
+    drop(container, 'relational-db')
     fireEvent.click(row('Technology'))
-    fireEvent.click(option('Other…'))
-    fireEvent.change(screen.getByLabelText('Other technology'), { target: { value: 'MyBroker' } })
-    // Away and back: the value is not in the list, so the list cannot show it.
-    fireEvent.click(row('Name'))
-    fireEvent.click(row('Technology'))
+    write('Technology', 'backwardsbroker')
+    fireEvent.keyDown(field('Technology'), { key: 'ArrowDown' })
+    fireEvent.keyDown(field('Technology'), { key: 'Enter' })
 
-    expect((screen.getByLabelText('Other technology') as HTMLInputElement).value).toBe('MyBroker')
+    expect(container.querySelector('.c4-subtitle')).toBeNull()
+    expect(screen.getByText(/add it to catalog\/tech\.ts/)).toBeTruthy()
+  })
+
+  it('gives a product with no brand mark its initials', () => {
+    const container = board()
+    drop(container, 'event-stream')
+    fireEvent.click(row('Technology'))
+    fireEvent.click(option('Redpanda'))
+
+    // The initials are a mark and the name is the line: both, never one.
+    expect(container.querySelector('.c4-subtitle .mono-mark')?.textContent).toBe('Re')
+    expect(container.querySelector('.c4-subtitle')?.textContent).toContain('Redpanda')
   })
 
   it('takes a description in a field with room for one', () => {

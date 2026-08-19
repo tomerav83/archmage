@@ -347,13 +347,31 @@ body {
   color: var(--ink-dim);
 }
 
-/* The brand mark sets to the line it stands in, in the line's own ink — the
-   pigment still carries the level. It pops in when the chunk lands, so it
-   holds no space until it does. */
-.c4-subtitle svg {
+/* No brand mark, so the initials are the mark: engraved like every other label
+   the system writes, and boxed so the row reads as marks all the way down
+   rather than as a word that lost its picture. */
+.mono-mark {
+  display: grid;
+  place-items: center;
+  background: var(--g-800);
+  border: 1px solid var(--g-750);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 7px;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: currentColor;
+}
+
+/* The mark sets to the line it stands in, in the line's own ink — the pigment
+   still carries the level. It pops in when the chunk lands, so it holds no
+   space until it does. One slot, whether a brand fills it or two letters do. */
+.c4-subtitle svg,
+.c4-subtitle .mono-mark {
   flex: none;
-  width: 11px;
-  height: 11px;
+  width: 12px;
+  height: 12px;
 }
 
 /* Status is the one catalogue field that shows on the board. A status that
@@ -618,9 +636,10 @@ body {
 }
 
 /* The mark rides the row in the row's own ink, the way it rides the card. */
-.tech-list svg {
-  width: 12px;
-  height: 12px;
+.tech-list svg,
+.tech-list .mono-mark {
+  width: 13px;
+  height: 13px;
   flex: none;
 }
 
@@ -636,9 +655,14 @@ body {
   color: var(--brass-lit);
 }
 
-/* Behind Other: the line for what nobody wrote down. */
-.tech-other {
-  margin-top: 6px;
+/* The registry is the only way in, so the one moment it is not enough is the
+   one moment to say where it lives. */
+.tech-none {
+  margin: 8px 0 0;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
 }
 
 /* A hint has to be readable to be a hint; what keeps it from reading as a
