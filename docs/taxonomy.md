@@ -214,7 +214,7 @@ These contain other elements. A new mechanic, not a new sigil.
 
 ## The stack
 
-Fifteen branches, each on the one above, each a pull request.
+Seventeen branches, each on the one above, each a pull request.
 
 ### Phase A — foundations
 
@@ -291,32 +291,63 @@ ways out if it drags: draw one mark per category and let the type read as text
 in the band, or ship placeholders and refine in a later pass. Both keep the
 branches moving and neither changes the model.
 
-### Phase C — nesting
+### Phase C — the technology catalog
 
-**13. `feature/boundaries`**
+What a box runs, wearing its brand. The out-of-scope list held this on the
+argument that thousands of entries are a data pipeline; the pipeline turned
+out to be a dependency — `simple-icons`, 3,453 brands, CC0, released weekly,
+every mark on the 24-unit sigil grid. `technology` stays a free string and the
+catalog decorates it at render time, so the model, the drop and the file
+format never learn it exists. See [technology.md](technology.md).
+
+**13. `feature/technology-logos`**
+The dependency, the match, the mark. "PostgreSQL 16" finds the PostgreSQL
+mark by the longest leading run of words naming an entry, and the card's
+subtitle wears it in the surrounding ink — colour stays the level's. Text the
+catalog has no line for stays legal and goes unmarked. The module rides in
+its own lazy chunk behind first paint, 2.1 MB gzipped, cached after.
+Done when a hand-typed "PostgreSQL 16" puts the elephant on the card, unknown
+text stays bare, and a test covers the version-stripping match with the
+module mocked.
+Touches a new `technology.tsx`, `ElementNode.tsx`, `index.css`.
+
+**14. `feature/technology-picker`**
+Suggestions wearing their marks under the technology row, values already on
+the board standing first. One flag on the shared Technology descriptor arms
+every category that carries the field; the edge's protocol line is its own
+object and stays plain text. No `<datalist>` — it cannot put a mark in its
+rows and its popup is unstylable browser chrome.
+Done when typing "post" offers PostgreSQL wearing its mark, Enter writes the
+canonical title and the card takes it, and a test covers pick-writes-title.
+Touches a new `TechInput.tsx`, `fields.ts`, `Form.tsx`, `index.css`.
+
+### Phase D — nesting
+
+**15. `feature/boundaries`**
 React Flow parent nodes. Drop an element inside a boundary and it reparents,
 moves with it and clips to it. Enterprise, system, container, domain, trust
-zone, team. Everything before this was registry edits; this is real interaction
+zone, team. Phases B and C were tables and paint; this is real interaction
 work.
 Done when a container dropped into a system boundary moves with it and clips to
 it.
 Touches a new `BoundaryNode.tsx`, `DiagramCanvas.tsx`.
 
-**14. `feature/deployment-view`**
+**16. `feature/deployment-view`**
 Deployment environments, regions, clusters, compute nodes, infrastructure nodes,
 and instance-of references. A deployment node is a nestable boundary, so this
 rides on the branch above instead of reinventing it.
 Done when a container instance can be placed inside a cluster inside a region.
 Touches `c4.tsx`, `BoundaryNode.tsx`.
 
-### Phase D — persistence
+### Phase E — persistence
 
-**15. `feature/persistence`**
+**17. `feature/persistence`**
 Save to localStorage, import and export JSON. Last, because it is the only
 branch that has to know the whole schema and nesting is what finishes it:
 boundaries give a node a parent and the deployment view gives it an instance-of,
 and a file format written before those is a file format migrated after them.
-Everything between here and Phase A only adds values to a string union.
+Everything between here and Phase A only adds values to a string union or
+paint the file never carries.
 Done when a diagram survives a reload and round-trips through export/import,
 parents and all.
 Touches `DiagramCanvas.tsx`, a new `model.ts`.
@@ -326,17 +357,15 @@ Touches `DiagramCanvas.tsx`, a new `model.ts`.
 **Vendor icon packs.** 500 AWS icons, 200 Azure icons. `technology` already
 carries "PostgreSQL 16"; an icon per vendor buys recognition at the price of a
 permanent treadmill. Structurizr solves this with themes mapping tags to icons.
-If it is wanted later it is a theme layer, never element types.
+If it is wanted later it is a theme layer, never element types. Phase C's
+brand marks are that layer for products, taken as a dependency; a cloud's own
+service iconography stays out — and since 2024, out of the dataset as well.
 
 **Code and level-4 diagrams.** IcePanel dropped them and points at source
 instead. Nobody hand-maintains a class diagram.
 
 **Dynamic and sequence views.** Numbered interaction steps are a different
 editor with a different interaction model, not a taxonomy problem.
-
-**A technology catalog.** IcePanel's thousands of pre-populated entries are a
-data pipeline, not a feature. Free text with autocomplete over what you have
-already typed gets most of the way.
 
 **Per-type accent colours.** Eighty-two pigments is mud. Colour carries the
 level, the sigil carries the type, the band carries both as text.
@@ -349,3 +378,4 @@ level, the sigil carries the type, the band carries both as text.
 - [Backstage descriptor format](https://backstage.io/docs/features/software-catalog/descriptor-format/) — kind vs. spec.type, API as a first-class kind
 - [System Design Primer](https://github.com/donnemartin/system-design-primer) — DNS, CDN, load balancer, proxy, cache, asynchronism
 - [CNCF Landscape](https://landscape.cncf.io/) — streaming and messaging, service mesh, API gateway, observability
+- [simple-icons](https://simpleicons.org) — 3,453 CC0 brand marks on a 24-unit grid, the technology catalog as a dependency

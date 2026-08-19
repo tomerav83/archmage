@@ -1,6 +1,8 @@
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react'
+import { Suspense } from 'react'
 import { LEVELS, Sigil, TYPES, type TypeKey } from './c4'
 import { type FieldKey, fieldsFor } from './fields'
+import { TechLogo } from './technology'
 import { useWard } from './useWard'
 import { Ward } from './Ward'
 
@@ -28,6 +30,7 @@ export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
   // The card has room for one field besides the name, and its category says
   // which: Technology for most, Role for a person, nothing for a boundary.
   const subtitle = fieldsFor(data.type)[0]
+  const said = subtitle && data[subtitle.key]
 
   return (
     <div
@@ -47,7 +50,18 @@ export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
       </div>
       <div className="c4-body">
         <div className="c4-name">{data.label}</div>
-        {subtitle && data[subtitle.key] && <div className="c4-subtitle">{data[subtitle.key]}</div>}
+        {said && (
+          <div className="c4-subtitle">
+            {/* Technology is a product and wears its mark; Role and the other
+                first fields are words and stay bare. */}
+            {subtitle?.key === 'technology' && (
+              <Suspense>
+                <TechLogo name={said} />
+              </Suspense>
+            )}
+            {said}
+          </div>
+        )}
       </div>
       {/* Not ports — anchors. Nothing is dragged from them and CSS hides them,
           but an edge is drawn to a handle's box, so every face keeps one. */}

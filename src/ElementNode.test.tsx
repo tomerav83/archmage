@@ -1,7 +1,14 @@
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import { ReactFlow, ReactFlowProvider, useNodesState } from '@xyflow/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ElementNode, type ElementNodeType } from './ElementNode'
+
+// One hand-written brand, so jsdom never parses the catalogue's five megabytes
+// to answer whether the card hangs a mark on the line. What the match itself
+// does with the string is technology.test.tsx.
+vi.mock('simple-icons', () => ({
+  siPostgresql: { title: 'PostgreSQL', slug: 'postgresql', hex: '4169E1', path: 'M0 0h24v24H0z' },
+}))
 
 afterEach(cleanup)
 
@@ -41,6 +48,36 @@ describe('a card', () => {
     )
     expect(screen.getByText('Support agent')).toBeTruthy()
     expect(screen.queryByText('Go 1.22')).toBeNull()
+  })
+
+  // The subtitle is a product, so it wears the product's mark — a tick behind
+  // the first paint, when the catalogue's chunk lands.
+  it('hangs the brand mark on a technology it knows', async () => {
+    let view: HTMLElement | undefined
+    await act(async () => {
+      view = render(
+        <Board data={{ type: 'container', label: 'Orders', technology: 'PostgreSQL 16' }} />,
+      ).container
+    })
+
+    expect(view?.querySelector('.c4-subtitle path')?.getAttribute('d')).toBe('M0 0h24v24H0z')
+  })
+
+  it('leaves a technology it does not know bare, and a role always', async () => {
+    let view: HTMLElement | undefined
+    await act(async () => {
+      view = render(
+        <Board data={{ type: 'container', label: 'Orders', technology: 'Go 1.22' }} />,
+      ).container
+    })
+    expect(view?.querySelector('.c4-subtitle svg')).toBeNull()
+
+    cleanup()
+    // A person's first field is Role, which is a job and not a product.
+    await act(async () => {
+      view = render(<Board data={{ type: 'person', label: 'Ana', role: 'PostgreSQL' }} />).container
+    })
+    expect(view?.querySelector('.c4-subtitle svg')).toBeNull()
   })
 
   it('says a deprecated element is deprecated', () => {
