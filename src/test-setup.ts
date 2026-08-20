@@ -31,3 +31,8 @@ globalThis.ResizeObserver = class {
   unobserve() {}
   disconnect() {}
 }
+
+// jsdom has neither, and every press this app makes takes the pointer: the
+// ward's, and the one that grows a drawn rectangle.
+Element.prototype.setPointerCapture = () => {}
+Element.prototype.releasePointerCapture = () => {}

@@ -49,7 +49,7 @@ describe('which faces an edge joins', () => {
 
 // Enough DataTransfer for the two calls a drop makes — jsdom's own is
 // read-only, and fireEvent will not mint one.
-const carrying = (key?: 'system-boundary' | 'container') => {
+const carrying = (key?: 'container') => {
   const held = new Map<string, string>()
   const dt = {
     effectAllowed: '',
@@ -72,40 +72,108 @@ const board = () => {
   return document.querySelector('.react-flow__pane') as Element
 }
 
-const drop = (pane: Element, dt: DataTransfer) => {
-  fireEvent.dragOver(pane, { dataTransfer: dt })
-  fireEvent.drop(pane, { dataTransfer: dt })
+const drop = (pane: Element, dt: DataTransfer, at = { clientX: 100, clientY: 100 }) => {
+  fireEvent.dragOver(pane, { dataTransfer: dt, ...at })
+  fireEvent.drop(pane, { dataTransfer: dt, ...at })
 }
 
 describe('what a drop lands', () => {
-  it('lands a frame for a type that holds things, and a card for one that does not', () => {
+  it('lands a card, since the rack faces no frames', () => {
     const pane = board()
-    drop(pane, carrying('system-boundary'))
-    expect(document.querySelector('.c4-frame')).toBeTruthy()
-    expect(screen.getByText('System Boundary')).toBeTruthy()
-
-    cleanup()
-    drop(board(), carrying('container'))
-    expect(document.querySelector('.c4-frame')).toBeNull()
+    drop(pane, carrying('container'))
     expect(document.querySelector('.c4-node')).toBeTruthy()
+    expect(document.querySelector('.c4-frame')).toBeNull()
   })
 
   it('lands nothing at all for a drag that carries none of ours', () => {
     // A file, a link, a drag out of another app: the board is left as it was.
-    const pane = board()
-    drop(pane, carrying())
+    drop(board(), carrying())
     expect(document.querySelector('.react-flow__node')).toBeNull()
   })
 })
 
-describe('a frame is ground as far as an open ward is concerned', () => {
-  it('calls one off when it is pressed, the way empty ground does', () => {
+// The two doors to a boundary, driven end to end — nesting.test.ts already
+// asks what the rules are, so this asks only that the gestures reach them.
+describe('drawing a boundary over empty ground', () => {
+  const draw = (pane: Element, to = { clientX: 400, clientY: 400 }) => {
+    fireEvent.contextMenu(pane, { clientX: 20, clientY: 20 })
+    fireEvent.click(screen.getByText('System Boundary'))
+    fireEvent.pointerDown(pane, { clientX: 20, clientY: 20 })
+    fireEvent.pointerMove(pane, to)
+    return to
+  }
+
+  it('leaves a frame where the rectangle was, and the rectangle nowhere', () => {
+    // What the frame then takes in is within()'s question, and nesting.test.ts
+    // asks it: this asks only that the gesture reaches it.
     const pane = board()
-    drop(pane, carrying('system-boundary'))
-    const frame = document.querySelector('.react-flow__node') as Element
-    // No ward is open — a frame carries none of its own — so the press has
-    // nothing to cancel and nothing to arm, which is the whole assertion.
-    fireEvent.click(frame)
+    const to = draw(pane)
+    // The rectangle is on the board while it is still being dragged.
+    expect(document.querySelector('.draw-rect')).toBeTruthy()
+    fireEvent.pointerUp(pane, to)
+
+    expect(document.querySelector('.draw-rect')).toBeNull()
+    expect(document.querySelector('.c4-frame')).toBeTruthy()
+  })
+
+  it('gives a frame the size a rack drop starts one at when the drag is a plain click', () => {
+    const pane = board()
+    const to = { clientX: 21, clientY: 21 }
+    draw(pane, to)
+    fireEvent.pointerUp(pane, to)
+    expect(document.querySelector('.c4-frame')).toBeTruthy()
+  })
+
+  it('calls the gesture off on Escape, before the rectangle is released', () => {
+    const pane = board()
+    draw(pane)
+    // Any other key is not the one that calls it off.
+    fireEvent.keyDown(document, { key: 'Enter' })
+    expect(document.querySelector('.draw-rect')).toBeTruthy()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(document.querySelector('.draw-rect')).toBeNull()
+    fireEvent.pointerUp(pane, { clientX: 400, clientY: 400 })
+    expect(document.querySelector('.c4-frame')).toBeNull()
+  })
+})
+
+describe('a press that means nothing', () => {
+  it('is nothing: no gesture is armed, so the pointer only wanders', () => {
+    const pane = board()
+    fireEvent.pointerMove(pane, { clientX: 200, clientY: 200 })
+    fireEvent.pointerUp(pane, { clientX: 200, clientY: 200 })
+    expect(document.querySelector('.draw-rect')).toBeNull()
+    expect(document.querySelector('.react-flow__node')).toBeNull()
+  })
+})
+
+describe('enclosing what is already on the board', () => {
+  it('draws the frame around the selection and takes it in', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('System Boundary'))
+    expect(document.querySelector('.c4-frame')).toBeTruthy()
+    expect(document.querySelector('.c4-node')?.getAttribute('data-nested')).toBeTruthy()
+  })
+
+  it('leaves an open ward alone for a card, and calls it off for a frame', () => {
+    // A frame carries no ward of its own, so as far as an open one is
+    // concerned it is ground, and it covers too much of the board not to say so.
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.click(document.querySelector('.react-flow__node') as Element)
+
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('System Boundary'))
+    fireEvent.click(document.querySelector('.react-flow__node') as Element)
     expect(document.querySelector('.c4-frame')).toBeTruthy()
   })
 })

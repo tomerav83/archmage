@@ -10,8 +10,6 @@ afterEach(() => {
 })
 
 // jsdom has no pointer capture, and the ward takes it on every press.
-Element.prototype.setPointerCapture = () => {}
-Element.prototype.releasePointerCapture = () => {}
 
 // Two cards, then the ward: hold the first, press the second, and the line is
 // drawn. The form is left pointing at it, which is what we came to type in.

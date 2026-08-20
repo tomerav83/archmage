@@ -88,13 +88,11 @@ export function DiagramCanvas() {
   // Where the enclose menu stands, and which door it was opened by: `ids` is
   // what was already chosen when something was right-clicked, `anchor` the
   // point an empty-ground right-click fixed as the rectangle's first corner.
-  // One or the other, never both — two ways to a boundary, one picker.
-  const [menu, setMenu] = useState<{
-    x: number
-    y: number
-    ids?: string[]
-    anchor?: XYPosition
-  } | null>(null)
+  // One or the other, never both — two ways to a boundary, one picker — and
+  // the union says so, rather than two optional fields that could be neither.
+  const [menu, setMenu] = useState<
+    ({ x: number; y: number } & ({ ids: string[] } | { anchor: XYPosition })) | null
+  >(null)
   const summon = (e: MouseEvent, ids: string[]) => {
     e.preventDefault()
     setMenu({ x: e.clientX, y: e.clientY, ids })
@@ -151,10 +149,12 @@ export function DiagramCanvas() {
   // yet, so the pick arms the gesture rather than finishing it: the next press
   // draws the rectangle from the point that was right-clicked.
   const pick = (type: TypeKey) => {
-    const { ids, anchor } = menu ?? {}
+    // Non-null: the picker only renders while the menu stands, so a pick is
+    // only ever made against one.
+    const chosen = menu as NonNullable<typeof menu>
     setMenu(null)
-    if (anchor) return setDrawing({ type, anchor })
-    if (!ids) return
+    if ('anchor' in chosen) return setDrawing({ type, anchor: chosen.anchor })
+    const { ids } = chosen
     const id = crypto.randomUUID()
     setNodes((nds) => {
       const frame = frameAround(nds, ids, id, type)
@@ -331,7 +331,7 @@ export function DiagramCanvas() {
           was. */}
       <Enclose
         at={menu}
-        title={menu?.ids ? 'Enclose in' : 'New Boundary'}
+        title={menu && 'ids' in menu ? 'Enclose in' : 'New Boundary'}
         onPick={pick}
         onClose={() => setMenu(null)}
       />
