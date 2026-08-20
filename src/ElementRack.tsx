@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LEVELS, Sigil, TYPES } from './c4'
+import { LEVELS, PALETTE, Sigil } from './c4'
 import { setDraggedType } from './dragAndDrop'
 import { CATEGORIES, type Category } from './fields'
 import { useSearch } from './useSearch'
@@ -23,11 +23,10 @@ function BrandMark() {
   )
 }
 
-// A shelf with nothing on it is not a shelf: Boundaries and Deployment get
-// their tabs when their mechanics land.
-const SHELVES = CATEGORIES.filter((category) =>
-  Object.values(TYPES).some((t) => t.category === category),
-)
+// A shelf with nothing on it is not a shelf. Boundaries & Zones never gets one
+// — every type on that shelf is a frame, and a frame is drawn by right-click,
+// not dragged — and Deployment gets its tab once its own mechanics land.
+const SHELVES = CATEGORIES.filter((category) => PALETTE.some(([, t]) => t.category === category))
 
 /**
  * The rack. The catalogue faced along the bottom sill, one shelf at a time —

@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { TYPES } from './c4'
+import { PALETTE } from './c4'
 import { ElementRack } from './ElementRack'
 
 afterEach(cleanup)
@@ -23,8 +23,10 @@ describe('the rack', () => {
       'Platform & Security',
       'Observability & Ops',
       'Analytics & ML',
-      'Boundaries & Zones',
     ])
+    // Boundaries & Zones is every type the rack does not carry: a frame is
+    // drawn by right-click, never dragged — see docs/nesting.md.
+    expect(screen.queryByRole('button', { name: 'Boundaries & Zones' })).toBeNull()
   })
 
   it('stands one shelf at a time, and the same tab shuts it', () => {
@@ -65,7 +67,7 @@ describe('the rack', () => {
       fireEvent.click(button)
       for (const name of names(container)) seen.add(name ?? '')
     }
-    expect(seen.size).toBe(Object.keys(TYPES).length)
+    expect(seen.size).toBe(PALETTE.length)
   })
 
   it('stands every shelf at once when searched, matching types by their own name', () => {

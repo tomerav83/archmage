@@ -27,7 +27,7 @@ const PORTS = [
 
 // A card is a thing on a board; the form is where you talk about it. So
 // this reads and never writes: band, name, and one line under it.
-export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
+export function ElementNode({ id, data, parentId }: NodeProps<ElementNodeType>) {
   const type = TYPES[data.type]
   const level = LEVELS[type.level]
   const { state, ...press } = useWard(id)
@@ -42,6 +42,11 @@ export function ElementNode({ id, data }: NodeProps<ElementNodeType>) {
       // Planned draws dashed, Deprecated dims: a status that renders nowhere is
       // a field nobody fills in.
       data-status={data.status}
+      // A card held by a frame stands on darker ground and is drawn darker for
+      // it. The card has to say so itself: React Flow paints every node into
+      // one flat layer, so a nested card is nowhere inside its frame in the DOM
+      // and no descendant selector can reach it.
+      data-nested={parentId}
       style={{ '--accent': level.accent, '--accent-ink': level.ink }}
       {...press}
     >

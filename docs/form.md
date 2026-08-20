@@ -226,8 +226,11 @@ held in a ref so the panel has something to draw while it slides away.
 
 **The name row is the open one on every open**, with its text selected, so a
 fresh drop is named by typing whatever row was left open last time. A control
-takes the caret as it mounts, which is one callback ref for all of it: the click
-that opens a row is the only click that row costs.
+asks for the caret as it mounts, which is one callback ref for all of it: the
+click that opens a row is the only click that row costs. It asks a task later
+rather than in the ref itself — a panel opened by a drop mounts while the drag
+is still running, and a browser ignores focus asked for mid-drag, which quietly
+cost the first thing typed after a drop.
 
 ## Relationships take the same shape
 
