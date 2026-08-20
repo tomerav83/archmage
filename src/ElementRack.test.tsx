@@ -23,9 +23,12 @@ describe('the rack', () => {
       'Platform & Security',
       'Observability & Ops',
       'Analytics & ML',
+      'Deployment & Infrastructure',
     ])
     // Boundaries & Zones is every type the rack does not carry: a frame is
-    // drawn by right-click, never dragged — see docs/nesting.md.
+    // drawn by right-click, never dragged — see docs/nesting.md. Deployment &
+    // Infrastructure is half frames, so the shelf stands and only its two cards
+    // are on it.
     expect(screen.queryByRole('button', { name: 'Boundaries & Zones' })).toBeNull()
   })
 

@@ -18,6 +18,16 @@ describe('the enclose menu', () => {
     expect(screen.queryByText('Relational Database')).toBeNull()
   })
 
+  // The menu reads the flag, never a shelf, so the deployment frames arrived in
+  // it by being written down — and Instance, which shares their shelf and holds
+  // nothing, stayed out for the same reason.
+  it('spans the shelves, because it is the flag it asks about and not the shelf', () => {
+    menu()
+    expect(screen.getByText('Cluster / Orchestrator')).toBeTruthy()
+    expect(screen.getByText('Region / Zone')).toBeTruthy()
+    expect(screen.queryByText('Instance')).toBeNull()
+  })
+
   it('hands back the type that was picked', () => {
     const { onPick } = menu()
     fireEvent.click(screen.getByText('Domain / Bounded Context'))

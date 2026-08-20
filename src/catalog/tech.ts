@@ -386,4 +386,47 @@ export const TECH: Record<TypeKey, string[]> = {
   domain: [],
   'trust-zone': [],
   team: [],
+
+  // Deployment & Infrastructure. Two rows here answer with a value rather than
+  // a product — an environment is called Production and a region is called
+  // us-east-1 — so the shortlist offers the shape of the answer, and the vendor
+  // for the region, which is the part a mark can be drawn for.
+  environment: ['Production', 'Staging', 'Development', 'QA', 'Sandbox', 'Disaster Recovery'],
+  region: [
+    'AWS',
+    'Google Cloud',
+    'Microsoft Azure',
+    'Cloudflare',
+    'Oracle Cloud',
+    'DigitalOcean',
+    'Hetzner',
+  ],
+  cluster: [
+    'Kubernetes',
+    'Amazon EKS',
+    'Amazon ECS',
+    'Google Kubernetes Engine',
+    'Nomad',
+    'Docker Swarm',
+    'Red Hat OpenShift',
+  ],
+  'compute-node': [
+    'Amazon EC2',
+    'Kubernetes',
+    'Google Compute Engine',
+    'Fly.io',
+    'Firecracker',
+    'Proxmox',
+    'bare metal',
+  ],
+  'infra-node': [
+    'NGINX',
+    'HAProxy',
+    'AWS ELB',
+    'Envoy Proxy',
+    'Cloudflare',
+    'BIND',
+    'Traefik Proxy',
+  ],
+  instance: ['Docker', 'Kubernetes', 'Podman', 'containerd', 'AWS Lambda', 'Google Cloud Run'],
 }
