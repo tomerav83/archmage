@@ -1,0 +1,248 @@
+# Nesting
+
+Twelve of the 82 types are not boxes on the board, they are the board under
+other boxes: six Boundaries & Zones, six Deployment & Infrastructure.
+taxonomy.md calls that "a new mechanic, not a new sigil", and defers it to the
+end of the stack because it is the only thing left that is interaction work
+rather than a table.
+
+This is that mechanic. Read it beside [taxonomy.md](taxonomy.md); the branches
+here are its Phase D.
+
+## The mechanic, verified
+
+React Flow, v12.11.3 as installed, read from `node_modules` rather than from
+the guides:
+
+- **`parentId` is the whole of sub-flows.** A child's `position` becomes
+  parent-relative the moment it has one; `internals.positionAbsolute` is
+  derived. Nothing else about a node changes.
+- **`extent: 'parent'` is the clipping.** `calculateChildXYZ` clamps the child
+  to the parent's box on every frame, so half the done-criterion — *moves with
+  it and clips to it* — is two properties and no code.
+- **Parents must stand before their children in the `nodes` array.**
+  `adoptUserNodes` walks it once, and a child seen first warns *Parent node …
+  not found. Please make sure that parent nodes are in front of their child
+  nodes*. That ordering is an invariant this code has to keep. One sort, below.
+- **Depth handles z on its own.** Each root parent is lifted by 10 and every
+  child sits above its parent, in the default `zIndexMode`. No node in this
+  plan carries a `zIndex`, and a frame cannot cover the cards standing in it
+  whatever order they were dropped in.
+- **Nothing reparents by itself.** There is no drop-into-node event and no
+  auto-adopt: `getIntersectingNodes(node, partially?)` on the instance is the
+  hit test, in board coordinates, and the rest is ours. This is the branch's
+  real content.
+- **`NodeResizer` is already paid for.** It ships in the package's
+  `additional-components`, and `App.tsx` already imports the stylesheet it
+  wants. A frame with a size costs one component and two numbers.
+
+## A frame is not a card
+
+`BoundaryNode.tsx` is a band and a floor: the level·type strip across the top,
+the name beside it, and beneath that nothing at all — the body is the ground
+its children stand on.
+
+It carries no subtitle, because `fields.ts` already gives Boundaries & Zones no
+field beyond Name and Description — *a boundary is a name and a reason*. It
+carries no handles and no ward: neither Structurizr nor C4-PlantUML draws a
+relationship to a boundary, and a frame that answered a press with a ward would
+arm itself every time somebody dragged the thing.
+
+Node data is the element's, unchanged:
+
+```ts
+export type ElementNodeType = Node<
+  { type: TypeKey; label: string } & Partial<Record<FieldKey, string>>,
+  'element' | 'boundary'
+>
+```
+
+One union member. `ElementForm`, `fieldsFor`, `updateNodeData` and the whole
+drop path are untouched — a frame is edited by the same rail, off the same
+table, because it is the same data with a different renderer.
+
+Which renderer is a line in the registry, beside `level` and `category`:
+
+```ts
+export type ElementType = {
+  …
+  frame?: true // this type holds other elements — see docs/nesting.md
+}
+```
+
+Not a category test. Deployment & Infrastructure is half frames and half cards
+— a Cluster holds things, an Instance does not — so the fact belongs on the
+type, which is where every other fact about a type already lives. The drop
+reads it once:
+
+```ts
+type: TYPES[key].frame ? 'boundary' : 'element'
+```
+
+## `nesting.ts` — the reparenting, and all of it
+
+Two pure functions, so the hard part is tested without a canvas.
+
+```ts
+// The frame a dropped rect lands in: the innermost, since a region holds a
+// cluster holds a node. Deepest wins, and a frame never adopts itself.
+export const frameAt = (nodes: ElementNodeType[], at: XYPosition, self?: string) =>
+  nodes
+    .filter((n) => n.type === 'boundary' && n.id !== self && contains(n, at))
+    .sort((a, b) => depth(nodes, b.id) - depth(nodes, a.id))[0]
+
+// Reparent one node and hand back a board React Flow will accept: the position
+// rebased into the new parent's frame, and parents standing before children.
+export const nest = (nodes, id, parent) => sortByDepth(nodes.map(…))
+```
+
+Three decisions inside them:
+
+- **The centre of the card decides, not the cursor and not an overlap.**
+  `getIntersectingNodes` answers *which frames does this touch*, and a card
+  half out of a zone touches two. The card's own centre answers *which frame is
+  it in*, which is the question, and it is a `contains` on a rect this file can
+  compute itself.
+- **Rebasing is subtraction, both ways.** Into a frame, the new position is the
+  card's absolute position minus the frame's; out of one, it is the absolute
+  position as it stands. Absolute is read from
+  `getInternalNode(id).internals.positionAbsolute`, never from `position`,
+  which is exactly the value that has just changed meaning.
+- **The sort is by depth, and it is stable.** Parents before children is all
+  React Flow asks; ordering within a depth is the drop order, which is what a
+  stable `Array.prototype.sort` preserves for free. Walking the `parentId`
+  chain for a depth is a loop over a board that has tens of nodes, not
+  thousands.
+
+Two callers, both one line: `onNodeDragStop` reparents what was dragged, and
+the rack's `onDrop` drops straight into whichever frame is under the cursor.
+Dragging a card clear of every frame calls `nest(nodes, id, undefined)`, which
+is the un-nesting — no second path.
+
+## The bug nesting introduces
+
+`faces()` in `DiagramCanvas` picks which sides an edge leaves and lands on from
+`n.position`. That value is parent-relative the instant a node is nested, so an
+edge from a card inside a boundary to one outside it would leave the wrong
+flank — and it would do it silently, since the numbers stay plausible.
+
+The fix is the same value in board coordinates: `positionAbsolute` off the
+internal node. It lands in the nesting branch, not a later one, because that is
+the branch that breaks it, and `DiagramCanvas.test.ts` already has the fixture
+shape to catch it.
+
+## Deployment is a level, not a mechanic
+
+`c4.tsx` says it in a comment already: *there is no deployment level yet, so a
+type the catalogue also gives a Dep stands as a container until the deployment
+view lands*. This is that branch, and it is a table again once the frames work.
+
+`LEVELS` gains its fourth and last pigment — violet, the one hue not spoken for
+by context blue, container teal and component amber:
+
+```ts
+deployment: { title: 'Deployment', accent: '#8878c4', ink: '#a394e0' },
+```
+
+`catalog/deployment.tsx` is the twelfth shelf and the last one:
+Deployment Environment, Region / Zone, Cluster / Orchestrator and Compute Node
+are frames; Infrastructure Node and Instance are cards. `catalog/tech.ts` takes
+twelve new lines with them — it is a `Record<TypeKey, string[]>`, so a type
+without one is a compile error, which is the check working.
+
+Two existing types move. WAF / Firewall and Trust Zone are Dep-only in the
+catalogue and stand as containers today, which is what `c4.tsx` warns about in
+the same comment. Each becomes `level: 'deployment'`, one word apiece.
+
+The rack needs nothing. `SHELVES` already filters to the categories that have
+types in them, so both shelves light up the moment their files exist.
+
+## The one reference the model gains
+
+An Instance is *a container or system, deployed here* — the first field in the
+whole catalogue whose options are the board rather than the registry.
+
+It costs a `FieldKey`, a line in `fields.ts`, and three in `ElementForm`, which
+stamps the options from `getNodes()` exactly the way `fieldsFor` stamps the
+technology shortlist from `TECH`. `Form.tsx` learns nothing: a pick with
+options is a control that already exists.
+
+It stores the **name**, not the id — every other field on the board is a
+string, and persistence stays a dump of node data with nothing to resolve. The
+ceiling is honest: rename the container and the reference goes stale. Ids the
+day a reference has to survive a rename, and that is a migration of one field.
+
+## The stack
+
+Four branches. The first two are the interaction work; the last two are the
+tables that ride on it.
+
+**15. `feature/boundaries`** — the frame itself. `catalog/boundaries.tsx`,
+`BoundaryNode.tsx`, `NodeResizer`, the `frame` flag, the union member, the
+drop's one line. Nothing nests yet: a frame is a box you can drop, name and
+size. Done when a System Boundary lands on the board, takes a name from the
+rail and resizes.
+
+**16. `feature/nesting`** — `nesting.ts`, `onNodeDragStop`, the drop into a
+frame, `extent: 'parent'`, and the `faces()` fix. Done when a container dragged
+into a system boundary moves with it and clips to it, and an edge out of that
+container still leaves the right flank.
+
+**17. `feature/deployment-view`** — the fourth level, `catalog/deployment.tsx`,
+twelve `tech.ts` lines, WAF re-levelled. Done when a compute node sits in a
+cluster sits in a region.
+
+**18. `feature/instance-of`** — the reference above. Done when an Instance in a
+cluster can say which container it is, and the pick offers the containers on
+the board.
+
+Persistence follows, and is the reason the order is this one: it is the branch
+that has to know `parentId` and `instanceOf`, and a file format written before
+them is a file format migrated after them.
+
+## Testing
+
+`nesting.ts` is pure, and it is where the tests go: deepest frame wins, a frame
+never adopts itself, a card's centre decides when it straddles an edge,
+rebasing in and out is subtraction both ways, and the sorted board never puts a
+child before its parent. That last one is worth an assertion of its own — it is
+the invariant React Flow only tells you about in a console warning.
+
+`BoundaryNode.test.tsx` takes the `ElementNode.test.tsx` harness: the band
+reads *Container · System Boundary*, the name renders, and there are no
+handles.
+
+`DiagramCanvas.test.ts` gains the nested case for `faces()` — a card at
+`position: {x: 20, y: 20}` inside a frame at `{x: 400, y: 0}` joins to the
+right of a card at the origin, which is the assertion that fails today.
+
+The drag-stop wiring itself is React Flow's, and it is asserted through the
+pure function rather than through a synthesised pointer sequence over a
+measured canvas — the same bargain `useWard` made.
+
+## Out of scope
+
+**Relationships to and from a boundary.** Neither source tool draws them; a
+line to a zone means a line to something in it.
+
+**`expandParent`.** One flag, and it makes a frame grow rather than clip when a
+card is dragged past its edge. Clipping is the criterion in taxonomy.md and the
+behaviour every C4 tool has; the flag is there the day the other one is wanted.
+
+**Collapsing a frame to a card.** The zoom-out gesture every diagram tool
+eventually grows. It wants hidden edges rerouted to the frame, which is a
+graph problem, not a nesting one.
+
+**Auto-layout inside a frame.** Nothing here places anything; the board is
+hand-drawn, and taxonomy.md keeps it that way.
+
+**A card in two zones.** `parentId` is one. A card that is in the PCI zone and
+the EU region is a tags problem, and tags already exist.
+
+**Drawing a boundary by dragging a rectangle on empty ground.** Drop it and
+size it: two gestures the board already has, against a marquee that would have
+to argue with panning and selection for the same drag.
+
+**Deployment as a separate view.** Structurizr has views because it renders
+from a model; this is one board, and a level is pigment on it. Filtering the
+board by level is a rack question whenever somebody asks it.

@@ -9,9 +9,13 @@ import { Ward } from './Ward'
 // Flat, and keyed by what the panel can render: label is the element's own name
 // — "Orders Service"; technology is what it is built from — "Go 1.22"; the rest
 // are the fields its category carries. type stays a key into the registry.
+//
+// A frame is this same data drawn by BoundaryNode, so the second renderer costs
+// one union member and nothing else: the rail, the drop and the registry never
+// learn there are two kinds of node.
 export type ElementNodeType = Node<
   { type: TypeKey; label: string } & Partial<Record<FieldKey, string>>,
-  'element'
+  'element' | 'boundary'
 >
 
 const PORTS = [
