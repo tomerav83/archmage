@@ -376,6 +376,25 @@ body {
   height: 12px;
 }
 
+/* While a rectangle is being drawn, the cursor says so — the same convention
+   any draw tool uses, and the clearest sign the next press means something
+   different than it usually does. */
+.react-flow.drawing,
+.react-flow.drawing .react-flow__pane {
+  cursor: crosshair;
+}
+
+/* The rectangle itself: brass, the same pigment a selection's own registration
+   marks use, so it reads as "about to become a thing" rather than as a
+   generic marquee. No fill — what falls inside it is what shows through. */
+.draw-rect {
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px dashed var(--brass-lit);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--brass) 8%, transparent);
+}
+
 /* The enclose menu: what a selection adds up to, asked where you right-clicked.
    The rail's materials at the rack's scale — slate ground, brass hairline, mono
    engraving — so it reads as the same instrument rather than as browser chrome. */

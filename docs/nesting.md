@@ -82,18 +82,15 @@ reads it once:
 type: TYPES[key].frame ? 'boundary' : 'element'
 ```
 
-## The gesture: enclose what is already there
+## Two gestures in, one mechanic underneath
 
-A boundary is nearly always drawn *after* the boxes it holds. You place four
-services and only then notice they are one system, so the plan's first shape —
-drop an empty frame, then drag cards into it one at a time — had the order of
-work backwards.
+A boundary is arrived at two ways, and both start with a right-click and a
+dropdown rather than a trip to the rack.
 
-The rectangle you would draw around them is a rectangle the board already
-draws: shift-drag is a selection marquee and ctrl-click adds to it, both
-React Flow's own. And a right-click on a selection is a first-class event —
-`onSelectionContextMenu(event, nodes)` hands over exactly what was picked. So
-the gesture is:
+**Enclose what is already selected.** Select first — shift-drag marquees,
+ctrl-click adds, both React Flow's own — then right-click the selection.
+`onSelectionContextMenu(event, nodes)` hands over exactly what was picked, so
+the menu only has to name the kind:
 
 ```
 shift-drag over the cards  →  right-click  →  Enclose in ▸ System Boundary
@@ -101,34 +98,64 @@ shift-drag over the cards  →  right-click  →  Enclose in ▸ System Boundary
       a frame at the selection's own bounds, holding all of it, named in the rail
 ```
 
-Nothing is drawn by hand. A marquee-draw gesture would have to argue with
-panning and selection for the same drag, and it would only reproduce the
-selection box that already exists.
+**Draw the rectangle instead.** Right-click empty ground first, before
+selecting anything — the point clicked is the rectangle's fixed corner — pick
+a kind, then press, drag and release to grow it from there:
 
-The menu is `Enclose.tsx` and lists every type in the registry with a `frame`
-flag, so Phase D's deployment frames join it by landing in a table.
+```
+right-click empty ground  →  New Boundary ▸ System Boundary  →  drag, release
+        ↓ (anchor fixed here)                                        ↓
+                                        a frame at exactly that rectangle,
+                                        holding whatever's middle fell inside it
+```
+
+This is the one actually asked for — draw the box, catch what's in it — and
+it is the door for a boundary with nothing in it yet, since a rectangle drawn
+over empty ground still makes a frame. Escape calls it off before the release;
+too small a drag (a plain click through the menu) falls back to the same
+default size a rack drop starts a frame at, rather than minting something too
+small to hold anything.
+
+The press that grows the rectangle is captured — `setPointerCapture` on the
+same pointerdown that arms it — so it keeps reporting even once the cursor
+wanders off the canvas, over the rack say, the same bargain `useWard` already
+strikes for its own press. `panOnDrag` and `nodesDraggable` freeze for the
+gesture's whole span, from the moment a kind is picked, not just the drag
+itself — otherwise that same press would also try to pan the board. The
+rectangle itself renders live inside `<ViewportPortal>`, a plain div in the
+flow's own transform, so panning and zooming mid-drag move it for free instead
+of a screen-space overlay having to track the viewport by hand.
+
+Both menus are one component, `Enclose.tsx`, told what to say by a `title`
+prop — *Enclose in* over a selection, *New Boundary* over empty ground — and
+both list every type in the registry with a `frame` flag, so Phase D's
+deployment frames join either one by landing in a table.
 
 ## `nesting.ts` — the reparenting, and all of it
 
-Pure, so the hard part is tested without a canvas. Six functions, all of them
+Pure, so the hard part is tested without a canvas. Nine functions, all of them
 working in board coordinates and converting at the edges:
 
 ```ts
-place(nodes, node)                    // a frame joins at the front, a card at the back
-nest(nodes, ids, parent?)             // hand these to that frame, or back to the board
-frameAt(nodes, point, moving?)        // the innermost frame a point falls in
-reparent(nodes, ids)                  // after a drag: whatever their middles are over
-frameAround(nodes, ids, id, type)     // the frame the selection asks for
-enclose(nodes, ids, frame)            // place it, then hand it what it was drawn around
+place(nodes, node)                       // a frame joins at the front, a card at the back
+nest(nodes, ids, parent?)                // hand these to that frame, or back to the board
+frameAt(nodes, point, moving?)           // the innermost frame a point falls in
+reparent(nodes, ids)                     // after a drag: whatever their middles are over
+frameAround(nodes, ids, id, type)        // the frame a selection asks for
+frameFrom(nodes, id, type, rect)         // the frame a drawn rectangle asks for
+within(nodes, rect, parent?)             // which nodes that rectangle's middle caught
+rectBetween(a, b)                        // the rectangle between two points, either way dragged
+enclose(nodes, ids, frame)               // place it, then hand it what it was drawn around
 ```
 
-Five decisions inside them:
+Six decisions inside them:
 
 - **The middle of the card decides, not the cursor and not an overlap.**
   `getIntersectingNodes` answers *which frames does this touch*, and a card
   half out of a zone touches two. Its middle answers *which frame is it in*,
   which is the question — and it is a `contains` on a rect this file computes
-  itself, from positions it has already had to make absolute.
+  itself, from positions it has already had to make absolute. `within` asks
+  the identical question of a drawn rectangle rather than an existing frame.
 - **Rebasing is subtraction, both ways.** Into a frame, the new position is the
   node's board position minus the frame's; out of one, it is the board position
   as it stands. Board position is walked up the `parentId` chain rather than
@@ -139,15 +166,21 @@ Five decisions inside them:
   `Array.prototype.sort` preserves for free.
 - **A frame is never handed itself or one of its own children.** Walking up
   from the candidate is the cheap way to ask, and it is the one arrangement
-  React Flow cannot draw.
+  React Flow cannot draw. `within` asks the same question in reverse — a
+  rectangle drawn near the middle of a big region can have that region's own
+  middle fall inside it, and adopting an ancestor as a child is the same
+  cycle, just arrived at from a rectangle instead of a drag.
+- **A drawn frame takes its parent the way a drag would.** `frameFrom` calls
+  `frameAt` on the rectangle's own middle, so a boundary drawn inside a system
+  boundary stands inside it too — the identical rule `frameAround` already
+  applies to a selection's bounds, now applied to a rectangle nobody selected
+  anything to produce.
 
-`frameAround` also stands the new frame inside whatever holds the selection, so
-enclosing two components that already sit in a system boundary leaves the new
-container boundary inside that boundary rather than over it.
-
-Three callers, one line each: `onSelectionContextMenu` and `onNodeContextMenu`
-summon the menu, `onNodeDragStop` reparents everything that was dragged, and
-the rack's drop lands in whichever frame is under the cursor.
+Five callers: `onSelectionContextMenu` and `onNodeContextMenu` summon the
+enclose menu; `onPaneContextMenu` summons the other one and fixes the anchor;
+`onPointerDown/Move/Up` on the canvas track the rectangle once a kind is
+picked; `onNodeDragStop` reparents everything that was dragged; and the rack's
+drop lands in whichever frame is under the cursor.
 
 ## The bug nesting introduces
 
@@ -280,10 +313,21 @@ hand-drawn, and taxonomy.md keeps it that way.
 **A card in two zones.** `parentId` is one. A card that is in the PCI zone and
 the EU region is a tags problem, and tags already exist.
 
-**Drawing a boundary by dragging a rectangle on empty ground.** The rectangle
-worth drawing is the selection, and the board already draws that one — see the
-gesture above. A second marquee would have to argue with panning and selection
-for the same drag, to arrive where a right-click arrives.
+**A marquee drawn without arming it first.** A plain drag over empty ground
+still has to mean panning most of the time — the board is panned far more
+often than a boundary is drawn — so the rectangle tool only takes over the
+drag once a kind has been picked from the menu. Two ways in cover it: select
+first and enclose, or right-click and draw. A third that free-drags a
+rectangle before anyone has said what it is for would just be a worse way to
+ask the same question the menu already asks first.
+
+**Nesting a drawn frame by right-clicking an existing one's floor.** A
+boundary node fills its own hit area, so a right-click anywhere inside it,
+even where nothing is drawn, is a right-click *on that node* — the enclose
+menu for it alone, not the empty-ground one. Dropping a fresh boundary from
+the rack into an existing frame still nests it the ordinary way; only the
+draw-a-rectangle gesture is out of reach from inside another frame's floor,
+and it is a rarer case than the two doors already open.
 
 **Releasing a node from its frame by menu.** Dragging it out is the gesture,
 and it works because nothing is clipped. If clipping is ever wanted back, this

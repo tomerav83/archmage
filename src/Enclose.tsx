@@ -7,20 +7,22 @@ import { type ElementType, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
 const FRAMES = (Object.entries(TYPES) as [TypeKey, ElementType][]).filter(([, t]) => t.frame)
 
 /**
- * Right-click what you have selected and say what it adds up to.
- *
- * A boundary is nearly always drawn after the boxes it holds — you place four
- * services and only then notice they are one system — so this, rather than the
- * rack, is how most of them are made. The rectangle is the selection itself,
- * which is a gesture the board already has: shift-drag marquees, ctrl-click
- * adds. All the menu has to name is the kind.
+ * What a set of boxes adds up to, or what to draw next: the same picker
+ * answers both. Right-click a selection and it names what you already have —
+ * a boundary is nearly always drawn after the boxes it holds, so that is how
+ * most of them are made, off a gesture the board already has (shift-drag
+ * marquees, ctrl-click adds). Right-click empty ground and it names what you
+ * are about to draw instead: DiagramCanvas takes the pick as the cue to start
+ * tracking a rectangle from that same point, rather than enclosing anything.
  */
 export function Enclose({
   at,
+  title,
   onPick,
   onClose,
 }: {
   at: { x: number; y: number } | null
+  title: string
   onPick: (type: TypeKey) => void
   onClose: () => void
 }) {
@@ -46,7 +48,7 @@ export function Enclose({
 
   return (
     <div ref={menu} className="menu" style={{ left: at.x, top: at.y }}>
-      <div className="menu-title">Enclose in</div>
+      <div className="menu-title">{title}</div>
       {FRAMES.map(([key, type], i) => (
         <button
           key={key}

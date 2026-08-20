@@ -7,7 +7,7 @@ afterEach(cleanup)
 const menu = (onPick = vi.fn(), onClose = vi.fn()) => ({
   onPick,
   onClose,
-  ...render(<Enclose at={{ x: 40, y: 40 }} onPick={onPick} onClose={onClose} />),
+  ...render(<Enclose at={{ x: 40, y: 40 }} title="Enclose in" onPick={onPick} onClose={onClose} />),
 })
 
 describe('the enclose menu', () => {
@@ -37,7 +37,14 @@ describe('the enclose menu', () => {
   })
 
   it('is not there at all until something is right-clicked', () => {
-    const { container } = render(<Enclose at={null} onPick={vi.fn()} onClose={vi.fn()} />)
+    const { container } = render(
+      <Enclose at={null} title="Enclose in" onPick={vi.fn()} onClose={vi.fn()} />,
+    )
     expect(container.querySelector('.menu')).toBeNull()
+  })
+
+  it('says what it is for, so the same picker reads differently empty-handed', () => {
+    render(<Enclose at={{ x: 0, y: 0 }} title="New Boundary" onPick={vi.fn()} onClose={vi.fn()} />)
+    expect(screen.getByText('New Boundary')).toBeTruthy()
   })
 })

@@ -13,6 +13,10 @@ import type { ElementNodeType } from './ElementNode'
 const index = (nodes: ElementNodeType[]) => new Map(nodes.map((n) => [n.id, n]))
 type Index = ReturnType<typeof index>
 
+// A plain rectangle in board coordinates — what a rect() lookup answers for
+// one node, and what a drawn selection answers for a whole gesture.
+export type Rect = { x: number; y: number; width: number; height: number }
+
 // Where a node stands on the board, rather than inside its parent.
 const absolute = (at: Index, node: ElementNodeType): XYPosition => {
   const parent = node.parentId ? at.get(node.parentId) : undefined
@@ -158,3 +162,63 @@ export function frameAround(
 // Put that frame on the board and hand it what it was drawn around.
 export const enclose = (nodes: ElementNodeType[], ids: string[], frame: ElementNodeType) =>
   nest(place(nodes, frame), ids, frame.id)
+
+// The rectangle between two points, whichever way it was dragged — a right-
+// click fixes one corner and the pointer that follows fixes the other.
+export const rectBetween = (a: XYPosition, b: XYPosition): Rect => ({
+  x: Math.min(a.x, b.x),
+  y: Math.min(a.y, b.y),
+  width: Math.abs(b.x - a.x),
+  height: Math.abs(b.y - a.y),
+})
+
+/**
+ * A frame at exactly the rectangle drawn for it — the other way a boundary is
+ * made, next to frameAround's "already-selected" one: here the rectangle
+ * comes first and the membership follows from it, via within() below.
+ *
+ * It takes its parent the way a drag would: whichever frame the rectangle's
+ * own middle falls in, the same rule frameAt answers everywhere else, so a
+ * boundary drawn inside a system boundary stands inside it too.
+ */
+export function frameFrom(
+  nodes: ElementNodeType[],
+  id: string,
+  type: TypeKey,
+  drawn: Rect,
+): ElementNodeType {
+  const at = index(nodes)
+  const middleOfDrawn = { x: drawn.x + drawn.width / 2, y: drawn.y + drawn.height / 2 }
+  const parent = frameAt(nodes, middleOfDrawn)?.id
+  const held = parent ? absolute(at, at.get(parent) as ElementNodeType) : { x: 0, y: 0 }
+
+  return {
+    id,
+    type: 'boundary',
+    position: { x: drawn.x - held.x, y: drawn.y - held.y },
+    width: drawn.width,
+    height: drawn.height,
+    ...(parent && { parentId: parent }),
+    data: { type, label: TYPES[type].title },
+  }
+}
+
+/**
+ * Which existing nodes a drawn rectangle takes: whatever's middle falls
+ * inside it, the same rule a drag already answers with — a frame half in view
+ * is taken exactly when a card would be.
+ *
+ * `parent` is the frame the rectangle is about to stand inside, from
+ * frameFrom above. Excluded from what it takes, along with everything it
+ * itself stands inside: a rectangle drawn near the middle of a big region can
+ * have that region's own middle fall inside it too, and adopting an ancestor
+ * as a child is not a nesting, it is a cycle depth() would spin on forever.
+ */
+export function within(nodes: ElementNodeType[], rect: Rect, parent?: string): string[] {
+  const at = index(nodes)
+  const guard = parent ? at.get(parent) : undefined
+  return nodes
+    .filter((n) => inside(rect, middle(at, n)))
+    .filter((n) => !(guard && under(at, guard, n.id)))
+    .map((n) => n.id)
+}

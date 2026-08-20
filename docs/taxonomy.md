@@ -352,21 +352,27 @@ Touches a new `catalog/boundaries.tsx` and `BoundaryNode.tsx`, `c4.tsx`,
 `ElementNode.tsx`, `DiagramCanvas.tsx`, `index.css`.
 
 **16. `feature/nesting`**
-The mechanic, and the gesture that reaches for it. A boundary is drawn after
-the boxes it holds, so it is made from them: select what belongs together with
-the board's own marquee, right-click, and say what it adds up to — a frame
-appears at the selection's bounds and takes it. Dragging into a frame and out
-of one does the same work one card at a time, and a drop from the rack lands in
+The mechanic, and the two gestures that reach for it, both off a right-click
+and a dropdown rather than a trip to the rack. Select what belongs together
+with the board's own marquee, right-click the selection, and say what it adds
+up to — a frame appears at its bounds and takes it. Or right-click empty
+ground first, pick a kind, and press-drag-release a rectangle from that same
+point — a frame appears at exactly what was drawn, holding whatever's middle
+fell inside it, live as the rectangle grows. Dragging into a frame and out of
+one does the same work a card at a time, and a drop from the rack lands in
 whatever frame is under the cursor. The hit test, the rebased position and the
-parents-before-children sort are one pure module, which is also where the tests
-go. Nothing is clipped: React Flow's `extent` would cage a card in the frame it
-was put in. It carries one fix with it — `faces()` reads `position`, which
-stops meaning board coordinates the moment anything is nested — and one older
-one: a panel opened by a drop asked for the caret mid-drag, where a browser
-ignores it, so the first thing typed after a drop was dropped too.
+parents-before-children sort are one pure module, which is also where the
+tests go. Nothing is clipped: React Flow's `extent` would cage a card in the
+frame it was put in. It carries two fixes with it — `faces()` reads
+`position`, which stops meaning board coordinates the moment anything is
+nested, and a panel opened by a drop asking for the caret mid-drag, where a
+browser both ignores the focus and, once asked a task later instead, scrolls
+the whole board sideways to reach a panel still off-screen at
+`translateX(100%)`.
 Done when two selected cards enclose into a named system boundary and travel
-with it, a third dragged in joins them and dragged out leaves, and an edge out
-of a nested card still leaves the right flank.
+with it, a rectangle drawn over two more cards makes a second one that leaves
+a third card outside it, a card dragged in joins either and dragged out
+leaves, and an edge out of a nested card still leaves the right flank.
 Touches a new `nesting.ts` and `Enclose.tsx`, `DiagramCanvas.tsx`, `Form.tsx`,
 `index.css`.
 
