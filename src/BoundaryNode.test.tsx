@@ -43,7 +43,7 @@ describe('a frame', () => {
     expect(container.querySelector('.react-flow__handle')).toBeNull()
   })
 
-  it('dims when deprecated, and says nothing of planned — it is drawn dashed already', () => {
+  it('carries its status, both of them — the frame is drawn solid, so the dash is free', () => {
     const { container } = render(
       <Board data={{ type: 'enterprise', label: 'Big Bank', status: 'Deprecated' }} />,
     )
@@ -53,6 +53,8 @@ describe('a frame', () => {
     const planned = render(
       <Board data={{ type: 'enterprise', label: 'Big Bank', status: 'Planned' }} />,
     )
-    expect(planned.container.querySelector('.c4-frame')?.getAttribute('data-status')).toBeNull()
+    expect(planned.container.querySelector('.c4-frame')?.getAttribute('data-status')).toBe(
+      'Planned',
+    )
   })
 })

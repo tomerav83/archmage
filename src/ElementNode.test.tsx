@@ -1,6 +1,7 @@
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { ReactFlow, ReactFlowProvider, useNodesState } from '@xyflow/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { BoundaryNode } from './BoundaryNode'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 
 // One hand-written brand, so jsdom never parses the catalogue's five megabytes
@@ -12,7 +13,7 @@ vi.mock('simple-icons', () => ({
 
 afterEach(cleanup)
 
-const nodeTypes = { element: ElementNode }
+const nodeTypes = { element: ElementNode, boundary: BoundaryNode }
 
 // One card on a real board: the card reads node data and nothing else, so what
 // it prints is the whole of it.
@@ -80,6 +81,37 @@ describe('a card', () => {
     })
     expect(view?.querySelector('.c4-subtitle svg')).toBeNull()
     expect(view?.querySelector('.c4-subtitle .mono-mark')).toBeNull()
+  })
+
+  it('says so when a frame is holding it', () => {
+    // The board is one flat layer of nodes — a held card is nowhere inside its
+    // frame in the DOM — so the card is the only thing that can say it stands
+    // on sunken ground rather than on the canvas.
+    const { container } = render(
+      <ReactFlowProvider>
+        <ReactFlow
+          nodeTypes={nodeTypes}
+          nodes={[
+            {
+              id: 'f',
+              type: 'boundary',
+              position: { x: 0, y: 0 },
+              width: 360,
+              height: 240,
+              data: { type: 'system-boundary', label: 'Internet Banking' },
+            },
+            {
+              id: 'a',
+              type: 'element',
+              parentId: 'f',
+              position: { x: 30, y: 60 },
+              data: { type: 'container', label: 'Orders' },
+            },
+          ]}
+        />
+      </ReactFlowProvider>,
+    )
+    expect(container.querySelector('.c4-node')?.getAttribute('data-nested')).toBe('f')
   })
 
   it('says a deprecated element is deprecated', () => {

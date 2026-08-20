@@ -67,12 +67,14 @@ export const TYPES = {
 
 export type TypeKey = keyof typeof TYPES
 
-// What the rack drags onto the board. A frame is drawn, never dragged — see
-// docs/nesting.md — so it stands in TYPES for the registry and the enclose
-// menus and nowhere the rack reads from: not the shelves, not the search.
-export const PALETTE = (Object.entries(TYPES) as [TypeKey, ElementType][]).filter(
-  ([, t]) => !t.frame,
-)
+const ROWS = Object.entries(TYPES) as [TypeKey, ElementType][]
+
+// The catalogue split in two. A frame is drawn, never dragged — see
+// docs/nesting.md — so it stands in TYPES for the registry and in FRAMES for
+// the enclose menus, and nowhere the rack reads from: not the shelves, not the
+// search.
+export const PALETTE = ROWS.filter(([, t]) => !t.frame)
+export const FRAMES = ROWS.filter(([, t]) => t.frame)
 
 // Every mark is drawn on the same 24-unit grid at the same stroke, so they set
 // evenly beside 8px engraved type. The sigil carries the type; the pigment only

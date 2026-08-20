@@ -22,7 +22,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react'
 import { BoundaryNode } from './BoundaryNode'
@@ -37,7 +36,6 @@ import {
   frameAt,
   frameFrom,
   nest,
-  place,
   rectBetween,
   reparent,
   within,
@@ -87,32 +85,27 @@ export function DiagramCanvas() {
   // The node or edge the form follows. It follows one, and it is not modal.
   const [editing, setEditing] = useState<string | null>(null)
   const close = useCallback(() => setEditing(null), [])
-  // Where the enclose menu stands, and what it would enclose.
-  const [menu, setMenu] = useState<{ x: number; y: number; ids: string[] } | null>(null)
+  // Where the enclose menu stands, and which door it was opened by: `ids` is
+  // what was already chosen when something was right-clicked, `anchor` the
+  // point an empty-ground right-click fixed as the rectangle's first corner.
+  // One or the other, never both — two ways to a boundary, one picker.
+  const [menu, setMenu] = useState<{
+    x: number
+    y: number
+    ids?: string[]
+    anchor?: XYPosition
+  } | null>(null)
   const summon = (e: MouseEvent, ids: string[]) => {
     e.preventDefault()
     setMenu({ x: e.clientX, y: e.clientY, ids })
   }
 
-  // The other door in: right-click empty ground for a menu with nothing to
-  // enclose yet, and the point that opened it fixed as the rectangle's first
-  // corner. Kept apart from `menu` above rather than folded into one shape —
-  // an empty `ids` there would say "enclose nothing," which is a different
-  // question from "nothing is chosen yet."
-  const [placing, setPlacing] = useState<{ x: number; y: number; anchor: XYPosition } | null>(null)
   // Once a type is picked from that menu: the type, and the same anchor,
   // carried over. Stable for the whole gesture — only the corner below moves —
   // so the pointer-tracking effect mounts once per gesture and not once a move.
   const [drawing, setDrawing] = useState<{ type: TypeKey; anchor: XYPosition } | null>(null)
   // The rectangle's live far corner, while it is still being dragged.
   const [corner, setCorner] = useState<XYPosition | null>(null)
-
-  // screenToFlowPosition read fresh on every render without becoming a
-  // dependency of the effect below — the effect's own lifetime is the whole
-  // drag, and re-subscribing mid-drag on every render would drop the pointer
-  // capture the moment it re-ran.
-  const toFlow = useRef(screenToFlowPosition)
-  toFlow.current = screenToFlowPosition
 
   // Escape while a rectangle is being tracked calls it off — the menu already
   // has its own Escape while it is the thing showing; this covers the gesture
@@ -152,26 +145,23 @@ export function DiagramCanvas() {
     [from, getInternalNode, setEdges],
   )
 
-  // What the menu is for: a frame drawn around what is already on the board,
-  // which is how a boundary is usually arrived at.
-  const encloseIn = (type: TypeKey) => {
-    const ids = menu?.ids ?? []
+  // The pick. With a selection behind it the frame is drawn around what is
+  // already on the board and finished on the spot, which is how a boundary is
+  // usually arrived at. With an anchor instead there is nothing to enclose
+  // yet, so the pick arms the gesture rather than finishing it: the next press
+  // draws the rectangle from the point that was right-clicked.
+  const pick = (type: TypeKey) => {
+    const { ids, anchor } = menu ?? {}
+    setMenu(null)
+    if (anchor) return setDrawing({ type, anchor })
+    if (!ids) return
     const id = crypto.randomUUID()
     setNodes((nds) => {
       const frame = frameAround(nds, ids, id, type)
       return frame ? enclose(nds, ids, frame) : nds
     })
-    setMenu(null)
     // The frame you have just made is the one you want to name.
     setEditing(id)
-  }
-
-  // What the other menu is for: nothing to enclose yet, so picking a type
-  // arms the gesture instead of finishing it — the next press draws the
-  // rectangle from the point that was right-clicked.
-  const drawBoundary = (type: TypeKey) => {
-    if (placing) setDrawing({ type, anchor: placing.anchor })
-    setPlacing(null)
   }
 
   // The press that follows a pick: captured, so the rectangle keeps growing
@@ -184,15 +174,15 @@ export function DiagramCanvas() {
 
   const onPointerMove = (e: PointerEvent) => {
     if (!drawing) return
-    setCorner(toFlow.current({ x: e.clientX, y: e.clientY }))
+    setCorner(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
   }
 
   // Release finishes it: too small a drag reads as a plain click through the
-  // menu, and falls back to the same size a rack drop starts a frame at
-  // rather than minting something too small to hold anything.
+  // menu, and falls back to FRAME rather than minting something too small to
+  // hold anything.
   const onPointerUp = (e: PointerEvent) => {
     if (!drawing) return
-    const at = toFlow.current({ x: e.clientX, y: e.clientY })
+    const at = screenToFlowPosition({ x: e.clientX, y: e.clientY })
     const drawn = rectBetween(drawing.anchor, at)
     const rect =
       drawn.width < DRAG_SLOP_PX && drawn.height < DRAG_SLOP_PX
@@ -219,21 +209,13 @@ export function DiagramCanvas() {
     const type = readDraggedType(e.dataTransfer)
     if (!type) return
     const id = crypto.randomUUID()
-    const frame = TYPES[type].frame
     const at = screenToFlowPosition({ x: e.clientX, y: e.clientY })
     setNodes((nds) =>
       // Dropped over a frame is dropped into it, on the cursor rather than on
-      // the middle of a card nothing has measured yet.
+      // the middle of a card nothing has measured yet. Always a card: the rack
+      // faces no frame, so nothing that holds things can arrive by drag.
       nest(
-        place(nds, {
-          id,
-          type: frame ? 'boundary' : 'element',
-          position: at,
-          // A card is as big as what it says; a frame is as big as what it
-          // holds, so it is the one node that carries a size and is resized.
-          ...(frame && FRAME),
-          data: { type, label: TYPES[type].title },
-        }),
+        [...nds, { id, type: 'element', position: at, data: { type, label: TYPES[type].title } }],
         [id],
         frameAt(nds, at)?.id,
       ),
@@ -241,6 +223,9 @@ export function DiagramCanvas() {
     // The element you just placed is the one you want to name.
     setEditing(id)
   }
+
+  // The rectangle as it stands, while the pointer is still drawing it.
+  const drawn = drawing && corner && rectBetween(drawing.anchor, corner)
 
   return (
     <WardContext.Provider value={ward}>
@@ -301,11 +286,10 @@ export function DiagramCanvas() {
         }
         onPaneContextMenu={(e) => {
           e.preventDefault()
-          setMenu(null)
-          setPlacing({
+          setMenu({
             x: e.clientX,
             y: e.clientY,
-            anchor: toFlow.current({ x: e.clientX, y: e.clientY }),
+            anchor: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
           })
         }}
         onEdgeDoubleClick={(_, edge) => setEditing(edge.id)}
@@ -327,14 +311,14 @@ export function DiagramCanvas() {
             node — a plain div in the viewport's own transform rather than a
             screen-space overlay this would otherwise have to keep in sync
             with panning and zoom by hand. */}
-        {drawing && corner && (
+        {drawn && (
           <ViewportPortal>
             <div
               className="draw-rect"
               style={{
-                transform: `translate(${Math.min(drawing.anchor.x, corner.x)}px, ${Math.min(drawing.anchor.y, corner.y)}px)`,
-                width: Math.abs(corner.x - drawing.anchor.x),
-                height: Math.abs(corner.y - drawing.anchor.y),
+                transform: `translate(${drawn.x}px, ${drawn.y}px)`,
+                width: drawn.width,
+                height: drawn.height,
               }}
             />
           </ViewportPortal>
@@ -345,12 +329,11 @@ export function DiagramCanvas() {
           one is ever pointed at anything — an id is a node's or an edge's —
           so each slides on its own instead of one popping in where the other
           was. */}
-      <Enclose at={menu} title="Enclose in" onPick={encloseIn} onClose={() => setMenu(null)} />
       <Enclose
-        at={placing}
-        title="New Boundary"
-        onPick={drawBoundary}
-        onClose={() => setPlacing(null)}
+        at={menu}
+        title={menu?.ids ? 'Enclose in' : 'New Boundary'}
+        onPick={pick}
+        onClose={() => setMenu(null)}
       />
       <ElementForm node={nodes.find((n) => n.id === editing)} onClose={close} />
       <RelationshipForm edge={edges.find((e) => e.id === editing)} onClose={close} />

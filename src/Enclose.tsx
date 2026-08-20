@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { type ElementType, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
-
-// Every type that holds other elements, in catalogue order. The deployment
-// frames join this list by landing in the registry with a frame flag on them,
-// not by being named here.
-const FRAMES = (Object.entries(TYPES) as [TypeKey, ElementType][]).filter(([, t]) => t.frame)
+import { FRAMES, LEVELS, Sigil, type TypeKey } from './c4'
 
 /**
  * What a set of boxes adds up to, or what to draw next: the same picker

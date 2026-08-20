@@ -112,9 +112,9 @@ right-click empty ground  →  New Boundary ▸ System Boundary  →  drag, rele
 This is the one actually asked for — draw the box, catch what's in it — and
 it is the door for a boundary with nothing in it yet, since a rectangle drawn
 over empty ground still makes a frame. Escape calls it off before the release;
-too small a drag (a plain click through the menu) falls back to the same
-default size a rack drop starts a frame at, rather than minting something too
-small to hold anything.
+too small a drag (a plain click through the menu) falls back to `FRAME`, the
+default a frame is born at, rather than minting something too small to hold
+anything.
 
 The press that grows the rectangle is captured — `setPointerCapture` on the
 same pointerdown that arms it — so it keeps reporting even once the cursor
@@ -140,19 +140,18 @@ twelve — types on their own.
 
 ## `nesting.ts` — the reparenting, and all of it
 
-Pure, so the hard part is tested without a canvas. Nine functions, all of them
+Pure, so the hard part is tested without a canvas. Eight functions, all of them
 working in board coordinates and converting at the edges:
 
 ```ts
-place(nodes, node)                       // a frame joins at the front, a card at the back
 nest(nodes, ids, parent?)                // hand these to that frame, or back to the board
 frameAt(nodes, point, moving?)           // the innermost frame a point falls in
 reparent(nodes, ids)                     // after a drag: whatever their middles are over
 frameAround(nodes, ids, id, type)        // the frame a selection asks for
 frameFrom(nodes, id, type, rect)         // the frame a drawn rectangle asks for
-within(nodes, rect, parent?)             // which nodes that rectangle's middle caught
+within(nodes, box, parent?)              // which nodes that rectangle's middle caught
 rectBetween(a, b)                        // the rectangle between two points, either way dragged
-enclose(nodes, ids, frame)               // place it, then hand it what it was drawn around
+enclose(nodes, ids, frame)               // it joins at the front, then takes what it was drawn around
 ```
 
 Six decisions inside them:
@@ -293,9 +292,10 @@ the invariant React Flow only tells you about in a console warning.
 reads *Container · System Boundary*, the name renders, and there are no
 handles.
 
-`DiagramCanvas.test.ts` gains the nested case for `faces()` — a card at
-`position: {x: 20, y: 20}` inside a frame at `{x: 400, y: 0}` joins to the
-right of a card at the origin, which is the assertion that fails today.
+`DiagramCanvas.test.ts` moves its whole card helper onto
+`internals.positionAbsolute` and leaves `position` at the origin, so no test in
+that file can pass by reading a nested card's own position — the bug this
+phase would otherwise introduce.
 
 The drag-stop wiring itself is React Flow's, and it is asserted through the
 pure function rather than through a synthesised pointer sequence over a

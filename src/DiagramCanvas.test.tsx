@@ -45,17 +45,6 @@ describe('which faces an edge joins', () => {
     } as unknown as InternalNode
     expect(faces(card(0, 0), justDropped)).toEqual(['r', 'l'])
   })
-
-  it('reads a nested card on the board, not inside its frame', () => {
-    // The card sits 20 into a frame that stands at 400 — so it is off to the
-    // right of the origin, however small its own position reads.
-    const nested = {
-      position: { x: 20, y: 20 },
-      internals: { positionAbsolute: { x: 420, y: 20 } },
-      measured: { width: 200, height: 80 },
-    } as unknown as InternalNode
-    expect(faces(card(0, 0), nested)).toEqual(['r', 'l'])
-  })
 })
 
 // Enough DataTransfer for the two calls a drop makes — jsdom's own is

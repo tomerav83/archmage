@@ -15,9 +15,9 @@ export function BoundaryNode({ data, selected }: NodeProps<ElementNodeType>) {
   return (
     <div
       className="c4-frame"
-      // No Planned here: a frame is drawn dashed to begin with, which is where
-      // a card says planned. Deprecated still dims.
-      data-status={data.status === 'Deprecated' ? data.status : undefined}
+      // Same two as a card: the frame is drawn solid, so Planned has its dash
+      // back, and Deprecated dims.
+      data-status={data.status}
       style={{ '--accent': level.accent, '--accent-ink': level.ink }}
     >
       {/* A frame is sized rather than laid out, so it is the one thing on the

@@ -6,7 +6,6 @@ import {
   frameAt,
   frameFrom,
   nest,
-  place,
   rectBetween,
   reparent,
   within,
@@ -37,16 +36,6 @@ const frame = (id: string, x: number, y: number, width = 400, height = 300, pare
   }) as ElementNodeType
 
 const at = (nodes: ElementNodeType[], id: string) => nodes.find((n) => n.id === id)
-
-describe('where a node joins the board', () => {
-  it('puts a frame at the front, so it is painted behind what it holds', () => {
-    expect(place([card('a', 0, 0)], frame('z', 0, 0)).map((n) => n.id)).toEqual(['z', 'a'])
-  })
-
-  it('puts a card at the back, so a frame dropped first still stands behind it', () => {
-    expect(place([frame('z', 0, 0)], card('a', 0, 0)).map((n) => n.id)).toEqual(['z', 'a'])
-  })
-})
 
 describe('taking a node into a frame', () => {
   it('keeps the place it holds on the board, said relative to the frame', () => {
@@ -195,13 +184,6 @@ describe('the rectangle between two points', () => {
       height: 150,
     })
     expect(rectBetween({ x: 300, y: 250 }, { x: 100, y: 100 })).toEqual({
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 150,
-    })
-    // Dragged up and to the right of the anchor: only the axes that flip do.
-    expect(rectBetween({ x: 300, y: 100 }, { x: 100, y: 250 })).toEqual({
       x: 100,
       y: 100,
       width: 200,

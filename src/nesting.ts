@@ -34,10 +34,7 @@ const size = (n: ElementNodeType) => ({
 
 const rect = (at: Index, n: ElementNodeType) => ({ ...absolute(at, n), ...size(n) })
 
-const middle = (at: Index, n: ElementNodeType) => {
-  const r = rect(at, n)
-  return { x: r.x + r.width / 2, y: r.y + r.height / 2 }
-}
+const mid = (r: Rect) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 })
 
 const depth = (at: Index, node: ElementNodeType) => {
   let deep = 0
@@ -52,19 +49,13 @@ const under = (at: Index, frame: ElementNodeType, id?: string) => {
   return false
 }
 
-const inside = (r: ReturnType<typeof rect>, at: XYPosition) =>
+const inside = (r: Rect, at: XYPosition) =>
   at.x >= r.x && at.x <= r.x + r.width && at.y >= r.y && at.y <= r.y + r.height
-
-// A frame stands behind what it holds, and React Flow paints the array in the
-// order it is given — so a frame joins the board at the front and a card at the
-// back. Among frames it is drop order, which is all it can be.
-export const place = (nodes: ElementNodeType[], node: ElementNodeType) =>
-  node.type === 'boundary' ? [node, ...nodes] : [...nodes, node]
 
 // Parents before children: React Flow accepts a parent only where it stands
 // ahead of its children, and warns to the console rather than failing when it
-// does not. A sort by depth is the whole of that rule, and it is stable, so
-// place()'s order survives inside each rank.
+// does not. A sort by depth is the whole of that rule, and it is stable, so a
+// frame keeps the front of the array it was put at inside its own rank.
 const ordered = (nodes: ElementNodeType[]) => {
   const at = index(nodes)
   return [...nodes].sort((a, b) => depth(at, a) - depth(at, b))
@@ -108,7 +99,7 @@ export const reparent = (nodes: ElementNodeType[], ids: string[]) =>
     const at = index(nds)
     const node = at.get(id)
     if (!node) return nds
-    const frame = frameAt(nds, middle(at, node), id)
+    const frame = frameAt(nds, mid(rect(at, node)), id)
     // Same frame it was already in — including no frame at all, which is most
     // drags. Nothing to rewrite, and nothing to re-render.
     return frame?.id === node.parentId ? nds : nest(nds, [id], frame?.id)
@@ -116,6 +107,28 @@ export const reparent = (nodes: ElementNodeType[], ids: string[]) =>
 
 // Room for the band and the name over what is enclosed, an even hand elsewhere.
 const PAD = { top: 48, side: 28, foot: 28 }
+
+// A frame standing at that rectangle, said relative to whatever holds it. The
+// two makers below are the same node twice over; all they disagree about is
+// where the rectangle comes from and which frame takes the new one.
+const framed = (
+  at: Index,
+  id: string,
+  type: TypeKey,
+  box: Rect,
+  parent?: string,
+): ElementNodeType => {
+  const held = parent ? absolute(at, at.get(parent) as ElementNodeType) : { x: 0, y: 0 }
+  return {
+    id,
+    type: 'boundary',
+    position: { x: box.x - held.x, y: box.y - held.y },
+    width: box.width,
+    height: box.height,
+    ...(parent && { parentId: parent }),
+    data: { type, label: TYPES[type].title },
+  }
+}
 
 /**
  * A frame drawn around what is already on the board. This is how most
@@ -146,22 +159,15 @@ export function frameAround(
   const foot = Math.max(...rects.map((r) => r.y + r.height)) + PAD.foot
 
   const parent = taken.every((n) => n.parentId === first.parentId) ? first.parentId : undefined
-  const held = parent ? absolute(at, at.get(parent) as ElementNodeType) : { x: 0, y: 0 }
-
-  return {
-    id,
-    type: 'boundary',
-    position: { x: x - held.x, y: y - held.y },
-    width: right - x,
-    height: foot - y,
-    ...(parent && { parentId: parent }),
-    data: { type, label: TYPES[type].title },
-  }
+  return framed(at, id, type, { x, y, width: right - x, height: foot - y }, parent)
 }
 
-// Put that frame on the board and hand it what it was drawn around.
+// Put that frame on the board and hand it what it was drawn around. At the
+// front: React Flow paints the array in the order it is given, and a frame
+// stands behind what it holds. Among frames it is drawing order, which is all
+// it can be.
 export const enclose = (nodes: ElementNodeType[], ids: string[], frame: ElementNodeType) =>
-  nest(place(nodes, frame), ids, frame.id)
+  nest([frame, ...nodes], ids, frame.id)
 
 // The rectangle between two points, whichever way it was dragged — a right-
 // click fixes one corner and the pointer that follows fixes the other.
@@ -187,20 +193,7 @@ export function frameFrom(
   type: TypeKey,
   drawn: Rect,
 ): ElementNodeType {
-  const at = index(nodes)
-  const middleOfDrawn = { x: drawn.x + drawn.width / 2, y: drawn.y + drawn.height / 2 }
-  const parent = frameAt(nodes, middleOfDrawn)?.id
-  const held = parent ? absolute(at, at.get(parent) as ElementNodeType) : { x: 0, y: 0 }
-
-  return {
-    id,
-    type: 'boundary',
-    position: { x: drawn.x - held.x, y: drawn.y - held.y },
-    width: drawn.width,
-    height: drawn.height,
-    ...(parent && { parentId: parent }),
-    data: { type, label: TYPES[type].title },
-  }
+  return framed(index(nodes), id, type, drawn, frameAt(nodes, mid(drawn))?.id)
 }
 
 /**
@@ -214,11 +207,11 @@ export function frameFrom(
  * have that region's own middle fall inside it too, and adopting an ancestor
  * as a child is not a nesting, it is a cycle depth() would spin on forever.
  */
-export function within(nodes: ElementNodeType[], rect: Rect, parent?: string): string[] {
+export function within(nodes: ElementNodeType[], box: Rect, parent?: string): string[] {
   const at = index(nodes)
   const guard = parent ? at.get(parent) : undefined
   return nodes
-    .filter((n) => inside(rect, middle(at, n)))
+    .filter((n) => inside(box, mid(rect(at, n))))
     .filter((n) => !(guard && under(at, guard, n.id)))
     .map((n) => n.id)
 }
