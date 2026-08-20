@@ -32,7 +32,12 @@ export type Sheet = {
 const caret = (el: HTMLElement | null) => {
   if (!el) return
   setTimeout(() => {
-    el.focus()
+    // preventScroll, or the browser's own scroll-into-view runs on a panel
+    // still off-screen at translateX(100%) — a transform still counts toward
+    // the page's scrollable width even though the panel is display: hidden's
+    // cousin, visibility: hidden, so the browser happily scrolls the whole
+    // board sideways to reach it, and never scrolls back when the panel shuts.
+    el.focus({ preventScroll: true })
     // Selected, so a fresh drop is renamed by typing over the type's own title.
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
   })
