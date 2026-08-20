@@ -372,9 +372,11 @@ the whole board sideways to reach a panel still off-screen at
 Done when two selected cards enclose into a named system boundary and travel
 with it, a rectangle drawn over two more cards makes a second one that leaves
 a third card outside it, a card dragged in joins either and dragged out
-leaves, and an edge out of a nested card still leaves the right flank.
+leaves, an edge out of a nested card still leaves the right flank, and
+Boundaries & Zones stands in neither the rack's shelves nor its search — the
+two menus above are the only way to one.
 Touches a new `nesting.ts` and `Enclose.tsx`, `DiagramCanvas.tsx`, `Form.tsx`,
-`index.css`.
+`c4.tsx`, `ElementRack.tsx`, `useSearch.tsx`, `index.css`.
 
 **17. `feature/deployment-view`**
 The fourth and last level, and the twelfth shelf: environments, regions,

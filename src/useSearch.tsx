@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { type ElementType, TYPES, type TypeKey } from './c4'
-
-const ROWS = Object.entries(TYPES) as [TypeKey, ElementType][]
+import { PALETTE } from './c4'
 
 /**
  * Twelve shelves of eighty-two is a catalogue you look things up in, not one
@@ -16,7 +14,7 @@ export function useSearch() {
   return {
     // The type's own name and nothing else. Matching the shelf too meant one
     // letter of "Applications" brought back every application.
-    found: ROWS.filter(([, t]) => t.title.toLowerCase().includes(hit)),
+    found: PALETTE.filter(([, t]) => t.title.toLowerCase().includes(hit)),
     // Shut, until you type: a search is already a statement of what you want
     // standing.
     open: !!hit,

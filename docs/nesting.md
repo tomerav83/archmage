@@ -131,6 +131,13 @@ prop — *Enclose in* over a selection, *New Boundary* over empty ground — and
 both list every type in the registry with a `frame` flag, so Phase D's
 deployment frames join either one by landing in a table.
 
+Not a trip to the rack in the literal sense either: `PALETTE` in `c4.tsx` is
+`TYPES` with every `frame` filtered out, and it is what the rack's shelves and
+its search both read instead of `TYPES` directly, so a frame is unreachable
+from the rack rather than merely uninvited. One filter, read from two places,
+rather than two places each remembering to exclude the same six — and later
+twelve — types on their own.
+
 ## `nesting.ts` — the reparenting, and all of it
 
 Pure, so the hard part is tested without a canvas. Nine functions, all of them
