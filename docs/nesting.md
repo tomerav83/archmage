@@ -17,9 +17,12 @@ the guides:
 - **`parentId` is the whole of sub-flows.** A child's `position` becomes
   parent-relative the moment it has one; `internals.positionAbsolute` is
   derived. Nothing else about a node changes.
-- **`extent: 'parent'` is the clipping.** `calculateChildXYZ` clamps the child
-  to the parent's box on every frame, so half the done-criterion — *moves with
-  it and clips to it* — is two properties and no code.
+- **`extent: 'parent'` clips a child to its frame, and cages it there.**
+  `calculateChildXYZ` clamps the child on every frame of the drag, so a card
+  put in a boundary can never be dragged out of one: the drag stops at the
+  edge, the middle stays inside, and whatever decides the parent decides it is
+  still in. Verified in the browser, not reasoned about. A boundary holds what
+  is put in it and does not keep it, so nothing here sets an extent.
 - **Parents must stand before their children in the `nodes` array.**
   `adoptUserNodes` walks it once, and a child seen first warns *Parent node …
   not found. Please make sure that parent nodes are in front of their child
@@ -79,45 +82,72 @@ reads it once:
 type: TYPES[key].frame ? 'boundary' : 'element'
 ```
 
-## `nesting.ts` — the reparenting, and all of it
+## The gesture: enclose what is already there
 
-Two pure functions, so the hard part is tested without a canvas.
+A boundary is nearly always drawn *after* the boxes it holds. You place four
+services and only then notice they are one system, so the plan's first shape —
+drop an empty frame, then drag cards into it one at a time — had the order of
+work backwards.
 
-```ts
-// The frame a dropped rect lands in: the innermost, since a region holds a
-// cluster holds a node. Deepest wins, and a frame never adopts itself.
-export const frameAt = (nodes: ElementNodeType[], at: XYPosition, self?: string) =>
-  nodes
-    .filter((n) => n.type === 'boundary' && n.id !== self && contains(n, at))
-    .sort((a, b) => depth(nodes, b.id) - depth(nodes, a.id))[0]
+The rectangle you would draw around them is a rectangle the board already
+draws: shift-drag is a selection marquee and ctrl-click adds to it, both
+React Flow's own. And a right-click on a selection is a first-class event —
+`onSelectionContextMenu(event, nodes)` hands over exactly what was picked. So
+the gesture is:
 
-// Reparent one node and hand back a board React Flow will accept: the position
-// rebased into the new parent's frame, and parents standing before children.
-export const nest = (nodes, id, parent) => sortByDepth(nodes.map(…))
+```
+shift-drag over the cards  →  right-click  →  Enclose in ▸ System Boundary
+                              ↓
+      a frame at the selection's own bounds, holding all of it, named in the rail
 ```
 
-Three decisions inside them:
+Nothing is drawn by hand. A marquee-draw gesture would have to argue with
+panning and selection for the same drag, and it would only reproduce the
+selection box that already exists.
 
-- **The centre of the card decides, not the cursor and not an overlap.**
+The menu is `Enclose.tsx` and lists every type in the registry with a `frame`
+flag, so Phase D's deployment frames join it by landing in a table.
+
+## `nesting.ts` — the reparenting, and all of it
+
+Pure, so the hard part is tested without a canvas. Six functions, all of them
+working in board coordinates and converting at the edges:
+
+```ts
+place(nodes, node)                    // a frame joins at the front, a card at the back
+nest(nodes, ids, parent?)             // hand these to that frame, or back to the board
+frameAt(nodes, point, moving?)        // the innermost frame a point falls in
+reparent(nodes, ids)                  // after a drag: whatever their middles are over
+frameAround(nodes, ids, id, type)     // the frame the selection asks for
+enclose(nodes, ids, frame)            // place it, then hand it what it was drawn around
+```
+
+Five decisions inside them:
+
+- **The middle of the card decides, not the cursor and not an overlap.**
   `getIntersectingNodes` answers *which frames does this touch*, and a card
-  half out of a zone touches two. The card's own centre answers *which frame is
-  it in*, which is the question, and it is a `contains` on a rect this file can
-  compute itself.
+  half out of a zone touches two. Its middle answers *which frame is it in*,
+  which is the question — and it is a `contains` on a rect this file computes
+  itself, from positions it has already had to make absolute.
 - **Rebasing is subtraction, both ways.** Into a frame, the new position is the
-  card's absolute position minus the frame's; out of one, it is the absolute
-  position as it stands. Absolute is read from
-  `getInternalNode(id).internals.positionAbsolute`, never from `position`,
-  which is exactly the value that has just changed meaning.
+  node's board position minus the frame's; out of one, it is the board position
+  as it stands. Board position is walked up the `parentId` chain rather than
+  read off `position`, which is exactly the value that changes meaning.
+- **No extent.** See above: it is a cage, not a container.
 - **The sort is by depth, and it is stable.** Parents before children is all
-  React Flow asks; ordering within a depth is the drop order, which is what a
-  stable `Array.prototype.sort` preserves for free. Walking the `parentId`
-  chain for a depth is a loop over a board that has tens of nodes, not
-  thousands.
+  React Flow asks; ordering within a rank is `place`'s, which is what a stable
+  `Array.prototype.sort` preserves for free.
+- **A frame is never handed itself or one of its own children.** Walking up
+  from the candidate is the cheap way to ask, and it is the one arrangement
+  React Flow cannot draw.
 
-Two callers, both one line: `onNodeDragStop` reparents what was dragged, and
-the rack's `onDrop` drops straight into whichever frame is under the cursor.
-Dragging a card clear of every frame calls `nest(nodes, id, undefined)`, which
-is the un-nesting — no second path.
+`frameAround` also stands the new frame inside whatever holds the selection, so
+enclosing two components that already sit in a system boundary leaves the new
+container boundary inside that boundary rather than over it.
+
+Three callers, one line each: `onSelectionContextMenu` and `onNodeContextMenu`
+summon the menu, `onNodeDragStop` reparents everything that was dragged, and
+the rack's drop lands in whichever frame is under the cursor.
 
 ## The bug nesting introduces
 
@@ -126,10 +156,20 @@ is the un-nesting — no second path.
 edge from a card inside a boundary to one outside it would leave the wrong
 flank — and it would do it silently, since the numbers stay plausible.
 
-The fix is the same value in board coordinates: `positionAbsolute` off the
-internal node. It lands in the nesting branch, not a later one, because that is
-the branch that breaks it, and `DiagramCanvas.test.ts` already has the fixture
-shape to catch it.
+The fix is the same value in board coordinates: `positionAbsolute` off
+`getInternalNode`, which is what that method is for. It lands in the nesting
+branch, not a later one, because that is the branch that breaks it, and
+`DiagramCanvas.test.ts` now has a nested card in its fixtures.
+
+The edges themselves need nothing. An edge holds two ids and no coordinates, so
+nesting cannot disturb it, and children move with their frame — the lines
+follow because the anchors do.
+
+One older bug surfaced with it, and is fixed here for the same reason: the rail
+asks for the caret as the name field mounts, and a panel opened by a drop mounts
+while the drag is still running, where a browser ignores it. The first thing
+typed after a drop went on the floor perhaps two times in three. The caret is
+now asked for a task later, after the drag has ended.
 
 ## Deployment is a level, not a mechanic
 
@@ -183,10 +223,11 @@ drop's one line. Nothing nests yet: a frame is a box you can drop, name and
 size. Done when a System Boundary lands on the board, takes a name from the
 rail and resizes.
 
-**16. `feature/nesting`** — `nesting.ts`, `onNodeDragStop`, the drop into a
-frame, `extent: 'parent'`, and the `faces()` fix. Done when a container dragged
-into a system boundary moves with it and clips to it, and an edge out of that
-container still leaves the right flank.
+**16. `feature/nesting`** — `nesting.ts`, `Enclose.tsx`, the drag in and out,
+the drop into a frame, and the `faces()` fix. Done when two selected cards
+enclose into a named system boundary and travel with it, a third dragged in
+joins them and dragged out leaves, and an edge out of a nested card still
+leaves the right flank.
 
 **17. `feature/deployment-view`** — the fourth level, `catalog/deployment.tsx`,
 twelve `tech.ts` lines, WAF re-levelled. Done when a compute node sits in a
@@ -239,9 +280,14 @@ hand-drawn, and taxonomy.md keeps it that way.
 **A card in two zones.** `parentId` is one. A card that is in the PCI zone and
 the EU region is a tags problem, and tags already exist.
 
-**Drawing a boundary by dragging a rectangle on empty ground.** Drop it and
-size it: two gestures the board already has, against a marquee that would have
-to argue with panning and selection for the same drag.
+**Drawing a boundary by dragging a rectangle on empty ground.** The rectangle
+worth drawing is the selection, and the board already draws that one — see the
+gesture above. A second marquee would have to argue with panning and selection
+for the same drag, to arrive where a right-click arrives.
+
+**Releasing a node from its frame by menu.** Dragging it out is the gesture,
+and it works because nothing is clipped. If clipping is ever wanted back, this
+is the escape hatch it needs first.
 
 **Deployment as a separate view.** Structurizr has views because it renders
 from a model; this is one board, and a level is pigment on it. Filtering the

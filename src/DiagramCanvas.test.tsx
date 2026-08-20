@@ -1,15 +1,20 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { type Node, ReactFlowProvider } from '@xyflow/react'
+import { type InternalNode, ReactFlowProvider } from '@xyflow/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { DiagramCanvas, faces, place } from './DiagramCanvas'
+import { DiagramCanvas, faces } from './DiagramCanvas'
 import { setDraggedType } from './dragAndDrop'
-import type { ElementNodeType } from './ElementNode'
 
 afterEach(cleanup)
 
-// A card at the given position, 200×80 like the stylesheet makes them.
+// A card at the given place on the board, 200×80 like the stylesheet makes
+// them. The board is what an internal node carries: position is the node's own,
+// and it stops meaning board coordinates the moment a frame holds it.
 const card = (x: number, y: number, width = 200, height = 80) =>
-  ({ position: { x, y }, measured: { width, height } }) as Node
+  ({
+    position: { x: 0, y: 0 },
+    internals: { positionAbsolute: { x, y } },
+    measured: { width, height },
+  }) as unknown as InternalNode
 
 describe('which faces an edge joins', () => {
   it('leaves the flank when the cards are set side by side', () => {
@@ -34,38 +39,22 @@ describe('which faces an edge joins', () => {
   })
 
   it('takes a card the board has not measured yet as a point', () => {
-    const justDropped = { position: { x: 400, y: 0 } } as Node
+    const justDropped = {
+      position: { x: 0, y: 0 },
+      internals: { positionAbsolute: { x: 400, y: 0 } },
+    } as unknown as InternalNode
     expect(faces(card(0, 0), justDropped)).toEqual(['r', 'l'])
   })
-})
 
-// Only the two things place() reads: what kind of node it is, and which one it
-// is once it is on the board.
-const dropped = (id: string, type: 'element' | 'boundary') =>
-  ({ id, type, position: { x: 0, y: 0 }, data: {} }) as unknown as ElementNodeType
-
-describe('where a new node joins the board', () => {
-  it('puts a frame at the front, so it is painted behind what it holds', () => {
-    const board = place([dropped('card', 'element')], dropped('zone', 'boundary'))
-    expect(board.map((n) => n.id)).toEqual(['zone', 'card'])
-  })
-
-  it('puts a card at the back, so a frame dropped first still stands behind it', () => {
-    const board = place([dropped('zone', 'boundary')], dropped('card', 'element'))
-    expect(board.map((n) => n.id)).toEqual(['zone', 'card'])
-  })
-
-  it('keeps every frame ahead of every card, however they were dropped', () => {
-    // The invariant nesting will need of it: React Flow only accepts a parent
-    // that stands before its children in the array, and warns to the console
-    // rather than failing when it does not.
-    const board = [
-      dropped('card-1', 'element'),
-      dropped('zone-1', 'boundary'),
-      dropped('card-2', 'element'),
-      dropped('zone-2', 'boundary'),
-    ].reduce<ElementNodeType[]>((nds, n) => place(nds, n), [])
-    expect(board.map((n) => n.id)).toEqual(['zone-2', 'zone-1', 'card-1', 'card-2'])
+  it('reads a nested card on the board, not inside its frame', () => {
+    // The card sits 20 into a frame that stands at 400 — so it is off to the
+    // right of the origin, however small its own position reads.
+    const nested = {
+      position: { x: 20, y: 20 },
+      internals: { positionAbsolute: { x: 420, y: 20 } },
+      measured: { width: 200, height: 80 },
+    } as unknown as InternalNode
+    expect(faces(card(0, 0), nested)).toEqual(['r', 'l'])
   })
 })
 

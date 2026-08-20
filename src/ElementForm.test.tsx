@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { DiagramCanvas } from './DiagramCanvas'
@@ -35,22 +35,24 @@ const isOpen = (container: HTMLElement) =>
   container.querySelector('.form')?.hasAttribute('data-open')
 
 describe('the form', () => {
-  it('opens on a drop with the name under the caret', () => {
+  // The caret is asked for after the press that opened the panel rather than
+  // inside it — see Form.tsx — so it arrives a task later than the panel does.
+  it('opens on a drop with the name under the caret', async () => {
     const container = board()
     drop(container)
 
     expect(isOpen(container)).toBe(true)
     // The type's own title, selected, so a fresh drop is named by typing.
     expect(field('Name').value).toBe('Container')
-    expect(document.activeElement).toBe(field('Name'))
+    await waitFor(() => expect(document.activeElement).toBe(field('Name')))
   })
 
-  it('opens the row that was pressed and shuts the one behind it', () => {
+  it('opens the row that was pressed and shuts the one behind it', async () => {
     const container = board()
     drop(container)
     fireEvent.click(row('Technology'))
 
-    expect(document.activeElement).toBe(field('Technology'))
+    await waitFor(() => expect(document.activeElement).toBe(field('Technology')))
     // Name went back to being a row, and its value is what it says there.
     expect(screen.queryByLabelText('Name')).toBeNull()
     expect(row('Name').textContent).toContain('Container')
@@ -198,7 +200,7 @@ describe('the form', () => {
     expect(isOpen(container)).toBe(false)
   })
 
-  it('reopens on a double-click, on the name whatever row was left open', () => {
+  it('reopens on a double-click, on the name whatever row was left open', async () => {
     const container = board()
     drop(container)
     fireEvent.click(row('Owner'))
@@ -209,6 +211,6 @@ describe('the form', () => {
     fireEvent.doubleClick(container.querySelector('.c4-node') as Element)
 
     expect(isOpen(container)).toBe(true)
-    expect(document.activeElement).toBe(field('Name'))
+    await waitFor(() => expect(document.activeElement).toBe(field('Name')))
   })
 })

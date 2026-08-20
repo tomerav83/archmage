@@ -352,15 +352,23 @@ Touches a new `catalog/boundaries.tsx` and `BoundaryNode.tsx`, `c4.tsx`,
 `ElementNode.tsx`, `DiagramCanvas.tsx`, `index.css`.
 
 **16. `feature/nesting`**
-The mechanic. Drag an element into a frame and it reparents, moves with it and
-clips to it; drag it clear and it un-nests; drop from the rack lands in the
-frame under the cursor. The hit test, the rebased position and the
+The mechanic, and the gesture that reaches for it. A boundary is drawn after
+the boxes it holds, so it is made from them: select what belongs together with
+the board's own marquee, right-click, and say what it adds up to — a frame
+appears at the selection's bounds and takes it. Dragging into a frame and out
+of one does the same work one card at a time, and a drop from the rack lands in
+whatever frame is under the cursor. The hit test, the rebased position and the
 parents-before-children sort are one pure module, which is also where the tests
-go. It carries one fix with it: `faces()` reads `position`, which stops meaning
-board coordinates the moment anything is nested.
-Done when a container dragged into a system boundary moves with it and clips to
-it, and an edge out of that container still leaves the right flank.
-Touches a new `nesting.ts`, `DiagramCanvas.tsx`.
+go. Nothing is clipped: React Flow's `extent` would cage a card in the frame it
+was put in. It carries one fix with it — `faces()` reads `position`, which
+stops meaning board coordinates the moment anything is nested — and one older
+one: a panel opened by a drop asked for the caret mid-drag, where a browser
+ignores it, so the first thing typed after a drop was dropped too.
+Done when two selected cards enclose into a named system boundary and travel
+with it, a third dragged in joins them and dragged out leaves, and an edge out
+of a nested card still leaves the right flank.
+Touches a new `nesting.ts` and `Enclose.tsx`, `DiagramCanvas.tsx`, `Form.tsx`,
+`index.css`.
 
 **17. `feature/deployment-view`**
 The fourth and last level, and the twelfth shelf: environments, regions,

@@ -5,20 +5,22 @@ import {
   ConnectionMode,
   type DefaultEdgeOptions,
   type EdgeTypes,
+  type InternalNode,
   MarkerType,
-  type Node,
   type NodeTypes,
   ReactFlow,
   useEdgesState,
   useNodesState,
   useReactFlow,
 } from '@xyflow/react'
-import { type DragEvent, useCallback, useMemo, useState } from 'react'
+import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
 import { BoundaryNode } from './BoundaryNode'
-import { TYPES } from './c4'
+import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
 import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
+import { Enclose } from './Enclose'
+import { enclose, frameAround, frameAt, nest, place, reparent } from './nesting'
 import { RelationshipEdge, type RelationshipEdgeType } from './RelationshipEdge'
 import { RelationshipForm } from './RelationshipForm'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
@@ -34,14 +36,17 @@ const defaultEdgeOptions: DefaultEdgeOptions = {
   markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18 },
 }
 
-const centre = (n: Node) => ({
-  x: n.position.x + (n.measured?.width ?? 0) / 2,
-  y: n.position.y + (n.measured?.height ?? 0) / 2,
+// Board coordinates, never the node's own: a nested card's position is said
+// relative to the frame that holds it, and two cards in different frames would
+// otherwise be compared in two different grids.
+const centre = (n: InternalNode) => ({
+  x: n.internals.positionAbsolute.x + (n.measured?.width ?? 0) / 2,
+  y: n.internals.positionAbsolute.y + (n.measured?.height ?? 0) / 2,
 })
 
 // Which faces an edge leaves and lands on. The wider gap picks the axis, so
 // cards set side by side join flank to flank rather than over the top.
-export const faces = (a: Node, b: Node) => {
+export const faces = (a: InternalNode, b: InternalNode) => {
   const dx = centre(b).x - centre(a).x
   const dy = centre(b).y - centre(a).y
   if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? (['r', 'l'] as const) : (['l', 'r'] as const)
@@ -52,24 +57,21 @@ export const faces = (a: Node, b: Node) => {
 // cards, which is what a boundary usually turns out to hold.
 const FRAME = { width: 360, height: 240 }
 
-// A frame stands behind what it holds, and React Flow paints the array in the
-// order it is given — so a frame joins the board at the front and a card at the
-// back. That is also the order nesting will need of it: React Flow only accepts
-// a parent that stands before its children. Among frames it is drop order,
-// which is all it can be while no frame holds another; nesting replaces that
-// much with a sort by depth. See docs/nesting.md.
-export const place = (nodes: ElementNodeType[], node: ElementNodeType) =>
-  node.type === 'boundary' ? [node, ...nodes] : [...nodes, node]
-
 export function DiagramCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState<ElementNodeType>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<RelationshipEdgeType>([])
-  const { screenToFlowPosition, getNode } = useReactFlow()
+  const { screenToFlowPosition, getInternalNode } = useReactFlow()
   // The node whose ward is open, waiting for the press that answers it.
   const [from, setFrom] = useState<string | null>(null)
   // The node or edge the form follows. It follows one, and it is not modal.
   const [editing, setEditing] = useState<string | null>(null)
   const close = useCallback(() => setEditing(null), [])
+  // Where the enclose menu stands, and what it would enclose.
+  const [menu, setMenu] = useState<{ x: number; y: number; ids: string[] } | null>(null)
+  const summon = (e: MouseEvent, ids: string[]) => {
+    e.preventDefault()
+    setMenu({ x: e.clientX, y: e.clientY, ids })
+  }
 
   const ward = useMemo(
     () => ({
@@ -79,8 +81,8 @@ export function DiagramCanvas() {
       // Back on the node that opened the ward, the connection is called off.
       land: (target: string) => {
         setFrom(null)
-        const a = from && getNode(from)
-        const b = getNode(target)
+        const a = from && getInternalNode(from)
+        const b = getInternalNode(target)
         if (!a || !b || a.id === b.id) return
         const [sourceHandle, targetHandle] = faces(a, b)
         // Minted here rather than left to addEdge, so the line just drawn is
@@ -92,8 +94,22 @@ export function DiagramCanvas() {
         setEditing(id)
       },
     }),
-    [from, getNode, setEdges],
+    [from, getInternalNode, setEdges],
   )
+
+  // What the menu is for: a frame drawn around what is already on the board,
+  // which is how a boundary is usually arrived at.
+  const encloseIn = (type: TypeKey) => {
+    const ids = menu?.ids ?? []
+    const id = crypto.randomUUID()
+    setNodes((nds) => {
+      const frame = frameAround(nds, ids, id, type)
+      return frame ? enclose(nds, ids, frame) : nds
+    })
+    setMenu(null)
+    // The frame you have just made is the one you want to name.
+    setEditing(id)
+  }
 
   const onDragOver = (e: DragEvent) => {
     e.preventDefault()
@@ -106,16 +122,23 @@ export function DiagramCanvas() {
     if (!type) return
     const id = crypto.randomUUID()
     const frame = TYPES[type].frame
+    const at = screenToFlowPosition({ x: e.clientX, y: e.clientY })
     setNodes((nds) =>
-      place(nds, {
-        id,
-        type: frame ? 'boundary' : 'element',
-        position: screenToFlowPosition({ x: e.clientX, y: e.clientY }),
-        // A card is as big as what it says; a frame is as big as what it holds,
-        // so it is the one node that carries a size and can be resized.
-        ...(frame && FRAME),
-        data: { type, label: TYPES[type].title },
-      }),
+      // Dropped over a frame is dropped into it, on the cursor rather than on
+      // the middle of a card nothing has measured yet.
+      nest(
+        place(nds, {
+          id,
+          type: frame ? 'boundary' : 'element',
+          position: at,
+          // A card is as big as what it says; a frame is as big as what it
+          // holds, so it is the one node that carries a size and is resized.
+          ...(frame && FRAME),
+          data: { type, label: TYPES[type].title },
+        }),
+        [id],
+        frameAt(nds, at)?.id,
+      ),
     )
     // The element you just placed is the one you want to name.
     setEditing(id)
@@ -153,6 +176,30 @@ export function DiagramCanvas() {
         // the ward captures the pointer on every press, so the browser aims
         // click and dblclick at the card, which bubbles it on to React Flow.
         onNodeDoubleClick={(_, node) => setEditing(node.id)}
+        // A dragged node is taken by whatever frame it was let go over, and
+        // every node dragged with it is asked the same question.
+        onNodeDragStop={(_, __, dragged) =>
+          setNodes((nds) =>
+            reparent(
+              nds,
+              dragged.map((n) => n.id),
+            ),
+          )
+        }
+        // The gesture: select, right-click, say what they add up to. Right-click
+        // one node for the same menu over one thing, and empty ground for
+        // nothing — an empty frame is what the rack's shelf is for.
+        onNodeContextMenu={(e, node) => summon(e, [node.id])}
+        onSelectionContextMenu={(e, nodes) =>
+          summon(
+            e,
+            nodes.map((n) => n.id),
+          )
+        }
+        onPaneContextMenu={(e) => {
+          e.preventDefault()
+          setMenu(null)
+        }}
         onEdgeDoubleClick={(_, edge) => setEditing(edge.id)}
         // Empty ground — or an edge — calls off an open ward. A frame carries
         // no ward of its own, so as far as an open one is concerned it is
@@ -174,6 +221,7 @@ export function DiagramCanvas() {
           one is ever pointed at anything — an id is a node's or an edge's —
           so each slides on its own instead of one popping in where the other
           was. */}
+      <Enclose at={menu} onPick={encloseIn} onClose={() => setMenu(null)} />
       <ElementForm node={nodes.find((n) => n.id === editing)} onClose={close} />
       <RelationshipForm edge={edges.find((e) => e.id === editing)} onClose={close} />
     </WardContext.Provider>

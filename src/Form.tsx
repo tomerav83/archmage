@@ -23,10 +23,19 @@ export type Sheet = {
 
 // The open control takes the caret as it mounts, so the click that opens a row
 // is the only click it costs.
+//
+// After the press that opened it, never inside it: a panel opened by a drop
+// mounts while the drag is still running, and a browser ignores a focus asked
+// for mid-drag — so the caret asked for on the ref alone was dropped on the
+// floor along with the first thing typed. A task, not a frame: the drag ends
+// after the frame does.
 const caret = (el: HTMLElement | null) => {
-  el?.focus()
-  // Selected, so a fresh drop is renamed by typing over the type's own title.
-  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
+  if (!el) return
+  setTimeout(() => {
+    el.focus()
+    // Selected, so a fresh drop is renamed by typing over the type's own title.
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
+  })
 }
 
 export function Form({ subject, onClose }: { subject?: Sheet; onClose: () => void }) {

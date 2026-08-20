@@ -376,6 +376,62 @@ body {
   height: 12px;
 }
 
+/* The enclose menu: what a selection adds up to, asked where you right-clicked.
+   The rail's materials at the rack's scale — slate ground, brass hairline, mono
+   engraving — so it reads as the same instrument rather than as browser chrome. */
+.menu {
+  position: fixed;
+  z-index: 6;
+  min-width: 200px;
+  padding: 4px;
+  background: var(--g-850);
+  border: 1px solid var(--g-600);
+  border-radius: 2px;
+  box-shadow: 0 18px 34px -16px rgb(0 0 0 / 0.9);
+}
+
+.menu-title {
+  padding: 6px 8px 5px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  background: none;
+  border: 0;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+/* The mark wears the level's ink, the way it does on a faceplate; the row it
+   stands in lights the way an open field does. */
+.menu button svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--accent-ink);
+}
+
+.menu button:hover,
+.menu button:focus-visible {
+  outline: 0;
+  background: var(--g-750);
+  color: var(--ink);
+}
+
 /* A boundary is not a card, it is the ground the cards stand on: it fills the
    box React Flow sizes for it, and it is drawn dashed the way every C4 tool has
    drawn one since the first sketch. Band and name are the card's own, so a
