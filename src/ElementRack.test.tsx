@@ -23,6 +23,7 @@ describe('the rack', () => {
       'Platform & Security',
       'Observability & Ops',
       'Analytics & ML',
+      'Boundaries & Zones',
     ])
   })
 

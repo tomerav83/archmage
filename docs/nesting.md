@@ -150,8 +150,9 @@ are frames; Infrastructure Node and Instance are cards. `catalog/tech.ts` takes
 twelve new lines with them — it is a `Record<TypeKey, string[]>`, so a type
 without one is a compile error, which is the check working.
 
-One existing type moves: WAF / Firewall is Dep-only in the catalogue and stands
-as a container today. It becomes `level: 'deployment'`, one word in `edge.tsx`.
+Two existing types move. WAF / Firewall and Trust Zone are Dep-only in the
+catalogue and stand as containers today, which is what `c4.tsx` warns about in
+the same comment. Each becomes `level: 'deployment'`, one word apiece.
 
 The rack needs nothing. `SHELVES` already filters to the categories that have
 types in them, so both shelves light up the moment their files exist.

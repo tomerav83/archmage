@@ -376,4 +376,14 @@ export const TECH: Record<TypeKey, string[]> = {
     'Amazon Bedrock',
     'vLLM',
   ],
+
+  // Boundaries & Zones — a frame is a name and a reason, and fields.ts gives
+  // the whole shelf no technology row to fill. The lines stand anyway, because
+  // a type without one is the compile error that keeps this table honest.
+  enterprise: [],
+  'system-boundary': [],
+  'container-boundary': [],
+  domain: [],
+  'trust-zone': [],
+  team: [],
 }

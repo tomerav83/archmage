@@ -366,8 +366,8 @@ Touches a new `nesting.ts`, `DiagramCanvas.tsx`.
 The fourth and last level, and the twelfth shelf: environments, regions,
 clusters and compute nodes are frames, infrastructure nodes and instances are
 cards. `LEVELS` takes its fourth pigment, `tech.ts` takes twelve lines, and WAF
-/ Firewall moves to the level the catalogue always gave it. Nesting is
-inherited, not reinvented.
+/ Firewall and Trust Zone move to the level the catalogue always gave them.
+Nesting is inherited, not reinvented.
 Done when a compute node sits in a cluster sits in a region.
 Touches a new `catalog/deployment.tsx`, `c4.tsx`, `catalog/tech.ts`,
 `catalog/edge.tsx`.
