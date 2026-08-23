@@ -23,7 +23,7 @@ export function ElementForm({ node, onClose }: { node?: ElementNodeType; onClose
         // The same band the card wears, in the same pigment.
         band: (
           <>
-            <Sigil type={type} />
+            <Sigil paths={type.sigil} />
             <span>
               {level.title} · {type.title}
             </span>

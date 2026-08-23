@@ -18,7 +18,7 @@ import type { Category } from './fields'
 // not a type — it is a technology on a Relational Database, free text on the
 // node. That is what keeps a large catalogue a table instead of an icon pack.
 
-export type Level = {
+type Level = {
   title: string
   accent: string // stripe and band tint
   ink: string // the same pigment, lifted for 8px type on a dark card
@@ -82,7 +82,7 @@ export const FRAMES = ROWS.filter(([, t]) => t.frame)
 // Every mark is drawn on the same 24-unit grid at the same stroke, so they set
 // evenly beside 8px engraved type. The sigil carries the type; the pigment only
 // confirms the level — a diagram still reads in greyscale.
-export function Sigil({ type }: { type: ElementType }) {
+export function Sigil({ paths }: { paths: ReactNode }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export function Sigil({ type }: { type: ElementType }) {
       strokeLinecap="square"
       aria-hidden="true"
     >
-      {type.sigil}
+      {paths}
     </svg>
   )
 }

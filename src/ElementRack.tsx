@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { LEVELS, PALETTE, Sigil } from './c4'
+import { MARKS } from './catalog/marks'
 import { setDraggedType } from './dragAndDrop'
 import { CATEGORIES, type Category } from './fields'
-import { useSearch } from './useSearch'
 
 // The astrolabe. Brand chrome, not an element — it never appears on a node.
 function BrandMark() {
@@ -33,12 +33,22 @@ const SHELVES = CATEGORIES.filter((category) => PALETTE.some(([, t]) => t.catego
  * devices on a board, not files in a drawer. A tab stands its shelf, the same
  * tab shuts it, and a search stands every shelf at once. A faceplate drags
  * onto the board the same as the rail's blocks ever did.
+ *
+ * The tabs are a device front: a mark over one word, a cell of one width each,
+ * the standing one lit. What a shelf is called in the catalogue is on the
+ * button's title — see catalog/marks.tsx.
  */
 export function ElementRack() {
-  const { found, open, box } = useSearch()
+  const [query, setQuery] = useState('')
   const [shelf, setShelf] = useState<Category | null>(null)
 
-  const faced = open ? found : found.filter(([, t]) => t.category === shelf)
+  // The type's own name and nothing else. Matching the shelf too meant one
+  // letter of "Applications" brought back every application.
+  const hit = query.trim().toLowerCase()
+  const found = PALETTE.filter(([, t]) => t.title.toLowerCase().includes(hit))
+  // Shut, until you type: a search is already a statement of what you want
+  // standing.
+  const faced = hit ? found : found.filter(([, t]) => t.category === shelf)
 
   return (
     <aside className="rack" onKeyDown={(e) => e.key === 'Escape' && setShelf(null)}>
@@ -46,18 +56,30 @@ export function ElementRack() {
         <BrandMark />
         <span className="rack-name">Archmage</span>
         <nav className="rack-tabs">
-          {SHELVES.map((category) => (
-            <button
-              key={category}
-              type="button"
-              aria-pressed={category === shelf}
-              onClick={() => setShelf(category === shelf ? null : category)}
-            >
-              {category}
-            </button>
-          ))}
+          {SHELVES.map((category) => {
+            const { short, mark } = MARKS[category]
+            return (
+              <button
+                key={category}
+                type="button"
+                title={category}
+                aria-pressed={category === shelf}
+                onClick={() => setShelf(category === shelf ? null : category)}
+              >
+                <Sigil paths={mark} />
+                {short}
+              </button>
+            )
+          })}
         </nav>
-        {box}
+        <input
+          className="rack-search"
+          type="search"
+          aria-label="Search elements"
+          placeholder="Search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </header>
       {faced.length > 0 && (
         <ul className="rack-row">
@@ -72,7 +94,7 @@ export function ElementRack() {
               onDragEnd={() => setShelf(null)}
             >
               <span className="fp-level">{LEVELS[t.level].title}</span>
-              <Sigil type={t} />
+              <Sigil paths={t.sigil} />
               <span className="fp-name">{t.title}</span>
             </li>
           ))}

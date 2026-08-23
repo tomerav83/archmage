@@ -12,7 +12,25 @@ const names = (c: HTMLElement) => [...c.querySelectorAll('.fp-name')].map((n) =>
 describe('the rack', () => {
   it('offers a tab per stocked shelf, in catalogue order', () => {
     const { container } = render(<ElementRack />)
-    expect([...container.querySelectorAll('.rack-tabs button')].map((b) => b.textContent)).toEqual([
+    const tabs = [...container.querySelectorAll<HTMLButtonElement>('.rack-tabs button')]
+
+    // One word under the mark…
+    expect(tabs.map((b) => b.textContent)).toEqual([
+      'Actors',
+      'Apps',
+      'APIs',
+      'Data',
+      'Cache',
+      'Messaging',
+      'Edge',
+      'Platform',
+      'Ops',
+      'Analytics',
+      'Deploy',
+    ])
+    // …and the catalogue's own name for the shelf on hover, so the short one
+    // is an abbreviation and never a rename.
+    expect(tabs.map((b) => b.title)).toEqual([
       'Actors & Externals',
       'Applications',
       'APIs & Contracts',
@@ -29,14 +47,14 @@ describe('the rack', () => {
     // drawn by right-click, never dragged — see docs/nesting.md. Deployment &
     // Infrastructure is half frames, so the shelf stands and only its two cards
     // are on it.
-    expect(screen.queryByRole('button', { name: 'Boundaries & Zones' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Boundaries' })).toBeNull()
   })
 
   it('stands one shelf at a time, and the same tab shuts it', () => {
     const { container } = render(<ElementRack />)
     expect(names(container)).toEqual([])
 
-    fireEvent.click(tab('Caching'))
+    fireEvent.click(tab('Cache'))
     expect(names(container)).toEqual([
       'In-Memory Cache',
       'Distributed Cache',
@@ -44,22 +62,22 @@ describe('the rack', () => {
       'Read Replica',
     ])
 
-    fireEvent.click(tab('Actors & Externals'))
+    fireEvent.click(tab('Actors'))
     expect(names(container)).toContain('Person')
     expect(names(container)).not.toContain('In-Memory Cache')
 
-    fireEvent.click(tab('Actors & Externals'))
+    fireEvent.click(tab('Actors'))
     expect(names(container)).toEqual([])
   })
 
   it('shuts the standing shelf on Escape, and stands through any other key', () => {
     const { container } = render(<ElementRack />)
 
-    fireEvent.click(tab('Caching'))
-    fireEvent.keyDown(tab('Caching'), { key: 'a' })
+    fireEvent.click(tab('Cache'))
+    fireEvent.keyDown(tab('Cache'), { key: 'a' })
     expect(names(container)).toContain('In-Memory Cache')
 
-    fireEvent.keyDown(tab('Caching'), { key: 'Escape' })
+    fireEvent.keyDown(tab('Cache'), { key: 'Escape' })
     expect(names(container)).toEqual([])
   })
 
@@ -103,7 +121,7 @@ describe('the rack', () => {
       },
     }
 
-    fireEvent.click(tab('Actors & Externals'))
+    fireEvent.click(tab('Actors'))
     fireEvent.dragStart(screen.getByText('Person'), { dataTransfer })
     expect(written).toEqual({ 'application/x-archmage-element': 'person' })
 
