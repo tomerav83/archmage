@@ -133,9 +133,6 @@ export const CATEGORIES = Object.keys(CATEGORY_FIELDS) as Category[]
 export const fieldsFor = (type: TypeKey): Field[] =>
   type === 'system'
     ? []
-    : [
-        ...CATEGORY_FIELDS[TYPES[type].category].map((f) =>
-          f.key === 'technology' ? { ...f, options: TECH[type] } : f,
-        ),
-        ...(EXTRA[type] ? [EXTRA[type]] : []),
-      ]
+    : CATEGORY_FIELDS[TYPES[type].category]
+        .map<Field>((f) => (f.key === 'technology' ? { ...f, options: TECH[type] } : f))
+        .concat(EXTRA[type] ?? [])

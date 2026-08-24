@@ -42,13 +42,14 @@ export function ElementRack() {
   const [query, setQuery] = useState('')
   const [shelf, setShelf] = useState<Category | null>(null)
 
-  // The type's own name and nothing else. Matching the shelf too meant one
-  // letter of "Applications" brought back every application.
+  // Searched, it is the type's own name and nothing else — matching the shelf
+  // too meant one letter of "Applications" brought back every application.
+  // Unsearched, it is the standing shelf, and shut until you type: a search is
+  // already a statement of what you want standing.
   const hit = query.trim().toLowerCase()
-  const found = PALETTE.filter(([, t]) => t.title.toLowerCase().includes(hit))
-  // Shut, until you type: a search is already a statement of what you want
-  // standing.
-  const faced = hit ? found : found.filter(([, t]) => t.category === shelf)
+  const faced = PALETTE.filter(([, t]) =>
+    hit ? t.title.toLowerCase().includes(hit) : t.category === shelf,
+  )
 
   return (
     <aside className="rack" onKeyDown={(e) => e.key === 'Escape' && setShelf(null)}>

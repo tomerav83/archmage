@@ -169,49 +169,21 @@ export function frameAround(
 export const enclose = (nodes: ElementNodeType[], ids: string[], frame: ElementNodeType) =>
   nest([frame, ...nodes], ids, frame.id)
 
-// The rectangle between two points, whichever way it was dragged — a right-
-// click fixes one corner and the pointer that follows fixes the other.
-export const rectBetween = (a: XYPosition, b: XYPosition): Rect => ({
-  x: Math.min(a.x, b.x),
-  y: Math.min(a.y, b.y),
-  width: Math.abs(b.x - a.x),
-  height: Math.abs(b.y - a.y),
-})
-
 /**
- * A frame at exactly the rectangle drawn for it — the other way a boundary is
- * made, next to frameAround's "already-selected" one: here the rectangle
- * comes first and the membership follows from it, via within() below.
+ * A frame at exactly the box it is given — the other way a boundary is made,
+ * next to frameAround's "already-selected" one: an empty frame stood on empty
+ * ground, at the size a rack drop starts one at, for the boxes to be drawn
+ * into rather than around.
  *
- * It takes its parent the way a drag would: whichever frame the rectangle's
- * own middle falls in, the same rule frameAt answers everywhere else, so a
- * boundary drawn inside a system boundary stands inside it too.
+ * It takes its parent the way a drag would: whichever frame the box's own
+ * middle falls in, the same rule frameAt answers everywhere else, so a
+ * boundary made inside a system boundary stands inside it too.
  */
 export function frameFrom(
   nodes: ElementNodeType[],
   id: string,
   type: TypeKey,
-  drawn: Rect,
+  box: Rect,
 ): ElementNodeType {
-  return framed(index(nodes), id, type, drawn, frameAt(nodes, mid(drawn))?.id)
-}
-
-/**
- * Which existing nodes a drawn rectangle takes: whatever's middle falls
- * inside it, the same rule a drag already answers with — a frame half in view
- * is taken exactly when a card would be.
- *
- * `parent` is the frame the rectangle is about to stand inside, from
- * frameFrom above. Excluded from what it takes, along with everything it
- * itself stands inside: a rectangle drawn near the middle of a big region can
- * have that region's own middle fall inside it too, and adopting an ancestor
- * as a child is not a nesting, it is a cycle depth() would spin on forever.
- */
-export function within(nodes: ElementNodeType[], box: Rect, parent?: string): string[] {
-  const at = index(nodes)
-  const guard = parent ? at.get(parent) : undefined
-  return nodes
-    .filter((n) => inside(box, mid(rect(at, n))))
-    .filter((n) => !(guard && under(at, guard, n.id)))
-    .map((n) => n.id)
+  return framed(index(nodes), id, type, box, frameAt(nodes, mid(box))?.id)
 }

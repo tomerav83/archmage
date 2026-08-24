@@ -32,7 +32,7 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 }
 
-// jsdom has neither, and every press this app makes takes the pointer: the
-// ward's, and the one that grows a drawn rectangle.
+// jsdom has neither, and the ward takes the pointer on every press a card
+// gets, so the connection lands even off the card it was aimed at.
 Element.prototype.setPointerCapture = () => {}
 Element.prototype.releasePointerCapture = () => {}
