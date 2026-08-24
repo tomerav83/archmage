@@ -22,6 +22,10 @@
   /* the rack's shut height: the bar is a row of marks, and the attribution
      steps up onto it */
   --bar: 58px;
+  /* the rail's width, open or shut — shared with the rack, which reserves it
+     the moment the rail does, so a tab never stands where the rail is about
+     to cover it */
+  --form-w: 288px;
 
   --ink: #e9e6df;
   --ink-dim: #9ba09f;
@@ -167,6 +171,14 @@ body {
   min-width: 0;
   margin-left: 8px;
   column-gap: 4px;
+}
+
+/* The rail covers the sill's corner while it is open — see .form — and a
+   standing tab must never be the thing it covers. Reserved the instant the
+   rail is, so the row wraps a line earlier rather than losing its last tab
+   under glass. */
+.diagram-editor:has(.form[data-open]) .rack-tabs {
+  margin-right: var(--form-w);
 }
 
 .rack-tabs button {
@@ -589,7 +601,7 @@ body {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 288px;
+  width: var(--form-w);
   /* over the rack's corner of the sill: while you are saying, saying wins */
   z-index: 1;
   display: flex;
