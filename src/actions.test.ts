@@ -3,6 +3,7 @@ import {
   ACTIONS,
   type Action,
   actionsFor,
+  becomes,
   type Drop,
   drops,
   type Fanout,
@@ -183,9 +184,64 @@ describe('the fanout', () => {
   })
 })
 
+// The same box with the same lines into it. Replacing a card by hand means
+// drawing every one of those again, which is the cost this takes away.
+describe('the swap in place', () => {
+  it('keeps every field the new type still has a slot for', () => {
+    const cache = card('a', 'memory-cache', {
+      description: 'session store',
+      owner: 'Payments team',
+      status: 'Live',
+      ttl: '5m',
+    })
+    const after = becomes(cache, 'distributed-cache')
+    expect(after.description).toBe('session store')
+    expect(after.owner).toBe('Payments team')
+    expect(after.status).toBe('Live')
+    expect(after.type).toBe('distributed-cache')
+    // Caching keeps its TTL across the shelf, so this one survives
+    expect(after.ttl).toBe('5m')
+  })
+
+  it('sheds the fields the new type has no slot for', () => {
+    // A cache's TTL means nothing to a stream processor.
+    const cache = card('a', 'memory-cache', { ttl: '5m' })
+    expect(becomes(cache, 'stream-processor').ttl).toBeUndefined()
+  })
+
+  // The same rule place() uses: the picker has no free-text line, so a value
+  // it cannot offer is a value nobody could have typed.
+  it('keeps the technology only where the new type has a line for it', () => {
+    expect(
+      becomes(card('a', 'memory-cache', { technology: 'Redis' }), 'distributed-cache').technology,
+    ).toBe('Redis')
+    expect(
+      becomes(card('a', 'memory-cache', { technology: 'Memcached' }), 'stream-processor')
+        .technology,
+    ).toBeUndefined()
+  })
+
+  it('takes the new title where nobody had named it', () => {
+    const bare = card('a', 'memory-cache', { label: TYPES['memory-cache'].title })
+    expect(becomes(bare, 'distributed-cache').label).toBe(TYPES['distributed-cache'].title)
+  })
+
+  it('keeps the name somebody gave it', () => {
+    const named = card('a', 'memory-cache', { label: 'Session Store' })
+    expect(becomes(named, 'distributed-cache').label).toBe('Session Store')
+  })
+
+  // Becoming what you already are is not a move, so the row is not offered.
+  it('is kept off the menu of the thing it would turn into', () => {
+    const titles = (type: string) => actionsFor(card('a', type)).map((a) => a.title)
+    expect(titles('memory-cache')).toContain('Make it distributed')
+    expect(titles('distributed-cache')).not.toContain('Make it distributed')
+  })
+})
+
 describe('what a thing can have done to it', () => {
   it('is its shelf row, so shelf-mates offer the same verbs', () => {
-    expect(actionsFor(card('a', 'worker'))).toBe(actionsFor(card('b', 'api-service')))
+    expect(actionsFor(card('a', 'worker'))).toEqual(actionsFor(card('b', 'api-service')))
   })
 
   it('is nothing at all for a frame, which is enclosed in rather than acted on', () => {

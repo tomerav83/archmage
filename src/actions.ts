@@ -1,7 +1,7 @@
 import { TYPES, type TypeKey } from './c4'
 import { TECH } from './catalog/tech'
 import type { ElementNodeType } from './ElementNode'
-import type { Category } from './fields'
+import { CATALOG, type Category, COMMON, type FieldKey, fieldsFor } from './fields'
 import type { RelationshipEdgeType } from './RelationshipEdge'
 
 /**
@@ -42,11 +42,21 @@ export type Fanout = {
   instances: string
 }
 
-export type Action = Drop | Fanout
+// A row that drops nothing either, and changes what the subject already is.
+// An in-memory cache that becomes a distributed one is the same box with the
+// same lines into it — replacing it by hand means drawing those lines again.
+export type Becomes = {
+  title: string
+  verb: 'becomes'
+  type: TypeKey // what it turns into
+}
 
-// A fanout has no type of its own — it multiplies the subject, so it wears the
-// subject's mark and the subject's pigment.
-export const drops = (action: Action): action is Drop => action.verb !== 'fanout'
+export type Action = Drop | Fanout | Becomes
+
+// Only two of the verbs stand a new element; the other two work on the card
+// that was right-clicked.
+export const drops = (action: Action): action is Drop =>
+  action.verb === undefined || action.verb === 'front'
 
 // The rows, by shelf. See the map in docs/actions.md for what lands where; a
 // shelf standing empty is a shelf whose rows want a verb not built yet.
@@ -66,6 +76,7 @@ export const ACTIONS = {
   ],
   'APIs & Contracts': [
     { title: 'Put behind gateway', type: 'api-gateway', label: 'routes to', verb: 'front' },
+    { title: 'Serve it over GraphQL', verb: 'becomes', type: 'graphql-api' },
   ],
   'Data Stores': [
     { title: 'Add read replica', type: 'read-replica', label: 'replicates to', below: true },
@@ -76,7 +87,7 @@ export const ACTIONS = {
       interaction: 'Async',
     },
   ],
-  Caching: [],
+  Caching: [{ title: 'Make it distributed', verb: 'becomes', type: 'distributed-cache' }],
   'Messaging & Streaming': [
     { title: 'Partition ×3', verb: 'fanout', instances: '3' },
     {
@@ -101,7 +112,7 @@ export const ACTIONS = {
     { title: 'Put behind auth', type: 'auth-service', label: 'admits callers to', verb: 'front' },
   ],
   'Observability & Ops': [],
-  'Analytics & ML': [],
+  'Analytics & ML': [{ title: 'Batch → stream', verb: 'becomes', type: 'stream-processor' }],
   'Boundaries & Zones': [], // a frame is enclosed in, not acted on
   'Deployment & Infrastructure': [],
 } satisfies Record<Category, Action[]>
@@ -190,7 +201,40 @@ export function wire(
   return [...edges, drawn(action, subject.id, id, faces)]
 }
 
+/**
+ * The subject, as another type. It keeps its id, so its position, its frame
+ * and every line drawn to it are untouched — swapping a card by hand means
+ * deleting it and drawing all of those again, which is the whole cost this
+ * takes away.
+ *
+ * It keeps every field the new type still has a slot for and sheds the rest: a
+ * cache's TTL means nothing to a stream. Technology goes by the same rule
+ * `place` uses — kept only where the new type's shortlist has a line for it,
+ * since the picker has no free-text line and a value it cannot offer is a
+ * value nobody could have typed.
+ */
+export function becomes(node: ElementNodeType, type: TypeKey): ElementNodeType['data'] {
+  const slots = new Set([...COMMON, ...fieldsFor(type), ...CATALOG].map((f) => f.key))
+  const kept = Object.entries(node.data).filter(
+    ([key, value]) =>
+      slots.has(key as FieldKey) &&
+      (key !== 'technology' || (TECH[type] as string[]).includes(value as string)),
+  )
+  return {
+    ...Object.fromEntries(kept),
+    type,
+    // A card still wearing its type's own title was never named, so it takes
+    // the new one's; a card somebody named keeps the name they gave it.
+    label: node.data.label === TYPES[node.data.type].title ? TYPES[type].title : node.data.label,
+  }
+}
+
 // What this thing can have done to it. A frame is enclosed in rather than
-// acted on, and its shelf is empty anyway, so the one question is the type's.
+// acted on, and its shelf is empty anyway, so the one question is the type's —
+// less whatever it already is, since becoming what you are is not a move.
 export const actionsFor = (node: ElementNodeType): Action[] =>
-  node.type === 'boundary' ? [] : ACTIONS[TYPES[node.data.type].category]
+  node.type === 'boundary'
+    ? []
+    : ACTIONS[TYPES[node.data.type].category].filter(
+        (a: Action) => a.verb !== 'becomes' || a.type !== node.data.type,
+      )

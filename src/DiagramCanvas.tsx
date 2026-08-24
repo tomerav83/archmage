@@ -15,7 +15,7 @@ import {
   type XYPosition,
 } from '@xyflow/react'
 import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
-import { type Action, drops, place, wire } from './actions'
+import { type Action, becomes, place, wire } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
@@ -122,9 +122,13 @@ export function DiagramCanvas() {
     // Non-null: a row is only rendered where there is a subject to act on.
     const on = subject as ElementNodeType
     setMenu(null)
-    // Scaling out drops nothing: the card it was asked of says three, and the
-    // one line already drawn to it stays one line.
-    if (!drops(action)) return updateNodeData(on.id, { instances: action.instances })
+    // Two of the verbs drop nothing and work on the card itself. Scaling out
+    // makes it say three; becoming makes it another type in place, replacing
+    // the data rather than merging into it, so the fields the new type has no
+    // slot for are actually shed.
+    if (action.verb === 'fanout') return updateNodeData(on.id, { instances: action.instances })
+    if (action.verb === 'becomes')
+      return updateNodeData(on.id, becomes(on, action.type), { replace: true })
 
     const id = crypto.randomUUID()
     // A board is two lists, so the move is asked twice: what it stands, and

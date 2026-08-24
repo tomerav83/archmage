@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { type Action, actionsFor, drops } from './actions'
+import { type Action, actionsFor } from './actions'
 import { FRAMES, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
 import type { ElementNodeType } from './ElementNode'
 
@@ -63,7 +63,7 @@ export function Menu({
           {actions.map((action) => {
             // A fanout drops nothing, so it wears the subject's own mark: what
             // it multiplies is the thing you right-clicked.
-            const mark = TYPES[drops(action) ? action.type : subject.data.type]
+            const mark = TYPES['type' in action ? action.type : subject.data.type]
             return (
               <button
                 key={action.title}

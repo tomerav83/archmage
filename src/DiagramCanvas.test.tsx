@@ -49,7 +49,7 @@ describe('which faces an edge joins', () => {
 
 // Enough DataTransfer for the two calls a drop makes — jsdom's own is
 // read-only, and fireEvent will not mint one.
-const carrying = (key?: 'container') => {
+const carrying = (key?: 'container' | 'memory-cache') => {
   const held = new Map<string, string>()
   const dt = {
     effectAllowed: '',
@@ -173,5 +173,26 @@ describe('a move that drops nothing', () => {
     expect(document.querySelectorAll('.c4-node')).toHaveLength(1)
     expect(screen.getByText('×3')).toBeTruthy()
     expect(document.querySelectorAll('.react-flow__edge')).toHaveLength(0)
+  })
+})
+
+describe('a move that swaps the card in place', () => {
+  it('keeps the one card, its lines and its id, and changes what it is', () => {
+    const pane = board()
+    drop(pane, carrying('memory-cache'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    const before = document.querySelector('.react-flow__node')?.getAttribute('data-id')
+
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Make it distributed'))
+
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(1)
+    expect(document.querySelector('.react-flow__node')?.getAttribute('data-id')).toBe(before)
+    // Both the band and the name say so: it was never renamed, so the swap
+    // handed it the new type's title.
+    expect(document.querySelector('.c4-name')?.textContent).toBe('Distributed Cache')
   })
 })
