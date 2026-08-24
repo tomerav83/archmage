@@ -15,7 +15,7 @@ import {
   type XYPosition,
 } from '@xyflow/react'
 import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
-import { type Action, becomes, place, wire } from './actions'
+import { type Action, becomes, place, replicate, wire } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
@@ -129,6 +129,15 @@ export function DiagramCanvas() {
     if (action.verb === 'fanout') return updateNodeData(on.id, { instances: action.instances })
     if (action.verb === 'becomes')
       return updateNodeData(on.id, becomes(on, action.type), { replace: true })
+
+    // The one move that answers against both lists at once — what it copies is
+    // decided by what holds what, and what it redraws by what pointed where.
+    if (action.verb === 'replicate') {
+      const copied = replicate(nodes, edges, on, action.type, crypto.randomUUID())
+      setNodes(copied.nodes)
+      setEdges(copied.edges)
+      return
+    }
 
     const id = crypto.randomUUID()
     // A board is two lists, so the move is asked twice: what it stands, and

@@ -2,6 +2,7 @@ import { TYPES, type TypeKey } from './c4'
 import { TECH } from './catalog/tech'
 import type { ElementNodeType } from './ElementNode'
 import { CATALOG, type Category, COMMON, type FieldKey, fieldsFor } from './fields'
+import { enclose, frameAround } from './nesting'
 import type { RelationshipEdgeType } from './RelationshipEdge'
 
 /**
@@ -42,16 +43,27 @@ export type Fanout = {
   instances: string
 }
 
-// A row that drops nothing either, and changes what the subject already is.
+// The two rows that name a type without standing it beside the subject. They
+// are the same shape and stay two, because one `verb: 'becomes' | 'replicate'`
+// is a discriminant the compiler will not narrow away to nothing — and the
+// canvas leaning on that narrowing is what keeps the last branch a Drop.
+
 // An in-memory cache that becomes a distributed one is the same box with the
-// same lines into it — replacing it by hand means drawing those lines again.
+// same lines into it.
 export type Becomes = {
   title: string
   verb: 'becomes'
   type: TypeKey // what it turns into
 }
 
-export type Action = Drop | Fanout | Becomes
+// A second region is the same drawing again, and eighty-five presses of it.
+export type Replicate = {
+  title: string
+  verb: 'replicate'
+  type: TypeKey // the frame the copy stands in
+}
+
+export type Action = Drop | Fanout | Becomes | Replicate
 
 // Only two of the verbs stand a new element; the other two work on the card
 // that was right-clicked.
@@ -113,8 +125,10 @@ export const ACTIONS = {
   ],
   'Observability & Ops': [],
   'Analytics & ML': [{ title: 'Batch → stream', verb: 'becomes', type: 'stream-processor' }],
-  'Boundaries & Zones': [], // a frame is enclosed in, not acted on
-  'Deployment & Infrastructure': [],
+  'Boundaries & Zones': [{ title: 'Replicate to region', verb: 'replicate', type: 'region' }],
+  'Deployment & Infrastructure': [
+    { title: 'Replicate to zone', verb: 'replicate', type: 'region' },
+  ],
 } satisfies Record<Category, Action[]>
 
 // Where the new element lands. No layout engine: downstream goes to the right,
@@ -229,12 +243,84 @@ export function becomes(node: ElementNodeType, type: TypeKey): ElementNodeType['
   }
 }
 
-// What this thing can have done to it. A frame is enclosed in rather than
-// acted on, and its shelf is empty anyway, so the one question is the type's —
-// less whatever it already is, since becoming what you are is not a move.
+// What this thing can have done to it: its shelf's row, less whatever it
+// already is, since becoming what you are is not a move. A frame answers the
+// same question as a card now — replicating a region is the one move that only
+// a frame has — so the type is the whole of it, as it is everywhere else.
 export const actionsFor = (node: ElementNodeType): Action[] =>
-  node.type === 'boundary'
-    ? []
-    : ACTIONS[TYPES[node.data.type].category].filter(
-        (a: Action) => a.verb !== 'becomes' || a.type !== node.data.type,
-      )
+  ACTIONS[TYPES[node.data.type].category].filter(
+    (a: Action) => a.verb !== 'becomes' || a.type !== node.data.type,
+  )
+
+// Clear of the frame it was copied from, by the width of it.
+const GAP = 48
+
+/**
+ * The subject again, standing in a frame beside it.
+ *
+ * A second region is the same drawing a second time, and nothing on this board
+ * copies: eighty-five presses to redraw what is already there, which is the
+ * largest number in docs/actions.md and the one this takes to three.
+ *
+ * Everything under the subject comes with it. Only the subject itself is
+ * moved: its descendants are said relative to it, so shifting the one shifts
+ * the family, and `enclose` rebases it into the new frame the way it rebases
+ * anything else. The frame is `frameAround` asked about the original and then
+ * stepped clear of it, so the copy is padded exactly as an enclosure is.
+ *
+ * The copies keep the lines the originals had. An end inside the family is
+ * remapped to its copy, so a service that talked to its own database talks to
+ * the copy of it; an end outside is left alone, so both regions still answer
+ * the same DNS.
+ */
+export function replicate(
+  nodes: ElementNodeType[],
+  edges: RelationshipEdgeType[],
+  subject: ElementNodeType,
+  type: TypeKey,
+  id: string,
+) {
+  // The subject and everything under it, however deep — a region holds a
+  // cluster holds a node, and all three are the copy.
+  const family = new Set([subject.id])
+  for (const n of nodes)
+    for (let p = n.parentId; p; p = nodes.find((m) => m.id === p)?.parentId)
+      if (family.has(p)) {
+        family.add(n.id)
+        break
+      }
+
+  const copies = new Map([...family].map((held) => [held, crypto.randomUUID()]))
+  const frame = frameAround(nodes, [subject.id], id, type)
+  if (!frame) return { nodes, edges }
+  frame.position = { x: frame.position.x + (frame.width ?? 0) + GAP, y: frame.position.y }
+
+  const shift = (frame.width ?? 0) + GAP
+  const clones = nodes
+    .filter((n) => family.has(n.id))
+    .map((n) => ({
+      ...n,
+      id: copies.get(n.id) as string,
+      // The subject steps right with its new frame; everything under it is
+      // said relative to the subject and travels without being touched.
+      ...(n.id === subject.id
+        ? { position: { x: n.position.x + shift, y: n.position.y } }
+        : { parentId: copies.get(n.parentId as string) }),
+      selected: false,
+    }))
+
+  return {
+    nodes: enclose([...nodes, ...clones], [copies.get(subject.id) as string], frame),
+    edges: [
+      ...edges,
+      ...edges
+        .filter((e) => family.has(e.source) || family.has(e.target))
+        .map((e) => ({
+          ...e,
+          id: crypto.randomUUID(),
+          source: copies.get(e.source) ?? e.source,
+          target: copies.get(e.target) ?? e.target,
+        })),
+    ],
+  }
+}

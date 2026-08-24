@@ -196,3 +196,32 @@ describe('a move that swaps the card in place', () => {
     expect(document.querySelector('.c4-name')?.textContent).toBe('Distributed Cache')
   })
 })
+
+describe('a move that copies a frame', () => {
+  it('stands a second region beside the first, holding a copy of what it held', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+    // enclose the card, so there is a frame with something in it to copy
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('System Boundary'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    fireEvent.contextMenu(document.querySelector('.c4-frame') as Element, {
+      clientX: 60,
+      clientY: 60,
+    })
+    fireEvent.click(screen.getByText('Replicate to region'))
+
+    // the region, the copy of the boundary, and the boundary itself
+    expect(document.querySelectorAll('.c4-frame')).toHaveLength(3)
+    // and the card came with it
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(2)
+    // The order is drawing order and nesting.test.ts already asks about it.
+    const named = [...document.querySelectorAll('.c4-frame .c4-name')].map((n) => n.textContent)
+    expect(named.sort()).toEqual(['Region / Zone', 'System Boundary', 'System Boundary'])
+  })
+})

@@ -128,11 +128,13 @@ describe('the verbs half', () => {
     expect(screen.getByText('System Boundary')).toBeTruthy()
   })
 
-  // A frame is what you put things in, never a thing to put something beside.
-  it('offers a frame nothing but the frames', () => {
+  // A frame answers the same question a card does now: replicating a region
+  // is the one move that only a frame has.
+  it('offers a frame the one verb a frame has', () => {
     const { container } = menu({ subject: frame() })
-    expect(container.querySelector('hr')).toBeNull()
-    expect(screen.queryByText('Payments')).toBeNull()
+    expect(screen.getByText('Replicate to region')).toBeTruthy()
+    expect(container.querySelector('hr')).toBeTruthy()
+    expect(screen.getByText('System Boundary')).toBeTruthy()
   })
 
   it('hands back the action that was pressed', () => {

@@ -8,6 +8,7 @@ import {
   drops,
   type Fanout,
   place,
+  replicate,
   wire,
 } from './actions'
 import { TYPES } from './c4'
@@ -244,9 +245,9 @@ describe('what a thing can have done to it', () => {
     expect(actionsFor(card('a', 'worker'))).toEqual(actionsFor(card('b', 'api-service')))
   })
 
-  it('is nothing at all for a frame, which is enclosed in rather than acted on', () => {
+  it('reads a frame the same way it reads a card — off the type', () => {
     const frame = { ...card('z', 'system-boundary'), type: 'boundary' } as ElementNodeType
-    expect(actionsFor(frame)).toEqual([])
+    expect(actionsFor(frame).map((a) => a.title)).toEqual(['Replicate to region'])
   })
 
   // The bargain fields.ts makes: a shelf with no line here is a compile error,
@@ -255,5 +256,82 @@ describe('what a thing can have done to it', () => {
     for (const rows of Object.values(ACTIONS))
       for (const action of rows as Action[])
         if (drops(action)) expect(TYPES[action.type]).toBeTruthy()
+  })
+})
+
+// A second region is the same drawing again, and eighty-five presses of it.
+describe('the replica', () => {
+  // outer frame at 0,0 holding a service at 40,60 that reads its own database
+  // at 300,60; something outside the frame calls the service.
+  const board = () =>
+    [
+      {
+        id: 'z',
+        type: 'boundary',
+        position: { x: 0, y: 0 },
+        width: 600,
+        height: 400,
+        data: { type: 'system-boundary', label: 'Payments' },
+      },
+      { ...card('svc', 'api-service'), position: { x: 40, y: 60 }, parentId: 'z' },
+      { ...card('db', 'relational-db'), position: { x: 300, y: 60 }, parentId: 'z' },
+      { ...card('out', 'single-page-app'), position: { x: -400, y: 60 } },
+    ] as ElementNodeType[]
+
+  const lines = () => [line('e1', 'svc', 'db'), line('e2', 'out', 'svc')]
+
+  const copied = () => replicate(board(), lines(), board()[0] as ElementNodeType, 'region', 'r')
+
+  it('stands a frame of the type the row named, beside the original', () => {
+    const { nodes } = copied()
+    const region = nodes.find((n) => n.id === 'r')
+    expect(region?.data.type).toBe('region')
+    expect(region?.position.x).toBeGreaterThan(0)
+  })
+
+  it('brings everything under the subject, however deep', () => {
+    // four nodes in, plus the region and three copies: the frame, the service
+    // and the database. The card outside the frame is not copied.
+    expect(copied().nodes).toHaveLength(4 + 1 + 3)
+  })
+
+  it('gives every copy an id of its own', () => {
+    const ids = copied().nodes.map((n) => n.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('keeps the copies inside the new frame, arranged as they were', () => {
+    const { nodes } = copied()
+    const clone = nodes.find((n) => n.parentId === 'r') as ElementNodeType
+    expect(clone.data.type).toBe('system-boundary')
+    // the two cards keep their places relative to the frame that holds them
+    const held = nodes.filter((n) => n.parentId === clone.id)
+    expect(held.map((n) => n.position)).toEqual([
+      { x: 40, y: 60 },
+      { x: 300, y: 60 },
+    ])
+  })
+
+  // A service that talked to its own database talks to the copy of it; both
+  // regions still answer the same thing outside.
+  it('remaps a line with both ends inside, and keeps one with an end outside', () => {
+    const { edges } = copied()
+    expect(edges).toHaveLength(4)
+
+    const inner = edges.filter((e) => e.source !== 'svc' && e.source !== 'out')
+    const [both] = inner.filter((e) => e.target !== 'db' && e.target !== 'svc')
+    expect(both).toBeTruthy()
+
+    // the line from outside points at the copy of the service, not at the
+    // original and not at anything new
+    const fromOutside = edges.filter((e) => e.source === 'out')
+    expect(fromOutside).toHaveLength(2)
+    expect(new Set(fromOutside.map((e) => e.target)).size).toBe(2)
+  })
+
+  it('leaves the board alone when there is nothing to draw a frame around', () => {
+    const before = board()
+    const after = replicate(before, [], { id: 'nope' } as ElementNodeType, 'region', 'r')
+    expect(after.nodes).toBe(before)
   })
 })
