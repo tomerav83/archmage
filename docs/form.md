@@ -265,7 +265,8 @@ today and rekeying it a branch later. And before `feature/relationship-detail`,
 for the reason above. `feature/persistence` is no longer a deadline: it now
 lands after nesting, which is the branch that actually finishes the schema.
 
-That makes Phase A: taxonomy-model, form, relationship-detail, palette-search.
+It went in ahead of the catalogue itself: the table is what eighty-three
+types would otherwise have needed eighty-three forms for.
 
 ## The cut line
 

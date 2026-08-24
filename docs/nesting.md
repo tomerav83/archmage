@@ -7,7 +7,7 @@ end of the stack because it is the only thing left that is interaction work
 rather than a table.
 
 This is that mechanic. Read it beside [taxonomy.md](taxonomy.md); the branches
-here are its Phase D.
+here are its frames.
 
 ## The mechanic, verified
 
@@ -116,7 +116,7 @@ around, and the way to say so is to select those cards and enclose them.
 
 Both menus are one component, `Enclose.tsx`, told what to say by a `title`
 prop — *Enclose in* over a selection, *New Boundary* over empty ground — and
-both list every type in the registry with a `frame` flag, so Phase D's
+both list every type in the registry with a `frame` flag, so this stage's
 deployment frames join either one by landing in a table.
 
 Not a trip to the rack in the literal sense either: `PALETTE` in `c4.tsx` is
