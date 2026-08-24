@@ -94,57 +94,13 @@ describe('what a drop lands', () => {
 
 // The two doors to a boundary, driven end to end — nesting.test.ts already
 // asks what the rules are, so this asks only that the gestures reach them.
-describe('drawing a boundary over empty ground', () => {
-  const draw = (pane: Element, to = { clientX: 400, clientY: 400 }) => {
+describe('a boundary made on empty ground', () => {
+  it('stands an empty frame where the board was right-clicked', () => {
+    const pane = board()
     fireEvent.contextMenu(pane, { clientX: 20, clientY: 20 })
     fireEvent.click(screen.getByText('System Boundary'))
-    fireEvent.pointerDown(pane, { clientX: 20, clientY: 20 })
-    fireEvent.pointerMove(pane, to)
-    return to
-  }
-
-  it('leaves a frame where the rectangle was, and the rectangle nowhere', () => {
-    // What the frame then takes in is within()'s question, and nesting.test.ts
-    // asks it: this asks only that the gesture reaches it.
-    const pane = board()
-    const to = draw(pane)
-    // The rectangle is on the board while it is still being dragged.
-    expect(document.querySelector('.draw-rect')).toBeTruthy()
-    fireEvent.pointerUp(pane, to)
-
-    expect(document.querySelector('.draw-rect')).toBeNull()
     expect(document.querySelector('.c4-frame')).toBeTruthy()
-  })
-
-  it('gives a frame the size a rack drop starts one at when the drag is a plain click', () => {
-    const pane = board()
-    const to = { clientX: 21, clientY: 21 }
-    draw(pane, to)
-    fireEvent.pointerUp(pane, to)
-    expect(document.querySelector('.c4-frame')).toBeTruthy()
-  })
-
-  it('calls the gesture off on Escape, before the rectangle is released', () => {
-    const pane = board()
-    draw(pane)
-    // Any other key is not the one that calls it off.
-    fireEvent.keyDown(document, { key: 'Enter' })
-    expect(document.querySelector('.draw-rect')).toBeTruthy()
-
-    fireEvent.keyDown(document, { key: 'Escape' })
-    expect(document.querySelector('.draw-rect')).toBeNull()
-    fireEvent.pointerUp(pane, { clientX: 400, clientY: 400 })
-    expect(document.querySelector('.c4-frame')).toBeNull()
-  })
-})
-
-describe('a press that means nothing', () => {
-  it('is nothing: no gesture is armed, so the pointer only wanders', () => {
-    const pane = board()
-    fireEvent.pointerMove(pane, { clientX: 200, clientY: 200 })
-    fireEvent.pointerUp(pane, { clientX: 200, clientY: 200 })
-    expect(document.querySelector('.draw-rect')).toBeNull()
-    expect(document.querySelector('.react-flow__node')).toBeNull()
+    expect(document.querySelector('.c4-node')).toBeNull()
   })
 })
 

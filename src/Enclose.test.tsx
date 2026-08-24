@@ -34,16 +34,17 @@ describe('the enclose menu', () => {
     expect(onPick).toHaveBeenCalledWith('domain')
   })
 
-  it('shuts on Escape and on the next press outside it, and stands under one inside', () => {
+  // Escape and the press outside are the popover's to answer, so what is left
+  // worth asking is that the menu asks for them — and that it passes on the
+  // dismissal, since a board still holding an open menu would never reopen it.
+  it('leaves the dismissing to the platform, and passes it on when it happens', () => {
     const { onClose, container } = menu()
-    fireEvent.pointerDown(container.querySelector('.menu') as Element)
+    const el = container.querySelector('.menu') as HTMLElement
+    expect(el.getAttribute('popover')).toBe('auto')
     expect(onClose).not.toHaveBeenCalled()
 
-    fireEvent.pointerDown(document.body)
-    expect(onClose).toHaveBeenCalled()
-
-    fireEvent.keyDown(document, { key: 'Escape' })
-    expect(onClose).toHaveBeenCalledTimes(2)
+    fireEvent(el, Object.assign(new Event('toggle'), { newState: 'closed' }))
+    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('is not there at all until something is right-clicked', () => {

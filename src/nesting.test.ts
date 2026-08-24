@@ -1,15 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ElementNodeType } from './ElementNode'
-import {
-  enclose,
-  frameAround,
-  frameAt,
-  frameFrom,
-  nest,
-  rectBetween,
-  reparent,
-  within,
-} from './nesting'
+import { enclose, frameAround, frameAt, frameFrom, nest, reparent } from './nesting'
 
 // A card is measured by the board; a frame is given a size at the drop. Both
 // carry the position they were last written with, which is relative to their
@@ -175,24 +166,7 @@ describe('enclosing what is already on the board', () => {
   })
 })
 
-describe('the rectangle between two points', () => {
-  it('reads the same box whichever corner was dragged from', () => {
-    expect(rectBetween({ x: 100, y: 100 }, { x: 300, y: 250 })).toEqual({
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 150,
-    })
-    expect(rectBetween({ x: 300, y: 250 }, { x: 100, y: 100 })).toEqual({
-      x: 100,
-      y: 100,
-      width: 200,
-      height: 150,
-    })
-  })
-})
-
-describe('a frame at exactly the rectangle drawn for it', () => {
+describe('a frame at exactly the box it is given', () => {
   it('stands wherever that rectangle was, sized to it', () => {
     const drawn = frameFrom([], 'z', 'system-boundary', { x: 120, y: 80, width: 300, height: 200 })
     expect(drawn.position).toEqual({ x: 120, y: 80 })
@@ -215,48 +189,14 @@ describe('a frame at exactly the rectangle drawn for it', () => {
   })
 })
 
-describe('which nodes a drawn rectangle takes', () => {
-  const board = [card('a', 50, 50), card('b', 500, 500)]
-
-  it('takes whatever its middle falls inside, and leaves what it does not', () => {
-    const ids = within(board, { x: 0, y: 0, width: 300, height: 300 })
-    expect(ids).toEqual(['a'])
-  })
-
-  it('can take a frame too, the same as a card', () => {
-    const board2 = [frame('inner', 100, 100, 50, 50), card('a', 500, 500)]
-    expect(within(board2, { x: 0, y: 0, width: 300, height: 300 })).toEqual(['inner'])
-  })
-
-  it('never takes its own parent, or anything that parent itself stands inside', () => {
-    // A rectangle drawn near the middle of a big region can have that
-    // region's own middle fall inside it — adopting an ancestor as a child
-    // would be a cycle, not a nesting, and depth() would spin on it forever.
-    const outer = frame('outer', 0, 0, 1000, 1000) // middle at 500,500
-    const drawn = { x: 400, y: 400, width: 200, height: 200 } // catches outer's middle
-    expect(within([outer], drawn, 'outer')).toEqual([])
-
-    // Two levels up: a rectangle inside the inner frame, drawn where the
-    // outer frame's middle happens to fall too.
-    const inner = frame('inner', 300, 300, 400, 400, 'outer') // middle at 500,500 on the board
-    expect(within([outer, inner], drawn, 'inner')).toEqual([])
-  })
-
-  it('draws nothing around an empty rectangle', () => {
-    expect(within(board, { x: 900, y: 900, width: 10, height: 10 })).toEqual([])
-  })
-})
-
-describe('enclosing what a drawn rectangle caught', () => {
-  it('goes the whole way: frame, then whatever within() found, adopted', () => {
-    const board = [card('a', 50, 50), card('b', 500, 500)]
-    const rect = { x: 0, y: 0, width: 300, height: 300 }
-    const frame = frameFrom(board, 'z', 'system-boundary', rect)
-    const enclosed = enclose(board, within(board, rect, frame.parentId), frame)
-    // b never enters the rect, so it stays at depth 0 and sorts ahead of a —
-    // the same parents-before-children rule everything else in this file uses.
-    expect(enclosed.map((n) => n.id)).toEqual(['z', 'b', 'a'])
-    expect(enclosed.find((n) => n.id === 'a')?.parentId).toBe('z')
-    expect(enclosed.find((n) => n.id === 'b')?.parentId).toBeUndefined()
+describe('an empty frame stood on empty ground', () => {
+  it('goes on the board at the front, and takes nothing in', () => {
+    // A frame stood over a card does not adopt it — dragging the card in
+    // does, which is reparent's question and asked above.
+    const board = [card('a', 50, 50)]
+    const frame = frameFrom(board, 'z', 'system-boundary', { x: 0, y: 0, width: 300, height: 300 })
+    const enclosed = enclose(board, [], frame)
+    expect(enclosed.map((n) => n.id)).toEqual(['z', 'a'])
+    expect(enclosed.find((n) => n.id === 'a')?.parentId).toBeUndefined()
   })
 })

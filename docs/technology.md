@@ -10,7 +10,7 @@ the card.
 taxonomy.md ruled this out as a data pipeline, not a feature. Inspected rather
 than assumed, the pipeline is already run by someone else, and taking it is
 two branches. Read this beside [taxonomy.md](taxonomy.md); the branches here
-are its Phase C.
+are its brand-mark half.
 
 ## The dependency, verified
 
@@ -49,51 +49,10 @@ the same string, which is what turns render-time lookup from fuzzy matching
 into an exact hit — and what leaves the file worth reading by anything that
 comes after, since one product then has exactly one spelling on the board.
 
-## `technology.tsx` — the data and the mark
+## What the lookup does
 
-The `c4.tsx` pattern: the table, and the one component that draws from it.
-
-```tsx
-import { use } from 'react'
-import type { SimpleIcon } from 'simple-icons'
-
-// IcePanel's thousands of entries, taken as a dependency instead of a data
-// pipeline: 3,453 brands, each a title and a 24×24 path — the sigil grid.
-// The type import erases at build; the module rides in its own chunk, fetched
-// once behind first paint. Nothing awaits it but Suspense.
-export const TECH = import('simple-icons').then((m) => {
-  const marks = Object.values(m) as SimpleIcon[]
-  return { marks, byTitle: new Map(marks.map((i) => [i.title.toLowerCase(), i])) }
-})
-
-// "PostgreSQL 16" wears the PostgreSQL mark: the longest leading run of words
-// naming an entry, so a version rides along in the free text.
-export const logoFor = (byTitle: Map<string, SimpleIcon>, value: string) => {
-  const words = value.toLowerCase().split(/\s+/).filter(Boolean)
-  for (let n = words.length; n > 0; n--) {
-    const hit = byTitle.get(words.slice(0, n).join(' '))
-    if (hit) return hit
-  }
-}
-
-// The mark beside a technology, in whatever ink surrounds it — colour still
-// belongs to the level. Mount under <Suspense>. Never nothing: a product with
-// no mark wears its initials, so the column reads as marks all the way down.
-export function TechLogo({ name }: { name: string }) {
-  const hit = logoFor(use(TECH).byTitle, name)
-  return hit ? (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d={hit.path} fill="currentColor" />
-    </svg>
-  ) : (
-    <span className="mono-mark" aria-hidden="true">
-      {monogram(name)}
-    </span>
-  )
-}
-```
-
-Three choices worth defending:
+`technology.tsx` is the `c4.tsx` pattern — the table, and the one component
+that draws from it. Three choices in it worth defending:
 
 - **The promise is module-level.** The fetch starts when the app boots and
   runs behind the first paint, so by the time a panel opens the catalog is
@@ -106,28 +65,6 @@ Three choices worth defending:
   the pigment law. The brand hex sits on every entry the day an
   IcePanel-coloured mode is wanted, and it is a fill attribute, not a
   migration.
-
-## The mark on the card
-
-`ElementNode` already prints the subtitle; the mark joins it only when the
-subtitle is technology — Role and the other first-fields stay bare text.
-
-```tsx
-{said && (
-  <div className="c4-subtitle">
-    {subtitle?.key === 'technology' && (
-      <Suspense>
-        <TechLogo name={said} />
-      </Suspense>
-    )}
-    {said}
-  </div>
-)}
-```
-
-Plus a rule in `index.css` giving the mark and the monogram one slot on the
-subtitle line. The mark pops in when the chunk lands; React Flow re-measures
-the node, so edges keep their anchors.
 
 ## The picker
 
@@ -177,38 +114,22 @@ not maintain. Staleness shows up as a missing row, and a missing row is a pull
 request against `tech.ts` — which is the policy, and the reason the field is
 worth reading downstream.
 
-## `TechPick.tsx` — the shortlist, searched
+## The shortlist, searched
 
-One flag on the one shared descriptor in `fields.ts` arms every category that
-carries the field — the edge's protocol line in `RELATIONSHIP` is its own
-object and stays plain text, because gRPC-the-protocol is not a product:
-
-```ts
-const TECHNOLOGY: Field = { key: 'technology', title: 'Technology', hint: 'PostgreSQL 16', input: 'tech' }
-```
+One `input: 'tech'` on the one shared Technology descriptor in `fields.ts` arms
+every category that carries the field — the edge's protocol line in
+`RELATIONSHIP` is its own object and stays plain text, because
+gRPC-the-protocol is not a product.
 
 The shortlist is the *type's*, not the category's — Relational Database and
-Vector Database share a shelf and share no products — so `fieldsFor` stamps it
-on the descriptor at the one moment the type is known:
+Vector Database share a shelf and share no products — so `fieldsFor` stamps
+`options` on the descriptor at the one moment the type is known. Which means
+the panel needs no wiring at all: `options` is already a field, the way it is
+for a pick. `Form.tsx` grows one branch beside `area` and `pick`, and the
+control under it is a search box, a list of buttons, and no free-text line at
+all.
 
-```ts
-CATEGORY_FIELDS[TYPES[type].category].map((f) =>
-  f.key === 'technology' ? { ...f, options: TECH[type] } : f)
-```
-
-Which means the panel needs no wiring at all: `options` is already a field, the
-way it is for a pick. `Form.tsx` grows one branch beside `area` and `pick`, and
-the control under it is a search box, a list of buttons, and a line behind
-no free-text line at all:
-
-```tsx
-const hits = options.filter((o) => o.toLowerCase().includes(q))
-// undefined exactly when the search has narrowed the shelf to nothing, which
-// is also when there is nothing for a key to do
-const standing = hits[at]
-```
-
-Three decisions inside it:
+Three decisions inside `TechPick.tsx`:
 
 - **Plain buttons, not a listbox of options.** The ARIA combobox pattern wants
   `role="option"` rows that no key can reach except through the input's
@@ -229,18 +150,8 @@ under the arrows lit the way the open row is, the chosen row in brass.
 ## The initials, where there is no mark
 
 A row with no mark is a hole in a column of marks, and it reads as something
-missing rather than as something known. So `TechLogo` never returns nothing:
-
-```tsx
-export const monogram = (name: string) => {
-  const words = name
-    .replace(/^(Amazon|AWS|Azure|Microsoft|Google|Apache)\s+/, '')
-    .split(/\s+/)
-    .filter((w) => w && !/^v?[\d.]+$/.test(w))
-  const [first = name, second] = words
-  return second ? first.slice(0, 1) + second.slice(0, 1) : first.slice(0, 2)
-}
-```
+missing rather than as something known. So `TechLogo` never returns nothing —
+`monogram` sheds the vendor prefix and any version and takes two letters.
 
 *Event Hubs* → **EH**, *Redpanda* → **Re**, *Amazon SQS* → **SQ**, *PostgreSQL
 16* → **Po**. The vendor goes the way it goes in the shortlist, because what
@@ -258,17 +169,6 @@ Coverage is complete today rather than after sixty hours of tracing, and every
 mark that ever arrives — from `npm update` or from a pencil — simply replaces
 a monogram.
 
-## Testing
-
-`vi.mock('simple-icons')` with hand-written entries, so jsdom never parses five
-megabytes — `technology.test.tsx` for the match and for the initials, which are
-pure data, `ElementNode.test.tsx` for the mark on the card. The picker rides
-the `ElementForm` harness with the real module, because what it asserts is the
-shortlist and not the paint: a dropped Relational Database offers PostgreSQL
-and not Pinecone, "sql" narrows to two of them, the arrows walk and wrap and
-Enter takes, a search that matches nothing says where to add it and leaves the
-keys alone, and Redpanda reaches the card wearing **Re**.
-
 ## What it costs, and the exit
 
 The chunk is the whole cost: 2.1 MB gzipped, fetched once in the background,
@@ -276,13 +176,6 @@ cached after. For a local-first tool that is acceptable and invisible. If it
 ever is not, the exit is a ten-line prebuild script writing
 `{ title, path, hex }` to a static JSON — the maximal form of the pipeline
 this plan refused to build by hand.
-
-## Where it lands
-
-Both branches sit on the form and on nothing later: the picker needs the
-technology row, the mark needs the subtitle, and both are Phase A goods. It
-stands as Phase C so two small decoration branches do not queue behind
-nesting, which is the hardest interaction work in the stack.
 
 ## Out of scope
 

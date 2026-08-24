@@ -47,7 +47,7 @@ export function ElementNode({ id, data, parentId }: NodeProps<ElementNodeType>) 
       // one flat layer, so a nested card is nowhere inside its frame in the DOM
       // and no descendant selector can reach it.
       data-nested={parentId}
-      style={{ '--accent': level.accent, '--accent-ink': level.ink }}
+      style={{ '--accent': level.accent }}
       {...press}
     >
       <Ward id={id} />

@@ -18,7 +18,7 @@ export function BoundaryNode({ data, selected }: NodeProps<ElementNodeType>) {
       // Same two as a card: the frame is drawn solid, so Planned has its dash
       // back, and Deprecated dims.
       data-status={data.status}
-      style={{ '--accent': level.accent, '--accent-ink': level.ink }}
+      style={{ '--accent': level.accent }}
     >
       {/* A frame is sized rather than laid out, so it is the one thing on the
           board with grips. Brass, and only while it is the selected thing. */}

@@ -12,34 +12,16 @@ import {
   useEdgesState,
   useNodesState,
   useReactFlow,
-  ViewportPortal,
   type XYPosition,
 } from '@xyflow/react'
-import {
-  type DragEvent,
-  type MouseEvent,
-  type PointerEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
 import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
 import { Enclose } from './Enclose'
-import {
-  enclose,
-  frameAround,
-  frameAt,
-  frameFrom,
-  nest,
-  rectBetween,
-  reparent,
-  within,
-} from './nesting'
+import { enclose, frameAround, frameAt, frameFrom, nest, reparent } from './nesting'
 import { RelationshipEdge, type RelationshipEdgeType } from './RelationshipEdge'
 import { RelationshipForm } from './RelationshipForm'
 import { DRAG_SLOP_PX, WardContext } from './useWard'
@@ -87,9 +69,9 @@ export function DiagramCanvas() {
   const close = useCallback(() => setEditing(null), [])
   // Where the enclose menu stands, and which door it was opened by: `ids` is
   // what was already chosen when something was right-clicked, `anchor` the
-  // point an empty-ground right-click fixed as the rectangle's first corner.
-  // One or the other, never both — two ways to a boundary, one picker — and
-  // the union says so, rather than two optional fields that could be neither.
+  // point an empty-ground right-click stands the new frame at. One or the
+  // other, never both — two ways to a boundary, one picker — and the union
+  // says so, rather than two optional fields that could be neither.
   const [menu, setMenu] = useState<
     ({ x: number; y: number } & ({ ids: string[] } | { anchor: XYPosition })) | null
   >(null)
@@ -97,27 +79,6 @@ export function DiagramCanvas() {
     e.preventDefault()
     setMenu({ x: e.clientX, y: e.clientY, ids })
   }
-
-  // Once a type is picked from that menu: the type, and the same anchor,
-  // carried over. Stable for the whole gesture — only the corner below moves —
-  // so the pointer-tracking effect mounts once per gesture and not once a move.
-  const [drawing, setDrawing] = useState<{ type: TypeKey; anchor: XYPosition } | null>(null)
-  // The rectangle's live far corner, while it is still being dragged.
-  const [corner, setCorner] = useState<XYPosition | null>(null)
-
-  // Escape while a rectangle is being tracked calls it off — the menu already
-  // has its own Escape while it is the thing showing; this covers the gesture
-  // after a type has been picked, once that menu is gone.
-  useEffect(() => {
-    if (!drawing) return
-    const cancel = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      setDrawing(null)
-      setCorner(null)
-    }
-    document.addEventListener('keydown', cancel)
-    return () => document.removeEventListener('keydown', cancel)
-  }, [drawing])
 
   const ward = useMemo(
     () => ({
@@ -144,58 +105,24 @@ export function DiagramCanvas() {
   )
 
   // The pick. With a selection behind it the frame is drawn around what is
-  // already on the board and finished on the spot, which is how a boundary is
-  // usually arrived at. With an anchor instead there is nothing to enclose
-  // yet, so the pick arms the gesture rather than finishing it: the next press
-  // draws the rectangle from the point that was right-clicked.
+  // already on the board, which is how a boundary is usually arrived at: the
+  // boxes first, and only then what they add up to. With an anchor instead
+  // there is nothing to enclose, so an empty frame stands at the point that
+  // was right-clicked, at the size a rack drop starts one at — the grips size
+  // it from there, and a card dragged into it is taken in.
   const pick = (type: TypeKey) => {
     // Non-null: the picker only renders while the menu stands, so a pick is
     // only ever made against one.
     const chosen = menu as NonNullable<typeof menu>
     setMenu(null)
-    if ('anchor' in chosen) return setDrawing({ type, anchor: chosen.anchor })
-    const { ids } = chosen
     const id = crypto.randomUUID()
     setNodes((nds) => {
-      const frame = frameAround(nds, ids, id, type)
-      return frame ? enclose(nds, ids, frame) : nds
+      if ('anchor' in chosen)
+        return enclose(nds, [], frameFrom(nds, id, type, { ...chosen.anchor, ...FRAME }))
+      const frame = frameAround(nds, chosen.ids, id, type)
+      return frame ? enclose(nds, chosen.ids, frame) : nds
     })
     // The frame you have just made is the one you want to name.
-    setEditing(id)
-  }
-
-  // The press that follows a pick: captured, so the rectangle keeps growing
-  // even once the pointer wanders off the canvas — over the rack, say — the
-  // same bargain the ward strikes with a press of its own.
-  const onPointerDown = (e: PointerEvent) => {
-    if (!drawing) return
-    e.currentTarget.setPointerCapture(e.pointerId)
-  }
-
-  const onPointerMove = (e: PointerEvent) => {
-    if (!drawing) return
-    setCorner(screenToFlowPosition({ x: e.clientX, y: e.clientY }))
-  }
-
-  // Release finishes it: too small a drag reads as a plain click through the
-  // menu, and falls back to FRAME rather than minting something too small to
-  // hold anything.
-  const onPointerUp = (e: PointerEvent) => {
-    if (!drawing) return
-    const at = screenToFlowPosition({ x: e.clientX, y: e.clientY })
-    const drawn = rectBetween(drawing.anchor, at)
-    const rect =
-      drawn.width < DRAG_SLOP_PX && drawn.height < DRAG_SLOP_PX
-        ? { x: drawing.anchor.x, y: drawing.anchor.y, ...FRAME }
-        : drawn
-    const id = crypto.randomUUID()
-    setNodes((nds) => {
-      const frame = frameFrom(nds, id, drawing.type, rect)
-      return enclose(nds, within(nds, rect, frame.parentId), frame)
-    })
-    setDrawing(null)
-    setCorner(null)
-    // The frame you have just drawn is the one you want to name.
     setEditing(id)
   }
 
@@ -224,15 +151,10 @@ export function DiagramCanvas() {
     setEditing(id)
   }
 
-  // The rectangle as it stands, while the pointer is still drawing it.
-  const drawn = drawing && corner && rectBetween(drawing.anchor, corner)
-
   return (
     <WardContext.Provider value={ward}>
       <ReactFlow
         colorMode="dark"
-        // Says, at a glance, that the next press means something different.
-        className={drawing ? 'drawing' : undefined}
         // Every handle is declared a source, so only loose mode will let an
         // edge land on one.
         connectionMode={ConnectionMode.Loose}
@@ -245,8 +167,8 @@ export function DiagramCanvas() {
         // from selectable || draggable || onNodeClick, so switching those off
         // together leaves a card that can't be pressed at all, and the ward
         // could never land.
-        nodesDraggable={!from && !drawing}
-        panOnDrag={!from && !drawing}
+        nodesDraggable={!from}
+        panOnDrag={!from}
         // Selection is registration marks and brass grips, never height: a
         // selected frame lifted over the board would cover the very cards it
         // holds, and swallow the presses meant for them.
@@ -257,9 +179,6 @@ export function DiagramCanvas() {
         edgeTypes={edgeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
         // The card catches the double-click, not the text under the cursor:
         // the ward captures the pointer on every press, so the browser aims
         // click and dblclick at the card, which bubbles it on to React Flow.
@@ -275,8 +194,8 @@ export function DiagramCanvas() {
           )
         }
         // The gesture: select, right-click, say what they add up to. Right-click
-        // one node for the same menu over one thing, and empty ground for
-        // nothing — an empty frame is what the rack's shelf is for.
+        // one node for the same menu over one thing, and empty ground for an
+        // empty frame to fill.
         onNodeContextMenu={(e, node) => summon(e, [node.id])}
         onSelectionContextMenu={(e, nodes) =>
           summon(
@@ -307,22 +226,6 @@ export function DiagramCanvas() {
         {/* Brass-tinted major rule every fifth square, slate dots on top. */}
         <Background id="major" variant={BackgroundVariant.Lines} gap={105} color="#3f403d" />
         <Background id="minor" gap={21} size={1} color="#414950" />
-        {/* The rectangle itself, live, in the same coordinate system as every
-            node — a plain div in the viewport's own transform rather than a
-            screen-space overlay this would otherwise have to keep in sync
-            with panning and zoom by hand. */}
-        {drawn && (
-          <ViewportPortal>
-            <div
-              className="draw-rect"
-              style={{
-                transform: `translate(${drawn.x}px, ${drawn.y}px)`,
-                width: drawn.width,
-                height: drawn.height,
-              }}
-            />
-          </ViewportPortal>
-        )}
       </ReactFlow>
       {/* Over the board rather than beside it, so opening the panel doesn't
           reflow the canvas under the cursor. Both rails are mounted and only
