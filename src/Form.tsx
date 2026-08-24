@@ -23,10 +23,24 @@ export type Sheet = {
 
 // The open control takes the caret as it mounts, so the click that opens a row
 // is the only click it costs.
+//
+// After the press that opened it, never inside it: a panel opened by a drop
+// mounts while the drag is still running, and a browser ignores a focus asked
+// for mid-drag — so the caret asked for on the ref alone was dropped on the
+// floor along with the first thing typed. A task, not a frame: the drag ends
+// after the frame does.
 const caret = (el: HTMLElement | null) => {
-  el?.focus()
-  // Selected, so a fresh drop is renamed by typing over the type's own title.
-  if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
+  if (!el) return
+  setTimeout(() => {
+    // preventScroll, or the browser's own scroll-into-view runs on a panel
+    // still off-screen at translateX(100%) — a transform still counts toward
+    // the page's scrollable width even though the panel is display: hidden's
+    // cousin, visibility: hidden, so the browser happily scrolls the whole
+    // board sideways to reach it, and never scrolls back when the panel shuts.
+    el.focus({ preventScroll: true })
+    // Selected, so a fresh drop is renamed by typing over the type's own title.
+    if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) el.select()
+  })
 }
 
 export function Form({ subject, onClose }: { subject?: Sheet; onClose: () => void }) {

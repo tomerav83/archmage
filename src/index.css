@@ -376,16 +376,97 @@ body {
   height: 12px;
 }
 
+/* While a rectangle is being drawn, the cursor says so — the same convention
+   any draw tool uses, and the clearest sign the next press means something
+   different than it usually does. */
+.react-flow.drawing,
+.react-flow.drawing .react-flow__pane {
+  cursor: crosshair;
+}
+
+/* The rectangle itself: brass, the same pigment a selection's own registration
+   marks use, so it reads as "about to become a thing" rather than as a
+   generic marquee. No fill — what falls inside it is what shows through. */
+.draw-rect {
+  position: absolute;
+  pointer-events: none;
+  border: 1.5px dashed var(--brass-lit);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--brass) 8%, transparent);
+}
+
+/* The enclose menu: what a selection adds up to, asked where you right-clicked.
+   The rail's materials at the rack's scale — slate ground, brass hairline, mono
+   engraving — so it reads as the same instrument rather than as browser chrome. */
+.menu {
+  position: fixed;
+  z-index: 6;
+  min-width: 200px;
+  padding: 4px;
+  background: var(--g-850);
+  border: 1px solid var(--g-600);
+  border-radius: 2px;
+  box-shadow: 0 18px 34px -16px rgb(0 0 0 / 0.9);
+}
+
+.menu-title {
+  padding: 6px 8px 5px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 8px;
+  background: none;
+  border: 0;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-align: left;
+  color: var(--ink-dim);
+  cursor: pointer;
+}
+
+/* The mark wears the level's ink, the way it does on a faceplate; the row it
+   stands in lights the way an open field does. */
+.menu button svg {
+  width: 13px;
+  height: 13px;
+  flex: none;
+  color: var(--accent-ink);
+}
+
+.menu button:hover,
+.menu button:focus-visible {
+  outline: 0;
+  background: var(--g-750);
+  color: var(--ink);
+}
+
 /* A boundary is not a card, it is the ground the cards stand on: it fills the
-   box React Flow sizes for it, and it is drawn dashed the way every C4 tool has
-   drawn one since the first sketch. Band and name are the card's own, so a
-   frame is the same instrument read at another scale. */
+   box React Flow sizes for it. Band and name are the card's own, so a frame is
+   the same instrument read at another scale.
+
+   It is sunk rather than outlined. A hairline at a tint the canvas nearly
+   matches is nothing to find at a glance — so the region is a darker ground
+   instead, which reads at any zoom, holds where the wall itself is scrolled off
+   screen, and stacks: a frame inside a frame darkens again, and depth comes
+   free. The lit top edge is the light the recess is cut under. */
 .c4-frame {
   width: 100%;
   height: 100%;
-  background: color-mix(in srgb, var(--accent) 5%, transparent);
-  border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--g-900) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: 3px;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
 /* The band rules off a card's body; a frame has no body to rule off, so it
@@ -400,10 +481,23 @@ body {
   padding: 0 10px;
 }
 
-/* A frame is already dashed, which is where a card says Planned — so it says
-   only the other one. */
+/* A frame is drawn solid now, so the dash is free again and Planned says the
+   same thing on the ground that it says on a card. */
+.c4-frame[data-status='Planned'] {
+  border-style: dashed;
+}
+
 .c4-frame[data-status='Deprecated'] {
   opacity: 0.55;
+}
+
+/* A card in a frame stands on the sunken ground, not the canvas, and the two
+   are close enough in value to swallow it. So it sinks with the floor and keeps
+   a lit rim: the fill carries it at a glance, the rim carries it two frames
+   deep, where the ramp of greys has nowhere left to go. */
+.c4-node[data-nested] {
+  background: var(--g-850);
+  border-color: var(--g-600);
 }
 
 /* Status is the one catalogue field that shows on the board. A status that
