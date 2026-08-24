@@ -177,6 +177,24 @@ describe('the form', () => {
     expect(screen.queryByRole('button', { name: /^Technology/ })).toBeNull()
   })
 
+  it('offers the containers and systems on the board for an instance to be one of', () => {
+    const container = board()
+    drop(container, 'container')
+    write('Name', 'Orders Service')
+    drop(container, 'person')
+    drop(container, 'instance')
+    fireEvent.click(row('Instance of'))
+
+    expect(screen.getByRole('option', { name: 'Orders Service' })).toBeTruthy()
+    // A person is neither a container nor a system.
+    expect(screen.queryByRole('option', { name: 'Person' })).toBeNull()
+
+    fireEvent.change(field('Instance of'), { target: { value: 'Orders Service' } })
+    fireEvent.click(row('Name'))
+
+    expect(row('Instance of').textContent).toContain('Orders Service')
+  })
+
   it('shows an empty field as empty rather than as a blank box', () => {
     const container = board()
     drop(container)

@@ -16,6 +16,7 @@ export type FieldKey =
   | 'ttl'
   | 'delivery'
   | 'instances'
+  | 'instanceOf' // an instance only: the container or system deployed here
   | 'classification'
   | 'owner'
   | 'status'
@@ -88,6 +89,17 @@ const CATEGORY_FIELDS = {
   'Deployment & Infrastructure': [TECHNOLOGY, { key: 'instances', title: 'Instances', hint: '3' }],
 } satisfies Record<string, Field[]>
 
+// The one type that carries a field none of its shelf-mates do: an
+// Infrastructure Node is the machine, an Instance is one of a thing running on
+// it, so only the second wants to say which. A table, not a second branch in
+// fieldsFor — the shape system already disagreed with its category on — so a
+// second type that wants a field of its own only ever adds a line here.
+// Options are the board rather than the registry, so they are left empty and
+// stamped in ElementForm, the way the technology shortlist is stamped by type.
+const EXTRA: Partial<Record<TypeKey, Field>> = {
+  instance: { key: 'instanceOf', title: 'Instance of', input: 'pick', options: [] },
+}
+
 // An edge takes the element list with the category tier removed — which is why
 // it is this panel pointed at a line rather than an editor of its own.
 export const RELATIONSHIP: Field[] = [
@@ -108,9 +120,10 @@ export const CATEGORIES = Object.keys(CATEGORY_FIELDS) as Category[]
 // Beyond Name and Description, which everything takes. The card prints the
 // first of these under the name; the panel prints all of them. Role is the
 // person's half of Actors & Externals; C4 gives a software system no
-// technology, so a system takes a name and a description — the one type today
-// that disagrees with its category. A second one wants a table, not a second
-// branch here.
+// technology, so a system takes a name and a description — the one type that
+// disagrees with its category outright, which is still a branch rather than a
+// line in EXTRA because what it disagrees about is having a category's fields
+// at all, not carrying one field more than its shelf-mates.
 //
 // Technology is the one field whose options are the type's rather than the
 // category's — Relational Database and Vector Database share a shelf and share
@@ -120,6 +133,9 @@ export const CATEGORIES = Object.keys(CATEGORY_FIELDS) as Category[]
 export const fieldsFor = (type: TypeKey): Field[] =>
   type === 'system'
     ? []
-    : CATEGORY_FIELDS[TYPES[type].category].map((f) =>
-        f.key === 'technology' ? { ...f, options: TECH[type] } : f,
-      )
+    : [
+        ...CATEGORY_FIELDS[TYPES[type].category].map((f) =>
+          f.key === 'technology' ? { ...f, options: TECH[type] } : f,
+        ),
+        ...(EXTRA[type] ? [EXTRA[type]] : []),
+      ]
