@@ -139,12 +139,17 @@ export function DiagramCanvas() {
       return
     }
 
-    const id = crypto.randomUUID()
+    // A bundle is its own rows run one after another, which is the whole of
+    // it — a list of drops is a drop repeated, and the ids are minted up front
+    // so the two lists agree about which element each line lands on.
+    const run = action.verb === 'bundle' ? action.run : [action]
+    const ids = run.map(() => crypto.randomUUID())
+
     // A board is two lists, so the move is asked twice: what it stands, and
     // what it does to the lines. Both keep the functional form, since a move
     // is answered against the board as it is when the press lands.
-    setNodes((nds) => [...nds, place(on, action, id)])
-    setEdges((eds) => wire(eds, on, action, id))
+    setNodes((nds) => [...nds, ...run.map((r, i) => place(on, r, ids[i] as string, i))])
+    setEdges((eds) => run.reduce((held, r, i) => wire(held, on, r, ids[i] as string), eds))
   }
 
   // The pick. With a selection behind it the frame is drawn around what is

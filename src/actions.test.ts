@@ -3,6 +3,7 @@ import {
   ACTIONS,
   type Action,
   actionsFor,
+  type Bundle,
   becomes,
   type Drop,
   drops,
@@ -237,6 +238,52 @@ describe('the swap in place', () => {
     const titles = (type: string) => actionsFor(card('a', type)).map((a) => a.title)
     expect(titles('memory-cache')).toContain('Make it distributed')
     expect(titles('distributed-cache')).not.toContain('Make it distributed')
+  })
+})
+
+// A row whose run is a list of the rows above it: four elements and four
+// lines and one decision. No new machinery — the verbs never grow, the table
+// does.
+describe('a bundle', () => {
+  const INSTRUMENT = row('Applications', 'Instrument') as unknown as Bundle
+  const subject = card('a', 'api-service')
+
+  it('is a list of drops the table already knows how to run', () => {
+    expect(INSTRUMENT.verb).toBe('bundle')
+    expect(INSTRUMENT.run.map((r) => r.type)).toEqual([
+      'metrics-store',
+      'log-aggregator',
+      'tracing-backend',
+    ])
+  })
+
+  // All three leave the same flank, so each steps clear of the one before it.
+  it('steps each element clear of the last', () => {
+    const ys = INSTRUMENT.run.map((r, i) => place(subject, r, 'x', i).position.y)
+    expect(ys).toEqual([60, 212, 364])
+    // and they all stand downstream, on the same column
+    const xs = INSTRUMENT.run.map((r, i) => place(subject, r, 'x', i).position.x)
+    expect(new Set(xs)).toEqual(new Set([364]))
+  })
+
+  it('leaves a row that is not in a bundle where it was', () => {
+    expect(place(subject, DATABASE, 'b').position).toEqual({ x: 364, y: 60 })
+  })
+
+  it('draws one described line per element', () => {
+    const after = INSTRUMENT.run.reduce(
+      (held, r, i) => wire(held, subject, r, `x${i}`),
+      [] as RelationshipEdgeType[],
+    )
+    expect(after).toHaveLength(3)
+    expect(after.map((e) => e.target)).toEqual(['x0', 'x1', 'x2'])
+    expect(after.map((e) => e.data?.label)).toEqual([
+      'reports metrics to',
+      'ships logs to',
+      'emits spans to',
+    ])
+    // nobody waits on telemetry
+    expect(after.every((e) => e.data?.interaction === 'Async')).toBe(true)
   })
 })
 

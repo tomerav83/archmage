@@ -63,7 +63,17 @@ export type Replicate = {
   type: TypeKey // the frame the copy stands in
 }
 
-export type Action = Drop | Fanout | Becomes | Replicate
+// A row whose run is a list of the rows above it. Instrumenting a service is
+// four elements and four lines and one decision, so it is one row — and the
+// point of it is that it is a table entry and no new machinery: the verbs
+// never grow, the table does.
+export type Bundle = {
+  title: string
+  verb: 'bundle'
+  run: Drop[]
+}
+
+export type Action = Drop | Fanout | Becomes | Replicate | Bundle
 
 // Only two of the verbs stand a new element; the other two work on the card
 // that was right-clicked.
@@ -76,6 +86,33 @@ export const ACTIONS = {
   'Actors & Externals': [],
   Applications: [
     { title: 'Scale out ×3', verb: 'fanout', instances: '3' },
+    {
+      // The doc's map files this under Observability & Ops. It belongs on the
+      // thing being instrumented, not on the thing doing the instrumenting —
+      // you do not right-click a metrics store to ask for a metrics store.
+      title: 'Instrument',
+      verb: 'bundle',
+      run: [
+        {
+          title: 'Metrics',
+          type: 'metrics-store',
+          label: 'reports metrics to',
+          interaction: 'Async',
+        },
+        {
+          title: 'Logs',
+          type: 'log-aggregator',
+          label: 'ships logs to',
+          interaction: 'Async',
+        },
+        {
+          title: 'Traces',
+          type: 'tracing-backend',
+          label: 'emits spans to',
+          interaction: 'Async',
+        },
+      ],
+    },
     { title: 'Put behind load balancer', type: 'load-balancer', label: 'routes to', verb: 'front' },
     { title: 'Add database', type: 'relational-db', label: 'reads from and writes to' },
     { title: 'Add cache', type: 'memory-cache', label: 'reads through' },
@@ -123,7 +160,10 @@ export const ACTIONS = {
   'Platform & Security': [
     { title: 'Put behind auth', type: 'auth-service', label: 'admits callers to', verb: 'front' },
   ],
-  'Observability & Ops': [],
+  'Observability & Ops': [
+    { title: 'Add on-call', type: 'alerting', label: 'raises', interaction: 'Async' },
+    { title: 'Add CI/CD', type: 'cicd-pipeline', label: 'is deployed by', below: true },
+  ],
   'Analytics & ML': [{ title: 'Batch → stream', verb: 'becomes', type: 'stream-processor' }],
   'Boundaries & Zones': [{ title: 'Replicate to region', verb: 'replicate', type: 'region' }],
   'Deployment & Infrastructure': [
@@ -147,7 +187,14 @@ const SIDECAR = { x: 0, y: 152 }
  * standing in a Region stands in that Region too, and nesting.ts is never
  * asked.
  */
-export function place(subject: ElementNodeType, action: Drop, id: string): ElementNodeType {
+export function place(
+  subject: ElementNodeType,
+  action: Drop,
+  id: string,
+  // A bundle's drops all leave the same flank, so each steps down from the one
+  // before it — otherwise four elements land on top of one another.
+  step = 0,
+): ElementNodeType {
   const at = action.verb === 'front' ? UPSTREAM : action.below ? SIDECAR : OFFSET
   // A replica off a PostgreSQL primary is a PostgreSQL replica without anybody
   // saying so — but only where the new type's shortlist has a line for it, so
@@ -158,7 +205,10 @@ export function place(subject: ElementNodeType, action: Drop, id: string): Eleme
   return {
     id,
     type: 'element',
-    position: { x: subject.position.x + at.x, y: subject.position.y + at.y },
+    position: {
+      x: subject.position.x + at.x,
+      y: subject.position.y + at.y + step * SIDECAR.y,
+    },
     ...(subject.parentId && { parentId: subject.parentId }),
     data: {
       type: action.type,

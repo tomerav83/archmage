@@ -63,14 +63,14 @@ the same way a category without fields is.
 | Shelf | Types | Quick actions |
 | --- | --- | --- |
 | Actors & Externals | 2 | Add client app · Expose API · Split into containers |
-| Applications | 11 | **Scale out ×N** · **Put behind load balancer** · Add cache · Offload to queue · Add database · Extract service |
+| Applications | 11 | **Scale out ×N** · **Put behind load balancer** · Add cache · Offload to queue · Add database · **Instrument** · Extract service |
 | APIs & Contracts | 8 | Put behind gateway · Add rate limit · Cut a v2 |
 | Data Stores | 12 | **Add read replica** · Cache in front · **Shard ×N** · Add search index · Archive to warehouse |
 | Caching | 4 | Make it distributed · Add replica · Warm from source |
 | Messaging & Streaming | 7 | Add consumer pool ×N · **Add dead-letter queue** · Partition ×N · Pin a schema |
 | Edge & Traffic | 8 | **Front with CDN** · Add WAF · Route by geography · Add a health-checked pool |
 | Platform & Security | 8 | Put behind auth · Add secrets manager · Add feature flags |
-| Observability & Ops | 5 | **Instrument** · Add on-call · Add CI/CD |
+| Observability & Ops | 5 | Add on-call · Add CI/CD |
 | Analytics & ML | 6 | Add feature store · Batch → stream · Serve a model |
 | Boundaries & Zones | 10 frames | Enclose in ▸ *(shipped)* · **Replicate to region** |
 | Deployment & Infrastructure | 6 | Scale cluster ±nodes · Replicate to zone · Deploy an instance of… |

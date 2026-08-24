@@ -225,3 +225,28 @@ describe('a move that copies a frame', () => {
     expect(named.sort()).toEqual(['Region / Zone', 'System Boundary', 'System Boundary'])
   })
 })
+
+describe('a move that is several moves', () => {
+  it('stands every element the bundle names, each on its own line', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Instrument'))
+
+    // the service, and the three it now reports to
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(4)
+    expect(document.querySelectorAll('.react-flow__edge')).toHaveLength(3)
+    const named = [...document.querySelectorAll('.c4-node .c4-name')].map((n) => n.textContent)
+    expect(named.sort()).toEqual([
+      'Container',
+      'Log Aggregator',
+      'Metrics Store',
+      'Tracing Backend',
+    ])
+  })
+})
