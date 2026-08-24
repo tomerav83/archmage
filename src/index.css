@@ -437,6 +437,13 @@ body {
   box-shadow: 0 18px 34px -16px rgb(0 0 0 / 0.9);
 }
 
+/* The rule between what can be done to this thing and what it can be put in. */
+.menu hr {
+  margin: 5px 8px;
+  border: 0;
+  border-top: 1px solid var(--g-750);
+}
+
 .menu-title {
   padding: 6px 8px 5px;
   font-family: var(--mono);

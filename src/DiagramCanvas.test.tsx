@@ -133,3 +133,27 @@ describe('enclosing what is already on the board', () => {
     expect(document.querySelector('.c4-frame')).toBeTruthy()
   })
 })
+
+// actions.test.ts asks what a move does; this asks only that the gesture
+// reaches it, and that it stops where the doc says it stops — at the board.
+describe('a move made off the menu', () => {
+  it('stands the element already named, and draws the line already described', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    // The drop opens the panel on the new card's name. Shut it, so that the
+    // panel being shut afterwards means the action left it shut.
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Add database'))
+
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(2)
+    expect(screen.getByText('Relational Database')).toBeTruthy()
+    expect(document.querySelectorAll('.react-flow__edge')).toHaveLength(1)
+    // An action does not open the panel: that is the point of it.
+    expect(document.querySelector('.form[data-open]')).toBeNull()
+  })
+})

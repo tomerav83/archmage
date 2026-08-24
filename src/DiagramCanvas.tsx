@@ -15,12 +15,13 @@ import {
   type XYPosition,
 } from '@xyflow/react'
 import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
+import { type Action, attach } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
 import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
-import { Enclose } from './Enclose'
+import { Menu } from './Menu'
 import { enclose, frameAround, frameAt, frameFrom, nest, reparent } from './nesting'
 import { RelationshipEdge, type RelationshipEdgeType } from './RelationshipEdge'
 import { RelationshipForm } from './RelationshipForm'
@@ -103,6 +104,27 @@ export function DiagramCanvas() {
     }),
     [from, getInternalNode, setEdges],
   )
+
+  // The one card the right-click landed on, where it landed on exactly one
+  // and that one is a card. A selection has nothing to have done to it — an
+  // action has a subject, which is the whole reason it is on the card and not
+  // in a palette — and a frame is enclosed in rather than acted on.
+  const subject =
+    menu && 'ids' in menu && menu.ids.length === 1
+      ? nodes.find((n) => n.id === menu.ids[0])
+      : undefined
+
+  // A move. The new element names itself off the table and the type it
+  // dropped, and the line arrives already described, so the panel does not
+  // open: the only reason to open it is that you disagree, and a double-click
+  // already does that.
+  const act = (action: Action) => {
+    // Non-null: a row is only rendered where there is a subject to act on.
+    const { node, edge } = attach(subject as ElementNodeType, action, crypto.randomUUID())
+    setMenu(null)
+    setNodes((nds) => [...nds, node])
+    setEdges((eds) => [...eds, edge])
+  }
 
   // The pick. With a selection behind it the frame is drawn around what is
   // already on the board, which is how a boundary is usually arrived at: the
@@ -232,9 +254,11 @@ export function DiagramCanvas() {
           one is ever pointed at anything — an id is a node's or an edge's —
           so each slides on its own instead of one popping in where the other
           was. */}
-      <Enclose
+      <Menu
         at={menu}
+        subject={subject}
         title={menu && 'ids' in menu ? 'Enclose in' : 'New Boundary'}
+        onAct={act}
         onPick={pick}
         onClose={() => setMenu(null)}
       />
