@@ -52,7 +52,7 @@ export function ElementNode({ id, data, parentId }: NodeProps<ElementNodeType>) 
     >
       <Ward id={id} />
       <div className="c4-band">
-        <Sigil type={type} />
+        <Sigil paths={type.sigil} />
         <span>
           {level.title} · {type.title}
         </span>

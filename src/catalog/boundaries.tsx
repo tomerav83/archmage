@@ -45,6 +45,9 @@ export const BOUNDARIES = shelf('Boundaries & Zones', {
   },
   'trust-zone': {
     title: 'Trust Zone',
+    // A VPC, a subnet, a DMZ: the one boundary drawn around machines rather
+    // than around software, so it is the one that levels with them.
+    level: 'deployment',
     frame: true,
     sigil: (
       <>

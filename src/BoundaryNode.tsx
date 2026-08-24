@@ -24,7 +24,7 @@ export function BoundaryNode({ data, selected }: NodeProps<ElementNodeType>) {
           board with grips. Brass, and only while it is the selected thing. */}
       <NodeResizer minWidth={200} minHeight={140} isVisible={selected} />
       <div className="c4-band">
-        <Sigil type={type} />
+        <Sigil paths={type.sigil} />
         <span>
           {level.title} · {type.title}
         </span>

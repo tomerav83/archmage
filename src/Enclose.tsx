@@ -54,7 +54,7 @@ export function Enclose({
           style={{ '--accent-ink': LEVELS[type.level].ink }}
           onClick={() => onPick(key)}
         >
-          <Sigil type={type} />
+          <Sigil paths={type.sigil} />
           <span>{type.title}</span>
         </button>
       ))}

@@ -34,7 +34,10 @@ export const EDGE = shelf('Edge & Traffic', {
     sigil: <path d="M3.6 8.4h16.8M3.6 15.6h16.8M8.4 3.6v16.8M15.6 3.6v16.8" />,
   },
   waf: {
+    // The one type on this shelf the catalogue only ever gives a Dep: a
+    // firewall is a thing standing in a network, not a thing in an app.
     title: 'WAF / Firewall',
+    level: 'deployment',
     sigil: (
       <path d="M3.4 5.6h17.2v12.8H3.4ZM3.4 9.8h17.2M3.4 14.2h17.2M9.2 5.6v4.2M15 5.6v4.2M6.3 9.8v4.4M12 9.8v4.4M17.7 9.8v4.4M9.2 14.2v4.2M15 14.2v4.2" />
     ),

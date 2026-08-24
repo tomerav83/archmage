@@ -15,7 +15,7 @@ type Index = ReturnType<typeof index>
 
 // A plain rectangle in board coordinates — what a rect() lookup answers for
 // one node, and what a drawn selection answers for a whole gesture.
-export type Rect = { x: number; y: number; width: number; height: number }
+type Rect = { x: number; y: number; width: number; height: number }
 
 // Where a node stands on the board, rather than inside its parent.
 const absolute = (at: Index, node: ElementNodeType): XYPosition => {

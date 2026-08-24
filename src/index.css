@@ -19,6 +19,13 @@
   /* how long a press holds before the ward closes; paces the drawing of the
      figure, and must match HOLD_MS in ward/useWard.ts */
   --hold: 420ms;
+  /* the rack's shut height: the bar is a row of marks, and the attribution
+     steps up onto it */
+  --bar: 58px;
+  /* the rail's width, open or shut — shared with the rack, which reserves it
+     the moment the rail does, so a tab never stands where the rail is about
+     to cover it */
+  --form-w: 288px;
 
   --ink: #e9e6df;
   --ink-dim: #9ba09f;
@@ -86,7 +93,7 @@ body {
 
 /* the rack sills the bottom edge; the attribution steps up onto the bar */
 .react-flow__attribution {
-  bottom: 41px;
+  bottom: var(--bar);
 }
 
 /* What the line says, set on a slate plate so it reads over the grid rather
@@ -133,7 +140,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 41px;
+  min-height: var(--bar);
   padding: 2px 13px;
 }
 
@@ -152,25 +159,44 @@ body {
   text-transform: uppercase;
 }
 
-/* The shelf names, engraved on the bar; the pressed one is the standing
-   shelf. They wrap sooner than they scroll: a scrollbar in the bar is a
-   17px classic bar on Windows, and it was seen standing on the text. */
+/* The shelves as a device front: a mark over one word, one cell per shelf,
+   the standing one lit. Eleven of these come to 920px whatever the shelves
+   are called, so the row that used to wrap on a wide screen no longer does.
+   They still wrap sooner than they scroll: a scrollbar in the bar is a 17px
+   classic bar on Windows, and it was seen standing on the text. */
 .rack-tabs {
   display: flex;
   flex: 1;
   flex-wrap: wrap;
   min-width: 0;
   margin-left: 8px;
-  column-gap: 2px;
+  column-gap: 4px;
+}
+
+/* The rail covers the sill's corner while it is open — see .form — and a
+   standing tab must never be the thing it covers. Reserved the instant the
+   rail is, so the row wraps a line earlier rather than losing its last tab
+   under glass. */
+.diagram-editor:has(.form[data-open]) .rack-tabs {
+  margin-right: var(--form-w);
 }
 
 .rack-tabs button {
-  padding: 9px 8px 8px;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 80px;
+  height: 54px;
+  padding: 0 2px;
   font-family: var(--mono);
-  font-size: 8.5px;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  /* --ink-faint at 8.5px cleared 3.5:1 on the sill; this clears 6.7:1 */
+  color: var(--ink-dim);
   background: none;
   border: none;
   border-bottom: 1px solid transparent;
@@ -178,8 +204,13 @@ body {
   white-space: nowrap;
 }
 
+.rack-tabs svg {
+  width: 26px;
+  height: 26px;
+}
+
 .rack-tabs button:hover {
-  color: var(--ink-dim);
+  color: var(--ink);
 }
 
 .rack-tabs button[aria-pressed='true'] {
@@ -570,7 +601,7 @@ body {
   top: 0;
   right: 0;
   bottom: 0;
-  width: 288px;
+  width: var(--form-w);
   /* over the rack's corner of the sill: while you are saying, saying wins */
   z-index: 1;
   display: flex;

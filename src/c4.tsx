@@ -6,6 +6,7 @@ import { APPLICATIONS } from './catalog/applications'
 import { BOUNDARIES } from './catalog/boundaries'
 import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
+import { DEPLOYMENT } from './catalog/deployment'
 import { EDGE } from './catalog/edge'
 import { MESSAGING } from './catalog/messaging'
 import { OBSERVABILITY } from './catalog/observability'
@@ -17,7 +18,7 @@ import type { Category } from './fields'
 // not a type — it is a technology on a Relational Database, free text on the
 // node. That is what keeps a large catalogue a table instead of an icon pack.
 
-export type Level = {
+type Level = {
   title: string
   accent: string // stripe and band tint
   ink: string // the same pigment, lifted for 8px type on a dark card
@@ -26,12 +27,13 @@ export type Level = {
 // The zoom, and the only thing carrying pigment: a colour per type would be
 // mud, so the colour tells you the level and the sigil tells you the type. The
 // rail is shelved by category, not by this — a level holds too much to browse.
-// There is no deployment level yet, so a type the catalogue also gives a Dep
-// stands as a container until the deployment view lands.
+// Four levels and four pigments, and violet is the last of them: the only hue
+// left once context has blue, container teal and component amber.
 export const LEVELS = {
   context: { title: 'Context', accent: '#4a7fc1', ink: '#6f9fd8' },
   container: { title: 'Container', accent: '#3f9e8c', ink: '#56bda9' },
   component: { title: 'Component', accent: '#cf9b3c', ink: '#e0b358' },
+  deployment: { title: 'Deployment', accent: '#8878c4', ink: '#a394e0' },
 } satisfies Record<string, Level>
 
 export type LevelKey = keyof typeof LEVELS
@@ -63,6 +65,7 @@ export const TYPES = {
   ...OBSERVABILITY,
   ...ANALYTICS,
   ...BOUNDARIES,
+  ...DEPLOYMENT,
 }
 
 export type TypeKey = keyof typeof TYPES
@@ -79,7 +82,7 @@ export const FRAMES = ROWS.filter(([, t]) => t.frame)
 // Every mark is drawn on the same 24-unit grid at the same stroke, so they set
 // evenly beside 8px engraved type. The sigil carries the type; the pigment only
 // confirms the level — a diagram still reads in greyscale.
-export function Sigil({ type }: { type: ElementType }) {
+export function Sigil({ paths }: { paths: ReactNode }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -89,7 +92,7 @@ export function Sigil({ type }: { type: ElementType }) {
       strokeLinecap="square"
       aria-hidden="true"
     >
-      {type.sigil}
+      {paths}
     </svg>
   )
 }
