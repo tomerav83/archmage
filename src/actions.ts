@@ -20,22 +20,40 @@ import type { RelationshipEdgeType } from './RelationshipEdge'
  * rather than every verb owning a function that has to return both.
  */
 
-export type Action = {
+// A row that drops something. `attach` is the default — a box beside the
+// subject — and `front` puts the box in front of it, handing it everything
+// that was already arriving.
+export type Drop = {
   title: string // what the menu row says
   type: TypeKey // what it drops
   label: string // what the line it draws says
-  // `attach` is the default: a box beside the subject. `front` puts the box
-  // in front of it and hands it everything that was arriving.
   verb?: 'front'
   interaction?: 'Async' // Sync is the default and the line says nothing
   below?: true // attach only: a sidecar under the subject rather than downstream
+  instances?: string // the new element comes up already ×N
 }
+
+// A row that drops nothing and says there are more of what is already there.
+// Scaling out is not three cards: it is one card that says three, which is
+// what keeps a line to it one line and the model a count.
+export type Fanout = {
+  title: string
+  verb: 'fanout'
+  instances: string
+}
+
+export type Action = Drop | Fanout
+
+// A fanout has no type of its own — it multiplies the subject, so it wears the
+// subject's mark and the subject's pigment.
+export const drops = (action: Action): action is Drop => action.verb !== 'fanout'
 
 // The rows, by shelf. See the map in docs/actions.md for what lands where; a
 // shelf standing empty is a shelf whose rows want a verb not built yet.
 export const ACTIONS = {
   'Actors & Externals': [],
   Applications: [
+    { title: 'Scale out ×3', verb: 'fanout', instances: '3' },
     { title: 'Put behind load balancer', type: 'load-balancer', label: 'routes to', verb: 'front' },
     { title: 'Add database', type: 'relational-db', label: 'reads from and writes to' },
     { title: 'Add cache', type: 'memory-cache', label: 'reads through' },
@@ -60,6 +78,14 @@ export const ACTIONS = {
   ],
   Caching: [],
   'Messaging & Streaming': [
+    { title: 'Partition ×3', verb: 'fanout', instances: '3' },
+    {
+      title: 'Add consumer pool ×3',
+      type: 'worker',
+      label: 'feeds',
+      interaction: 'Async',
+      instances: '3',
+    },
     {
       title: 'Add dead-letter queue',
       type: 'dead-letter-queue',
@@ -96,7 +122,7 @@ const SIDECAR = { x: 0, y: 152 }
  * standing in a Region stands in that Region too, and nesting.ts is never
  * asked.
  */
-export function place(subject: ElementNodeType, action: Action, id: string): ElementNodeType {
+export function place(subject: ElementNodeType, action: Drop, id: string): ElementNodeType {
   const at = action.verb === 'front' ? UPSTREAM : action.below ? SIDECAR : OFFSET
   // A replica off a PostgreSQL primary is a PostgreSQL replica without anybody
   // saying so — but only where the new type's shortlist has a line for it, so
@@ -113,6 +139,7 @@ export function place(subject: ElementNodeType, action: Action, id: string): Ele
       type: action.type,
       label: TYPES[action.type].title,
       ...(inherits && { technology: kept }),
+      ...(action.instances && { instances: action.instances }),
     },
   }
 }
@@ -121,7 +148,7 @@ export function place(subject: ElementNodeType, action: Action, id: string): Ele
 // handles are the offset's, known without measuring: a node minted this frame
 // has no width for faces() to read.
 const drawn = (
-  action: Action,
+  action: Drop,
   source: string,
   target: string,
   faces: readonly [string, string],
@@ -150,7 +177,7 @@ const drawn = (
 export function wire(
   edges: RelationshipEdgeType[],
   subject: ElementNodeType,
-  action: Action,
+  action: Drop,
   id: string,
 ): RelationshipEdgeType[] {
   if (action.verb === 'front')

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { type Action, actionsFor } from './actions'
+import { type Action, actionsFor, drops } from './actions'
 import { FRAMES, LEVELS, Sigil, TYPES, type TypeKey } from './c4'
 import type { ElementNodeType } from './ElementNode'
 
@@ -56,21 +56,26 @@ export function Menu({
       // Light-dismissed by the platform, so the board is told it has gone.
       onToggle={(e) => e.newState === 'closed' && onClose()}
     >
-      {actions.length > 0 && (
+      {subject && actions.length > 0 && (
         <>
           {/* the thing being acted on, named, so the verbs have a subject */}
-          <div className="menu-title">{subject?.data.label}</div>
-          {actions.map((action) => (
-            <button
-              key={action.title}
-              type="button"
-              style={{ '--accent': LEVELS[TYPES[action.type].level].accent }}
-              onClick={() => onAct(action)}
-            >
-              <Sigil paths={TYPES[action.type].sigil} />
-              <span>{action.title}</span>
-            </button>
-          ))}
+          <div className="menu-title">{subject.data.label}</div>
+          {actions.map((action) => {
+            // A fanout drops nothing, so it wears the subject's own mark: what
+            // it multiplies is the thing you right-clicked.
+            const mark = TYPES[drops(action) ? action.type : subject.data.type]
+            return (
+              <button
+                key={action.title}
+                type="button"
+                style={{ '--accent': LEVELS[mark.level].accent }}
+                onClick={() => onAct(action)}
+              >
+                <Sigil paths={mark.sigil} />
+                <span>{action.title}</span>
+              </button>
+            )
+          })}
           <hr />
         </>
       )}

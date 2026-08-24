@@ -15,7 +15,7 @@ import {
   type XYPosition,
 } from '@xyflow/react'
 import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
-import { type Action, place, wire } from './actions'
+import { type Action, drops, place, wire } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
@@ -62,7 +62,7 @@ const FRAME = { width: 360, height: 240 }
 export function DiagramCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState<ElementNodeType>([])
   const [edges, setEdges, onEdgesChange] = useEdgesState<RelationshipEdgeType>([])
-  const { screenToFlowPosition, getInternalNode } = useReactFlow()
+  const { screenToFlowPosition, getInternalNode, updateNodeData } = useReactFlow()
   // The node whose ward is open, waiting for the press that answers it.
   const [from, setFrom] = useState<string | null>(null)
   // The node or edge the form follows. It follows one, and it is not modal.
@@ -121,8 +121,12 @@ export function DiagramCanvas() {
   const act = (action: Action) => {
     // Non-null: a row is only rendered where there is a subject to act on.
     const on = subject as ElementNodeType
-    const id = crypto.randomUUID()
     setMenu(null)
+    // Scaling out drops nothing: the card it was asked of says three, and the
+    // one line already drawn to it stays one line.
+    if (!drops(action)) return updateNodeData(on.id, { instances: action.instances })
+
+    const id = crypto.randomUUID()
     // A board is two lists, so the move is asked twice: what it stands, and
     // what it does to the lines. Both keep the functional form, since a move
     // is answered against the board as it is when the press lands.

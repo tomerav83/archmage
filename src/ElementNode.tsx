@@ -42,6 +42,10 @@ export function ElementNode({ id, data, parentId }: NodeProps<ElementNodeType>) 
       // Planned draws dashed, Deprecated dims: a status that renders nowhere is
       // a field nobody fills in.
       data-status={data.status}
+      // Three of a thing is one card with two sheets behind it — the model
+      // holds a count, never three copies, so nothing else on the board has
+      // to learn that a card can stand for more than one.
+      data-stacked={data.instances || undefined}
       // A card held by a frame stands on darker ground and is drawn darker for
       // it. The card has to say so itself: React Flow paints every node into
       // one flat layer, so a nested card is nowhere inside its frame in the DOM
@@ -56,6 +60,7 @@ export function ElementNode({ id, data, parentId }: NodeProps<ElementNodeType>) 
         <span>
           {level.title} · {type.title}
         </span>
+        {data.instances && <span className="c4-count">×{data.instances}</span>}
       </div>
       <div className="c4-body">
         <div className="c4-name">{data.label}</div>

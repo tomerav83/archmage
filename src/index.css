@@ -372,6 +372,25 @@ body {
   white-space: nowrap;
 }
 
+/* Three of a thing is one card with two sheets behind it, offset up and to the
+   right so the band still reads. The card's own drop shadow stays last, or the
+   sheets would sit in front of it. */
+.c4-node[data-stacked] {
+  box-shadow:
+    5px -5px 0 -1px var(--g-800),
+    5px -5px 0 0 var(--g-900),
+    10px -10px 0 -1px var(--g-800),
+    10px -10px 0 0 var(--g-900),
+    0 12px 26px -14px rgb(0 0 0 / 0.85);
+}
+
+/* The count, in the band's own engraving, run out to the right edge of it. */
+.c4-count {
+  margin-left: auto;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
 .c4-body {
   padding: 8px 10px 10px;
 }

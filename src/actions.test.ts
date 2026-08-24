@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { ACTIONS, type Action, actionsFor, place, wire } from './actions'
+import {
+  ACTIONS,
+  type Action,
+  actionsFor,
+  type Drop,
+  drops,
+  type Fanout,
+  place,
+  wire,
+} from './actions'
 import { TYPES } from './c4'
 import { TECH } from './catalog/tech'
 import type { ElementNodeType } from './ElementNode'
+import { fieldsFor } from './fields'
 import type { RelationshipEdgeType } from './RelationshipEdge'
 
 const card = (
@@ -23,7 +33,7 @@ const line = (id: string, source: string, target: string) =>
   ({ id, source, target, targetHandle: 'l' }) as RelationshipEdgeType
 
 const row = (shelf: keyof typeof ACTIONS, title: string) =>
-  (ACTIONS[shelf] as Action[]).find((a) => a.title === title) as Action
+  (ACTIONS[shelf] as Action[]).find((a) => a.title === title) as Drop
 
 const DATABASE = row('Applications', 'Add database')
 const REPLICA = row('Data Stores', 'Add read replica')
@@ -132,16 +142,44 @@ describe('the upstream insert', () => {
   })
 
   it('is five rows of the table and one function', () => {
-    const fronts = Object.values(ACTIONS)
-      .flat()
-      .filter((a: Action) => a.verb === 'front')
-    expect(fronts.map((a: Action) => a.title)).toEqual([
+    const fronts = (Object.values(ACTIONS).flat() as Action[]).filter((a) => a.verb === 'front')
+    expect(fronts.map((a) => a.title)).toEqual([
       'Put behind load balancer',
       'Put behind gateway',
       'Front with CDN',
       'Add WAF',
       'Put behind auth',
     ])
+  })
+})
+
+// Scaling out is not three cards. It is one card that says three, so the one
+// line already drawn to it stays one line and the model holds a count.
+describe('the fanout', () => {
+  it('drops nothing at all, so place and wire are never asked', () => {
+    const scale = row('Applications', 'Scale out ×3')
+    expect(drops(scale as unknown as Action)).toBe(false)
+    expect((scale as unknown as Fanout).instances).toBe('3')
+  })
+
+  it('comes up already counted where the row drops something', () => {
+    const pool = row('Messaging & Streaming', 'Add consumer pool ×3')
+    expect(place(card('a', 'message-queue'), pool, 'b').data.instances).toBe('3')
+  })
+
+  it('leaves the count off everything that never asked for one', () => {
+    expect(place(card('a', 'api-service'), DATABASE, 'b').data.instances).toBeUndefined()
+  })
+
+  // The field is the one the panel already renders, so a count typed into the
+  // rail and a count stamped by a row are the same fact on the same key.
+  it('writes the field the panel writes', () => {
+    const counted = (type: string) => fieldsFor(type as never).some((f) => f.key === 'instances')
+    expect(counted('api-service')).toBe(true)
+    expect(counted('event-stream')).toBe(true)
+    expect(counted('instance')).toBe(true)
+    // and not everywhere: a database does not scale by saying three
+    expect(counted('relational-db')).toBe(false)
   })
 })
 
@@ -159,6 +197,7 @@ describe('what a thing can have done to it', () => {
   // and every row it does have has to name a type the registry owns.
   it('drops only types the registry knows', () => {
     for (const rows of Object.values(ACTIONS))
-      for (const action of rows as Action[]) expect(TYPES[action.type]).toBeTruthy()
+      for (const action of rows as Action[])
+        if (drops(action)) expect(TYPES[action.type]).toBeTruthy()
   })
 })

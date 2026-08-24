@@ -46,6 +46,12 @@ export const CATALOG: Field[] = [
   { key: 'tags', title: 'Tags', hint: 'pci, tier-1' },
 ]
 
+// How many of this there are. It was Deployment's alone, where an Instance
+// says how many of it run; an application scales out and a stream partitions,
+// and both want to say the same thing in the same word. The card draws it as
+// a stack rather than as three cards, because the model holds a count.
+const INSTANCES: Field = { key: 'instances', title: 'Instances', hint: '3' }
+
 // Eight of the twelve categories take this and nothing else. That repetition is
 // the argument: one table with a value repeated, not twelve forms alike.
 const TECHNOLOGY: Field = {
@@ -60,7 +66,7 @@ const TECHNOLOGY: Field = {
 // keys. To give a category a field: add it to its line.
 const CATEGORY_FIELDS = {
   'Actors & Externals': [{ key: 'role', title: 'Role', hint: 'Support agent' }],
-  Applications: [TECHNOLOGY],
+  Applications: [TECHNOLOGY, INSTANCES],
   'APIs & Contracts': [TECHNOLOGY, { key: 'endpoint', title: 'Endpoint', hint: '/v1/orders' }],
   'Data Stores': [
     TECHNOLOGY,
@@ -80,13 +86,14 @@ const CATEGORY_FIELDS = {
       input: 'pick',
       options: ['at-most-once', 'at-least-once', 'exactly-once'],
     },
+    INSTANCES,
   ],
   'Edge & Traffic': [TECHNOLOGY],
   'Platform & Security': [TECHNOLOGY],
   'Observability & Ops': [TECHNOLOGY],
   'Analytics & ML': [TECHNOLOGY],
   'Boundaries & Zones': [], // a boundary is a name and a reason
-  'Deployment & Infrastructure': [TECHNOLOGY, { key: 'instances', title: 'Instances', hint: '3' }],
+  'Deployment & Infrastructure': [TECHNOLOGY, INSTANCES],
 } satisfies Record<string, Field[]>
 
 // The one type that carries a field none of its shelf-mates do: an

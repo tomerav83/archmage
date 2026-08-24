@@ -121,3 +121,19 @@ describe('a card', () => {
     expect(container.querySelector('.c4-node')?.getAttribute('data-status')).toBe('Deprecated')
   })
 })
+
+// Three of a thing is one card that says three, not three cards. The stack is
+// the stylesheet's; what the card owes is the count and the flag under it.
+describe('a card standing for more than one', () => {
+  it('says how many, and asks to be drawn as a stack', () => {
+    render(<Board data={{ type: 'api-service', label: 'Orders', instances: '3' }} />)
+    expect(screen.getByText('×3')).toBeTruthy()
+    expect(document.querySelector('.c4-node')?.getAttribute('data-stacked')).toBe('3')
+  })
+
+  it('says nothing at all where there is one of it', () => {
+    render(<Board data={{ type: 'api-service', label: 'Orders' }} />)
+    expect(screen.queryByText(/^×/)).toBeNull()
+    expect(document.querySelector('.c4-node')?.getAttribute('data-stacked')).toBeNull()
+  })
+})

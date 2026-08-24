@@ -157,3 +157,21 @@ describe('a move made off the menu', () => {
     expect(document.querySelector('.form[data-open]')).toBeNull()
   })
 })
+
+describe('a move that drops nothing', () => {
+  it('makes the one card say three, and draws no second card', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Scale out ×3'))
+
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(1)
+    expect(screen.getByText('×3')).toBeTruthy()
+    expect(document.querySelectorAll('.react-flow__edge')).toHaveLength(0)
+  })
+})
