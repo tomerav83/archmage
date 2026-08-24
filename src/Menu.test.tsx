@@ -1,5 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { ACTIONS } from './actions'
+import { TYPES } from './c4'
 import type { ElementNodeType } from './ElementNode'
 import { Menu } from './Menu'
 
@@ -15,6 +17,18 @@ const frame = () =>
     position: { x: 0, y: 0 },
     data: { type: 'system-boundary', label: 'Payments' },
   }) as ElementNodeType
+
+// A card off whichever shelf has no row yet. The assertion below is about a
+// shelf standing empty, not about which shelf that happens to be — every one
+// of them takes rows as the table grows.
+const bare = () => {
+  for (const [shelf, rows] of Object.entries(ACTIONS)) {
+    if (rows.length) continue
+    const hit = Object.entries(TYPES).find(([, t]) => t.category === shelf && !t.frame)
+    if (hit) return hit[0]
+  }
+  throw new Error('every shelf has a row: pick another way to say empty')
+}
 
 const menu = (props: Partial<Parameters<typeof Menu>[0]> = {}) => {
   const onPick = vi.fn()
@@ -109,7 +123,7 @@ describe('the verbs half', () => {
   })
 
   it('offers a shelf with no row yet nothing but the frames', () => {
-    const { container } = menu({ subject: card('rest-api') })
+    const { container } = menu({ subject: card(bare()) })
     expect(container.querySelector('hr')).toBeNull()
     expect(screen.getByText('System Boundary')).toBeTruthy()
   })

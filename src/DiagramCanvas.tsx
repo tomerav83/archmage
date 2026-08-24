@@ -15,7 +15,7 @@ import {
   type XYPosition,
 } from '@xyflow/react'
 import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
-import { type Action, attach } from './actions'
+import { type Action, place, wire } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
@@ -120,10 +120,14 @@ export function DiagramCanvas() {
   // already does that.
   const act = (action: Action) => {
     // Non-null: a row is only rendered where there is a subject to act on.
-    const { node, edge } = attach(subject as ElementNodeType, action, crypto.randomUUID())
+    const on = subject as ElementNodeType
+    const id = crypto.randomUUID()
     setMenu(null)
-    setNodes((nds) => [...nds, node])
-    setEdges((eds) => [...eds, edge])
+    // A board is two lists, so the move is asked twice: what it stands, and
+    // what it does to the lines. Both keep the functional form, since a move
+    // is answered against the board as it is when the press lands.
+    setNodes((nds) => [...nds, place(on, action, id)])
+    setEdges((eds) => wire(eds, on, action, id))
   }
 
   // The pick. With a selection behind it the frame is drawn around what is
