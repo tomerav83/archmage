@@ -41,6 +41,19 @@
   box-sizing: border-box;
 }
 
+/* The same pigment, lifted for 8px type on a dark card. Derived rather than
+   hand-picked: four accents and four inks were eight hexes to keep in step,
+   and a step of lightness at the same hue and chroma is what the pairs were.
+   Declared on everything that carries an --accent, since a custom property
+   substitutes where it is declared and :root has no accent to lift. */
+.c4-node,
+.c4-frame,
+.fplate,
+.form,
+.menu button {
+  --accent-ink: oklch(from var(--accent) calc(l + 0.1) c h);
+}
+
 body {
   margin: 0;
   font-family: var(--sans);
@@ -412,7 +425,10 @@ body {
    engraving — so it reads as the same instrument rather than as browser chrome. */
 .menu {
   position: fixed;
-  z-index: 6;
+  /* the UA centres a popover in the viewport and boxes it in its own chrome;
+     this one stands where the press landed. The top layer is the z-index. */
+  inset: auto;
+  margin: 0;
   min-width: 200px;
   padding: 4px;
   background: var(--g-850);
@@ -529,33 +545,21 @@ body {
 }
 
 .react-flow__node.selected .c4-node::after {
-  --tick: linear-gradient(var(--brass) 0 0);
+  --tick: linear-gradient(var(--brass) 0 0) no-repeat;
   content: '';
   position: absolute;
   inset: -5px;
   pointer-events: none;
+  /* one corner per pair: the arm across, then the arm down */
   background:
-    var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick), var(--tick),
-    var(--tick);
-  background-repeat: no-repeat;
-  background-size:
-    8px 1px,
-    1px 8px,
-    8px 1px,
-    1px 8px,
-    8px 1px,
-    1px 8px,
-    8px 1px,
-    1px 8px;
-  background-position:
-    left top,
-    left top,
-    right top,
-    right top,
-    left bottom,
-    left bottom,
-    right bottom,
-    right bottom;
+    var(--tick) left top / 8px 1px,
+    var(--tick) left top / 1px 8px,
+    var(--tick) right top / 8px 1px,
+    var(--tick) right top / 1px 8px,
+    var(--tick) left bottom / 8px 1px,
+    var(--tick) left bottom / 1px 8px,
+    var(--tick) right bottom / 8px 1px,
+    var(--tick) right bottom / 1px 8px;
 }
 
 /* ── ports ──────────────────────────────────────────────────

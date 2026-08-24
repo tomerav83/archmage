@@ -36,3 +36,10 @@ globalThis.ResizeObserver = class {
 // gets, so the connection lands even off the card it was aimed at.
 Element.prototype.setPointerCapture = () => {}
 Element.prototype.releasePointerCapture = () => {}
+
+// jsdom implements no part of the Popover API, and the enclose menu is one. A
+// pair of no-ops is the whole of what a stub can honestly be: everything the
+// attribute buys — Escape, the press outside, the top layer — is the platform's
+// own, so a fake could only ever agree with itself about it.
+HTMLElement.prototype.showPopover = () => {}
+HTMLElement.prototype.hidePopover = () => {}

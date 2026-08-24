@@ -27,7 +27,6 @@ export function ElementForm({ node, onClose }: { node?: ElementNodeType; onClose
       subject={{
         id: node.id,
         accent: level.accent,
-        ink: level.ink,
         // The same band the card wears, in the same pigment.
         band: (
           <>

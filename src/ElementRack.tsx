@@ -4,28 +4,20 @@ import { MARKS } from './catalog/marks'
 import { setDraggedType } from './dragAndDrop'
 import { CATEGORIES, type Category } from './fields'
 
-// The astrolabe. Brand chrome, not an element — it never appears on a node.
-function BrandMark() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.3}
-      strokeLinecap="square"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="9.2" />
-      <path d="M12 2.8 21.2 12 12 21.2 2.8 12Z" />
-      <path d="M2.8 12h18.4" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
-    </svg>
-  )
-}
+// The astrolabe. Brand chrome, not an element — it never appears on a node,
+// but it is drawn on the sigil grid like everything else, so <Sigil> carries it.
+const BRAND = (
+  <>
+    <circle cx="12" cy="12" r="9.2" />
+    <path d="M12 2.8 21.2 12 12 21.2 2.8 12Z" />
+    <path d="M2.8 12h18.4" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+  </>
+)
 
 // A shelf with nothing on it is not a shelf. Boundaries & Zones never gets one
 // — every type on that shelf is a frame, and a frame is drawn by right-click,
-// not dragged — and Deployment gets its tab once its own mechanics land.
+// not dragged. Deployment keeps its tab for the two rows on it that are cards.
 const SHELVES = CATEGORIES.filter((category) => PALETTE.some(([, t]) => t.category === category))
 
 /**
@@ -54,7 +46,7 @@ export function ElementRack() {
   return (
     <aside className="rack" onKeyDown={(e) => e.key === 'Escape' && setShelf(null)}>
       <header className="rack-bar">
-        <BrandMark />
+        <Sigil paths={BRAND} />
         <span className="rack-name">Archmage</span>
         <nav className="rack-tabs">
           {SHELVES.map((category) => {
@@ -88,7 +80,7 @@ export function ElementRack() {
             <li
               key={key}
               className="fplate"
-              style={{ '--accent': LEVELS[t.level].accent, '--accent-ink': LEVELS[t.level].ink }}
+              style={{ '--accent': LEVELS[t.level].accent }}
               draggable
               onDragStart={(e) => setDraggedType(e.dataTransfer, key)}
               // The shelf served its drag; the board is what you look at now.

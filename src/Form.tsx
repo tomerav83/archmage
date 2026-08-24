@@ -13,8 +13,7 @@ import { TechPick } from './TechPick'
 // so that is all this carries, and everything below it is written once.
 export type Sheet = {
   id: string // what mounts a fresh control when the rail moves on
-  accent: string // band tint
-  ink: string // the same pigment, lifted for 8px type
+  accent: string // band tint; index.css lifts it for 8px type
   band: ReactNode // what the band says, sigil and all
   fields: Field[]
   data: Partial<Record<FieldKey, string>>
@@ -75,7 +74,7 @@ export function Form({ subject, onClose }: { subject?: Sheet; onClose: () => voi
     <aside
       className="form"
       data-open={open ? true : undefined}
-      style={{ '--accent': shown.accent, '--accent-ink': shown.ink }}
+      style={{ '--accent': shown.accent }}
     >
       <div className="form-band">
         {shown.band}

@@ -23,35 +23,35 @@ export function Enclose({
 }) {
   const menu = useRef<HTMLDivElement>(null)
 
-  // Escape, or the next press anywhere but in it. The press that opened it was
-  // the right-click, which is already over by the time this listens.
+  // A popover: Escape, the next press elsewhere and standing over the board
+  // are all the platform's. Shown from here because the opener is a
+  // right-click, not a button popoverTarget could name — and the first row
+  // takes the caret only once it is open, since focus cannot land on a
+  // popover that is still shut.
   useEffect(() => {
-    if (!at) return
-    const key = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    const press = (e: PointerEvent) => {
-      if (!menu.current?.contains(e.target as Node)) onClose()
-    }
-    document.addEventListener('keydown', key)
-    document.addEventListener('pointerdown', press)
-    return () => {
-      document.removeEventListener('keydown', key)
-      document.removeEventListener('pointerdown', press)
-    }
-  }, [at, onClose])
+    const el = menu.current
+    if (!el) return
+    el.showPopover()
+    el.querySelector('button')?.focus()
+  }, [at])
 
   if (!at) return null
 
   return (
-    <div ref={menu} className="menu" style={{ left: at.x, top: at.y }}>
+    <div
+      ref={menu}
+      popover="auto"
+      className="menu"
+      style={{ left: at.x, top: at.y }}
+      // Light-dismissed by the platform, so the board is told it has gone.
+      onToggle={(e) => e.newState === 'closed' && onClose()}
+    >
       <div className="menu-title">{title}</div>
-      {FRAMES.map(([key, type], i) => (
+      {FRAMES.map(([key, type]) => (
         <button
           key={key}
           type="button"
-          // The first row takes the caret as the menu mounts, the way an open
-          // field does in the rail: the right-click is the only press it costs.
-          ref={i === 0 ? (el) => el?.focus() : undefined}
-          style={{ '--accent-ink': LEVELS[type.level].ink }}
+          style={{ '--accent': LEVELS[type.level].accent }}
           onClick={() => onPick(key)}
         >
           <Sigil paths={type.sigil} />

@@ -24,7 +24,6 @@ export function RelationshipForm({
       subject={{
         id: edge.id,
         accent: 'var(--brass)',
-        ink: 'var(--brass-lit)',
         band: <span>Relationship · {data.interaction ?? 'Sync'}</span>,
         fields: RELATIONSHIP,
         data,

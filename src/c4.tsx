@@ -20,8 +20,7 @@ import type { Category } from './fields'
 
 type Level = {
   title: string
-  accent: string // stripe and band tint
-  ink: string // the same pigment, lifted for 8px type on a dark card
+  accent: string // stripe and band tint; index.css lifts it for 8px type
 }
 
 // The zoom, and the only thing carrying pigment: a colour per type would be
@@ -30,10 +29,10 @@ type Level = {
 // Four levels and four pigments, and violet is the last of them: the only hue
 // left once context has blue, container teal and component amber.
 export const LEVELS = {
-  context: { title: 'Context', accent: '#4a7fc1', ink: '#6f9fd8' },
-  container: { title: 'Container', accent: '#3f9e8c', ink: '#56bda9' },
-  component: { title: 'Component', accent: '#cf9b3c', ink: '#e0b358' },
-  deployment: { title: 'Deployment', accent: '#8878c4', ink: '#a394e0' },
+  context: { title: 'Context', accent: '#4a7fc1' },
+  container: { title: 'Container', accent: '#3f9e8c' },
+  component: { title: 'Component', accent: '#cf9b3c' },
+  deployment: { title: 'Deployment', accent: '#8878c4' },
 } satisfies Record<string, Level>
 
 export type LevelKey = keyof typeof LEVELS
