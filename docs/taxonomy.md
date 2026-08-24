@@ -214,7 +214,7 @@ These contain other elements. A new mechanic, not a new sigil.
 
 ## The stack
 
-Seventeen branches, each on the one above, each a pull request.
+Nineteen branches, each on the one above, each a pull request.
 
 ### Phase A — foundations
 
@@ -332,28 +332,61 @@ Touches a new `catalog/tech.ts` and `TechPick.tsx`, `technology.tsx`,
 
 ### Phase D — nesting
 
-**15. `feature/boundaries`**
-React Flow parent nodes. Drop an element inside a boundary and it reparents,
-moves with it and clips to it. Enterprise, system, container, domain, trust
-zone, team. Phases B and C were tables and paint; this is real interaction
-work.
-Done when a container dropped into a system boundary moves with it and clips to
-it.
-Touches a new `BoundaryNode.tsx`, `DiagramCanvas.tsx`.
+Twelve types are not boxes on the board but the board under other boxes, and
+they are the last thing in the stack that is interaction work rather than a
+table. React Flow's `parentId` carries the whole of it: a child's position goes
+parent-relative, `extent: 'parent'` clips, and depth sorts out z on its own.
+What it does not carry is the reparenting — nothing adopts anything by itself —
+so the two branches that matter here are the frame and the mechanic, and the
+two after them are tables riding on it. See [nesting.md](nesting.md).
 
-**16. `feature/deployment-view`**
-Deployment environments, regions, clusters, compute nodes, infrastructure nodes,
-and instance-of references. A deployment node is a nestable boundary, so this
-rides on the branch above instead of reinventing it.
-Done when a container instance can be placed inside a cluster inside a region.
-Touches `c4.tsx`, `BoundaryNode.tsx`.
+**15. `feature/boundaries`**
+The frame itself. Enterprise, system, container, domain, trust zone, team — a
+band, a floor and a `NodeResizer`, with no subtitle, no handles and no ward. A
+`frame` flag on the registry line says which types render this way; node data
+is the element's, so the rail edits a boundary off the same table it edits
+everything else.
+Done when a System Boundary lands on the board, takes a name from the rail and
+resizes.
+Touches a new `catalog/boundaries.tsx` and `BoundaryNode.tsx`, `c4.tsx`,
+`ElementNode.tsx`, `DiagramCanvas.tsx`, `index.css`.
+
+**16. `feature/nesting`**
+The mechanic. Drag an element into a frame and it reparents, moves with it and
+clips to it; drag it clear and it un-nests; drop from the rack lands in the
+frame under the cursor. The hit test, the rebased position and the
+parents-before-children sort are one pure module, which is also where the tests
+go. It carries one fix with it: `faces()` reads `position`, which stops meaning
+board coordinates the moment anything is nested.
+Done when a container dragged into a system boundary moves with it and clips to
+it, and an edge out of that container still leaves the right flank.
+Touches a new `nesting.ts`, `DiagramCanvas.tsx`.
+
+**17. `feature/deployment-view`**
+The fourth and last level, and the twelfth shelf: environments, regions,
+clusters and compute nodes are frames, infrastructure nodes and instances are
+cards. `LEVELS` takes its fourth pigment, `tech.ts` takes twelve lines, and WAF
+/ Firewall and Trust Zone move to the level the catalogue always gave them.
+Nesting is inherited, not reinvented.
+Done when a compute node sits in a cluster sits in a region.
+Touches a new `catalog/deployment.tsx`, `c4.tsx`, `catalog/tech.ts`,
+`catalog/edge.tsx`.
+
+**18. `feature/instance-of`**
+The one reference the model gains: an Instance says which container it is. The
+first field whose options are the board rather than the registry, stamped in
+`ElementForm` the way the technology shortlist is stamped by type. It stores
+the name, so every field on a node is still a string.
+Done when an Instance in a cluster offers the containers on the board and takes
+one.
+Touches `fields.ts`, `ElementForm.tsx`.
 
 ### Phase E — persistence
 
-**17. `feature/persistence`**
+**19. `feature/persistence`**
 Save to localStorage, import and export JSON. Last, because it is the only
 branch that has to know the whole schema and nesting is what finishes it:
-boundaries give a node a parent and the deployment view gives it an instance-of,
+nesting gives a node a parent and the deployment branches give it an instance-of,
 and a file format written before those is a file format migrated after them.
 Everything between here and Phase A only adds values to a string union or
 paint the file never carries.

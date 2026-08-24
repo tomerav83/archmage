@@ -3,6 +3,7 @@ import { ACTORS } from './catalog/actors'
 import { ANALYTICS } from './catalog/analytics'
 import { APIS } from './catalog/apis'
 import { APPLICATIONS } from './catalog/applications'
+import { BOUNDARIES } from './catalog/boundaries'
 import { CACHING } from './catalog/caching'
 import { DATA_STORES } from './catalog/data-stores'
 import { EDGE } from './catalog/edge'
@@ -41,6 +42,11 @@ export type ElementType = {
   level: LevelKey // the level this type is legal at
   category: Category // which fields it carries — see fields.ts
   sigil: ReactNode // paths only — the <svg> chrome lives in <Sigil>
+  // This type holds other elements: it draws as a frame rather than a card and
+  // adopts what is dropped in it. On the type, not the category, because
+  // Deployment & Infrastructure is half frames and half cards — a cluster holds
+  // things, an instance does not. See docs/nesting.md.
+  frame?: true
 }
 
 // To add an element type: add a line to its shelf. To add a shelf: a file
@@ -56,6 +62,7 @@ export const TYPES = {
   ...PLATFORM,
   ...OBSERVABILITY,
   ...ANALYTICS,
+  ...BOUNDARIES,
 }
 
 export type TypeKey = keyof typeof TYPES

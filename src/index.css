@@ -63,6 +63,8 @@ body {
   --xy-edge-stroke: #838b90;
   /* selection is brass, same as a node's registration marks */
   --xy-edge-stroke-selected: var(--brass-lit);
+  /* a frame's grips and the line between them — the only handles on the board */
+  --xy-resize-background-color: var(--brass-lit);
 }
 
 .react-flow__edge.selected .react-flow__edge-path {
@@ -372,6 +374,36 @@ body {
   flex: none;
   width: 12px;
   height: 12px;
+}
+
+/* A boundary is not a card, it is the ground the cards stand on: it fills the
+   box React Flow sizes for it, and it is drawn dashed the way every C4 tool has
+   drawn one since the first sketch. Band and name are the card's own, so a
+   frame is the same instrument read at another scale. */
+.c4-frame {
+  width: 100%;
+  height: 100%;
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 3px;
+}
+
+/* The band rules off a card's body; a frame has no body to rule off, so it
+   keeps the engraving and gives back the tint and the hairline. */
+.c4-frame .c4-band {
+  padding: 7px 10px 1px;
+  background: none;
+  border-bottom: 0;
+}
+
+.c4-frame .c4-name {
+  padding: 0 10px;
+}
+
+/* A frame is already dashed, which is where a card says Planned — so it says
+   only the other one. */
+.c4-frame[data-status='Deprecated'] {
+  opacity: 0.55;
 }
 
 /* Status is the one catalogue field that shows on the board. A status that
