@@ -2,11 +2,6 @@ import { shelf } from './shelf'
 
 // Messaging & Streaming. C4-PlantUML has one Queue stereotype for all of this,
 // which is why every async system it draws looks the same.
-//
-// A dead-letter queue stood here and is gone: it is an SQS queue, a Pub/Sub
-// topic or a Kafka topic that happens to be on the receiving end of a
-// dead-lettering line, and Kafka has no such thing at all. What made it a DLQ
-// was always the edge. See docs/roles.md.
 export const MESSAGING = shelf('Messaging & Streaming', {
   'message-queue': {
     title: 'Message Queue',
