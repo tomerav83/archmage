@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { type InternalNode, ReactFlowProvider } from '@xyflow/react'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { TypeKey } from './c4'
 import { DiagramCanvas, faces } from './DiagramCanvas'
 import { setDraggedType } from './dragAndDrop'
 
@@ -49,7 +50,7 @@ describe('which faces an edge joins', () => {
 
 // Enough DataTransfer for the two calls a drop makes — jsdom's own is
 // read-only, and fireEvent will not mint one.
-const carrying = (key?: 'container') => {
+const carrying = (key?: TypeKey) => {
   const held = new Map<string, string>()
   const dt = {
     effectAllowed: '',
@@ -104,10 +105,13 @@ describe('a boundary made on empty ground', () => {
   })
 })
 
+// A person has no moves of its own, so a right-click on one falls through to
+// the frames — which is the gesture under test here. A card that does carry
+// moves answers the same right-click with them instead; see the actions menu.
 describe('enclosing what is already on the board', () => {
   it('draws the frame around the selection and takes it in', () => {
     const pane = board()
-    drop(pane, carrying('container'))
+    drop(pane, carrying('person'))
     fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
       clientX: 100,
       clientY: 100,
@@ -121,7 +125,7 @@ describe('enclosing what is already on the board', () => {
     // A frame carries no ward of its own, so as far as an open one is
     // concerned it is ground, and it covers too much of the board not to say so.
     const pane = board()
-    drop(pane, carrying('container'))
+    drop(pane, carrying('person'))
     fireEvent.click(document.querySelector('.react-flow__node') as Element)
 
     fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
@@ -131,5 +135,37 @@ describe('enclosing what is already on the board', () => {
     fireEvent.click(screen.getByText('System Boundary'))
     fireEvent.click(document.querySelector('.react-flow__node') as Element)
     expect(document.querySelector('.c4-frame')).toBeTruthy()
+  })
+})
+
+// The other right-click. actions.test.ts asks what a move does to the board;
+// this asks only that the gesture reaches it, and that the line arrives said.
+describe('a quick action', () => {
+  it('drops the element it names and draws the line, in one press and pick', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Add cache'))
+
+    expect(document.querySelectorAll('.c4-node')).toHaveLength(2)
+    expect(screen.getByText('Distributed Cache')).toBeTruthy()
+    expect(screen.getByText('reads through')).toBeTruthy()
+  })
+
+  // The move names its own element, so there is nothing to fill in — the panel
+  // opens on a double-click, for the times you disagree.
+  it('does not open the panel', () => {
+    const pane = board()
+    drop(pane, carrying('container'))
+    fireEvent.click(screen.getByLabelText('Close'))
+    fireEvent.contextMenu(document.querySelector('.react-flow__node') as Element, {
+      clientX: 100,
+      clientY: 100,
+    })
+    fireEvent.click(screen.getByText('Add cache'))
+    expect(document.querySelector('.form[data-open]')).toBeNull()
   })
 })

@@ -14,13 +14,14 @@ import {
   useReactFlow,
   type XYPosition,
 } from '@xyflow/react'
-import { type DragEvent, type MouseEvent, useCallback, useMemo, useState } from 'react'
+import { type DragEvent, useCallback, useMemo, useState } from 'react'
+import { type Action, actionsFor, attach } from './actions'
 import { BoundaryNode } from './BoundaryNode'
 import { TYPES, type TypeKey } from './c4'
 import { readDraggedType } from './dragAndDrop'
 import { ElementForm } from './ElementForm'
 import { ElementNode, type ElementNodeType } from './ElementNode'
-import { Enclose } from './Enclose'
+import { Actions, Enclose } from './Menu'
 import { enclose, frameAround, frameAt, frameFrom, nest, reparent } from './nesting'
 import { RelationshipEdge, type RelationshipEdgeType } from './RelationshipEdge'
 import { RelationshipForm } from './RelationshipForm'
@@ -75,10 +76,12 @@ export function DiagramCanvas() {
   const [menu, setMenu] = useState<
     ({ x: number; y: number } & ({ ids: string[] } | { anchor: XYPosition })) | null
   >(null)
-  const summon = (e: MouseEvent, ids: string[]) => {
-    e.preventDefault()
-    setMenu({ x: e.clientX, y: e.clientY, ids })
-  }
+  // The other right-click, and the other menu: one card, and what can be done
+  // to it. Its own state, because it answers a different gesture with a
+  // different list — the two share the point they stand at and nothing else.
+  const [acting, setActing] = useState<{ x: number; y: number; subject: ElementNodeType } | null>(
+    null,
+  )
 
   const ward = useMemo(
     () => ({
@@ -124,6 +127,32 @@ export function DiagramCanvas() {
     })
     // The frame you have just made is the one you want to name.
     setEditing(id)
+  }
+
+  // The move. It names its own element off the table and the type it dropped,
+  // and the line arrives described, so nothing here opens the panel.
+  const act = (action: Action) => {
+    // Non-null for the same reason a pick is: the menu only stands while there
+    // is a subject under it.
+    const { subject } = acting as NonNullable<typeof acting>
+    setActing(null)
+    const id = crypto.randomUUID()
+    setNodes((nds) => attach(nds, subject, action, id))
+    // Right of the subject by construction, so the faces are known without
+    // waiting for the board to measure a card it has not drawn yet.
+    setEdges((eds) =>
+      addEdge(
+        {
+          id: crypto.randomUUID(),
+          source: subject.id,
+          target: id,
+          sourceHandle: 'r',
+          targetHandle: 'l',
+          data: { label: action.label, interaction: action.interaction },
+        },
+        eds,
+      ),
+    )
   }
 
   const onDragOver = (e: DragEvent) => {
@@ -193,16 +222,22 @@ export function DiagramCanvas() {
             ),
           )
         }
-        // The gesture: select, right-click, say what they add up to. Right-click
-        // one node for the same menu over one thing, and empty ground for an
-        // empty frame to fill.
-        onNodeContextMenu={(e, node) => summon(e, [node.id])}
-        onSelectionContextMenu={(e, nodes) =>
-          summon(
-            e,
-            nodes.map((n) => n.id),
-          )
-        }
+        // The gesture: select, right-click, say what they add up to. Empty
+        // ground gets an empty frame to fill instead.
+        //
+        // One card is the other question — not what it adds up to but what to
+        // do to it — so it gets the other menu, and falls back to the frames
+        // where its type has no moves of its own.
+        onNodeContextMenu={(e, node) => {
+          e.preventDefault()
+          const at = { x: e.clientX, y: e.clientY }
+          if (actionsFor(node.data.type).length) setActing({ ...at, subject: node })
+          else setMenu({ ...at, ids: [node.id] })
+        }}
+        onSelectionContextMenu={(e, nodes) => {
+          e.preventDefault()
+          setMenu({ x: e.clientX, y: e.clientY, ids: nodes.map((n) => n.id) })
+        }}
         onPaneContextMenu={(e) => {
           e.preventDefault()
           setMenu({
@@ -238,6 +273,9 @@ export function DiagramCanvas() {
         onPick={pick}
         onClose={() => setMenu(null)}
       />
+      {acting && (
+        <Actions at={acting} subject={acting.subject} onAct={act} onClose={() => setActing(null)} />
+      )}
       <ElementForm node={nodes.find((n) => n.id === editing)} onClose={close} />
       <RelationshipForm edge={edges.find((e) => e.id === editing)} onClose={close} />
     </WardContext.Provider>
