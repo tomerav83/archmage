@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Enclose } from './Enclose'
+import type { ElementNodeType } from './ElementNode'
+import { Actions, Enclose } from './Menu'
 
 afterEach(cleanup)
 
@@ -57,5 +58,30 @@ describe('the enclose menu', () => {
   it('says what it is for, so the same picker reads differently empty-handed', () => {
     render(<Enclose at={{ x: 0, y: 0 }} title="New Boundary" onPick={vi.fn()} onClose={vi.fn()} />)
     expect(screen.getByText('New Boundary')).toBeTruthy()
+  })
+})
+
+const subject = {
+  id: 'a',
+  type: 'element',
+  position: { x: 0, y: 0 },
+  data: { type: 'container', label: 'Orders Service' },
+} as ElementNodeType
+
+describe('the actions menu', () => {
+  it('offers the moves the type carries, and nothing else', () => {
+    render(<Actions at={{ x: 40, y: 40 }} subject={subject} onAct={vi.fn()} onClose={vi.fn()} />)
+    expect(screen.getByText('Add cache')).toBeTruthy()
+    expect(screen.queryByText('Add read replica')).toBeNull()
+    // The other menu's half. This one does not enclose anything.
+    expect(screen.queryByText('System Boundary')).toBeNull()
+  })
+
+  it('stands over the card it was opened on, and hands back the move', () => {
+    const onAct = vi.fn()
+    render(<Actions at={{ x: 40, y: 40 }} subject={subject} onAct={onAct} onClose={vi.fn()} />)
+    expect(screen.getByText('Orders Service')).toBeTruthy()
+    fireEvent.click(screen.getByText('Add cache'))
+    expect(onAct).toHaveBeenCalledWith(expect.objectContaining({ type: 'distributed-cache' }))
   })
 })
