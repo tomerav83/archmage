@@ -143,10 +143,16 @@ and a uniform fact drawn N times is N lines of nothing.
 
 ## The pull requests
 
-Eight, small, in this order. The first two correct; nothing new is built until
-the ground under it is true.
+Nine, small, in this order. The first three delete or correct; nothing new is
+built until the ground under it is true.
 
-**1 — `tech.ts` corrections.** Pure data, no code. The systematic class first:
+**1 — Delete `read-replica` and `dead-letter-queue`.** Two types, their two
+`TECH` lines, their sigils. Nothing depends on them: the quick-actions table is
+unreleased and the types have never been drawable from the rack in a way anybody
+has a board full of. A type without a `TECH` line is already a compile error, so
+the deletions travel together. *≈-50 lines.*
+
+**2 — `tech.ts` corrections.** Pure data, no code. The systematic class first:
 protocols, formats and frameworks filed as products — `MQTT`, `ONNX`,
 `TensorFlow` under inference-endpoint, `OpenTelemetry` under tracing-backend,
 `Grafana` under metrics-store, `Kubernetes` under compute-node *and* instance,
@@ -157,33 +163,33 @@ takes Redis, Memcached, Valkey and Hazelcast. Then `event-bus` stripped to
 EventBridge, Event Grid and RabbitMQ topic exchange, which is what makes it a
 type again.
 
-**2 — Say which way an arrow means.** One sentence in
+**3 — Say which way an arrow means.** One sentence in
 [taxonomy.md](./taxonomy.md): the arrow is **data flow**, uniformly. With a
 polled consumer — SQS, Kafka, Kinesis, Pub/Sub pull — who calls and where data
 goes point opposite ways, and without this stated a person and a quick action
 will draw the same Kafka consumer in opposite directions. `fields.ts` already
 assumes it in its own hint; nothing else says it.
 
-**3 — `roles.ts`.** The table above, one line per type beside the `TECH` line it
+**4 — `roles.ts`.** The table above, one line per type beside the `TECH` line it
 already has, `satisfies Record<TypeKey, Role[]>` so a new type without roles does
 not compile. Data and a type, no behaviour. Its tests are the interesting part:
 no type carries both `interposes` and `answers-lookup`; every `has-replica-endpoint`
 type has a technology in list A; `in-process` and `ambient` types have no
 outbound rows anywhere. *≈100 lines, most of them one word wide.*
 
-**4 — The technology-conditional half.** `has-replica-endpoint`,
+**5 — The technology-conditional half.** `has-replica-endpoint`,
 `emits-change-events` and `scrapes` resolved from `(type, technology)` — the A/B/C
 list and the pull/push map, as data, keyed the way `TECH` is keyed. This is the
 PR that answers the Cassandra question, and after it the answer is a lookup
 rather than an argument.
 
-**5 — Levels.** Ten of sixteen Edge & Platform types are declared at a level C4
+**6 — Levels.** Ten of sixteen Edge & Platform types are declared at a level C4
 does not put them at, and the load balancer is the flagship: C4 puts it in the
 deployment view, which is the argument [edge.tsx](../src/catalog/edge.tsx)'s own
 header already makes about the WAF. Level is the only pigment on a card, so this
 one is visible and wants to ship alone.
 
-**6 — The three missing types.** `telemetry-collector` — OTel Collector, Vector,
+**7 — The three missing types.** `telemetry-collector` — OTel Collector, Vector,
 Fluent Bit, Datadog Agent have nowhere to go today, which forces every
 agent-based architecture to draw a false edge, and it is exactly the node that
 makes *Instrument* cost three edges instead of N. Then a schema registry, which
@@ -191,12 +197,12 @@ makes *Instrument* cost three edges instead of N. Then a schema registry, which
 — Glue, Nessie, Polaris, Unity — which is the only part of a data lake that
 serves a request.
 
-**7 — Scope, and what may hold what.** The containment axis above, and the
+**8 — Scope, and what may hold what.** The containment axis above, and the
 matrix it generates. A Trust Zone may not hold a Region; a Domain holds no
 physical frame at all; `region` nests in `region`, which is how an availability
 zone gets drawn without a type of its own.
 
-**8 — Re-cut `actions.ts` on the roles.** Only now. Every row states the roles
+**9 — Re-cut `actions.ts` on the roles.** Only now. Every row states the roles
 it needs at each end, `front` reads an ordinal, `attach` gains a `feed`
 direction for the types whose defining relationship is inbound, and *Add search
 index* mints the two nodes the pipeline actually has instead of an arrow Postgres
@@ -213,7 +219,7 @@ list already uses when it declines to offer a browser a database.
   more per type added. It would be filled `true` to stop the tool complaining,
   which is how validation dies.
 - **No role the menu does not read.** Every tag above is cited by a row in step
-  8. When one stops being cited, it goes.
+  9. When one stops being cited, it goes.
 - **No ontology.** Roles answer one question — *should the tool volunteer this?*
   — and they are wrong for anything else. Whether a Cassandra-to-Redis line is
   legitimate stays the architect's to answer.
