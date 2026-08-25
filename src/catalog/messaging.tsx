@@ -1,8 +1,12 @@
 import { shelf } from './shelf'
 
 // Messaging & Streaming. C4-PlantUML has one Queue stereotype for all of this,
-// which is why every async system it draws looks the same. The envelope is the
-// message and the flap is what tells it from the dead letter beneath it.
+// which is why every async system it draws looks the same.
+//
+// A dead-letter queue stood here and is gone: it is an SQS queue, a Pub/Sub
+// topic or a Kafka topic that happens to be on the receiving end of a
+// dead-lettering line, and Kafka has no such thing at all. What made it a DLQ
+// was always the edge. See docs/roles.md.
 export const MESSAGING = shelf('Messaging & Streaming', {
   'message-queue': {
     title: 'Message Queue',
@@ -28,10 +32,6 @@ export const MESSAGING = shelf('Messaging & Streaming', {
   'task-queue': {
     title: 'Task Queue',
     sigil: <path d="M4.6 4.6h14.8v14.8H4.6ZM8.4 12l2.8 2.8L16 9" />,
-  },
-  'dead-letter-queue': {
-    title: 'Dead-Letter Queue',
-    sigil: <path d="M3.4 6.4h17.2v11.2H3.4ZM8.4 9.4l7.2 5.2M15.6 9.4l-7.2 5.2" />,
   },
   'change-data-capture': {
     title: 'Change Data Capture',

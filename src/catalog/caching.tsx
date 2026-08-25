@@ -1,7 +1,12 @@
 import { shelf } from './shelf'
 
 // Caching. A copy kept nearer than the thing it copies, so the marks stay
-// close too: chip, chips, screen, and the drum reading off a leader.
+// close too: chip, chips, and screen.
+//
+// A read replica is a copy too, and it stood here until it turned out not to be
+// a kind of thing at all — a Postgres replica is a Relational Database, and
+// Cassandra's copies are inside the ring where no arrow reaches them. See
+// docs/roles.md.
 export const CACHING = shelf('Caching', {
   'memory-cache': {
     title: 'In-Memory Cache',
@@ -16,15 +21,5 @@ export const CACHING = shelf('Caching', {
   'client-cache': {
     title: 'Client Cache',
     sigil: <path d="M3.4 4.6h17.2v11.2H3.4ZM12 15.8v4.4M8.8 20.2h6.4" />,
-  },
-  'read-replica': {
-    title: 'Read Replica',
-    sigil: (
-      <>
-        <ellipse cx="8.2" cy="6.2" rx="4.8" ry="2.4" />
-        <path d="M3.4 6.2v9.6c0 1.33 2.15 2.4 4.8 2.4s4.8-1.07 4.8-2.4V6.2" />
-        <path d="M15.6 12h5M18 9.6l2.6 2.4-2.6 2.4" />
-      </>
-    ),
   },
 })

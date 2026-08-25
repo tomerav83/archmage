@@ -157,7 +157,6 @@ export const TECH: Record<TypeKey, string[]> = {
     'Service Worker',
     'RTK Query',
   ],
-  'read-replica': ['PostgreSQL', 'MySQL', 'Amazon Aurora', 'MongoDB', 'Redis', 'MariaDB'],
 
   // Messaging & Streaming
   'message-queue': [
@@ -196,13 +195,6 @@ export const TECH: Record<TypeKey, string[]> = {
     'RabbitMQ',
   ],
   'task-queue': ['Celery', 'Sidekiq', 'BullMQ', 'Temporal', 'Resque', 'Hangfire', 'Apache Airflow'],
-  'dead-letter-queue': [
-    'Amazon SQS',
-    'RabbitMQ',
-    'Apache Kafka',
-    'Azure Service Bus',
-    'Google Pub/Sub',
-  ],
   'change-data-capture': [
     'Debezium',
     'Apache Kafka',

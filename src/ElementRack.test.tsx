@@ -55,12 +55,7 @@ describe('the rack', () => {
     expect(names(container)).toEqual([])
 
     fireEvent.click(tab('Cache'))
-    expect(names(container)).toEqual([
-      'In-Memory Cache',
-      'Distributed Cache',
-      'Client Cache',
-      'Read Replica',
-    ])
+    expect(names(container)).toEqual(['In-Memory Cache', 'Distributed Cache', 'Client Cache'])
 
     fireEvent.click(tab('Actors'))
     expect(names(container)).toContain('Person')
